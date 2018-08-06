@@ -1,0 +1,247 @@
+---
+title: "Initial Analysis"
+output:
+  workflowr::wflow_html:
+    toc: false
+    code_folding: hide
+---
+
+
+```{r results='hide', message=FALSE, warning=FALSE}
+options(warn=-1)
+
+source('lib/functions.R')
+source('lib/get_data.R')
+
+library(tsibble)
+library(lubridate)
+library(sp)
+library(tidyquant)
+
+read.csv('data/EveningMasterFullAnonym.csv') %>% 
+  as.tibble %>% 
+{ . } -> df_all
+
+my_db_read( 'select * from location_rr') %>% 
+  as.tibble() %>% 
+  { . } ->  df_location
+
+my_db_read( 'select * from passivelocation_rr') %>% 
+  as.tibble() %>% 
+  { . } ->  df_passive_location
+
+```
+
+# how clean is the gps data - Plan
+  * for each person / night, what is the range of distance between successive gps points
+  * what are the different attributes of gps data (passive/active, etc)
+
+# Data preperation
+## merge in passive location
+passive location is just as good as active location (but mostly duplicated, we will come to that later
+
+```{r merge}
+  
+df_location %<>% bind_rows( df_passive_location )
+
+```
+
+## data cleaning
+1) eliminate duplicates - many duplicate locations at a time stamp. Keep most accurate location at a time stamp
+2) many locations at north pole, markedly wrong.  Eliminate them.
+3) calculate interval between timestamps
+
+
+```{r  data_cleaning}
+
+df_location %>%
+  mutate( my_accuracy = ifelse( longitude >10 | latitude <40, 1, 0),
+         night = as.factor(night)) %>%
+  arrange( night, local_time, my_accuracy, accuracy ) %>%
+  mutate( id=row_number() ) %>%
+  group_by( night, local_time ) %>%
+  filter( id == min(id ) ) %>% 
+  filter( my_accuracy == 0 ) %>% 
+  select( -my_accuracy ) %>% 
+  ungroup() %>% 
+  group_by( night ) %>%
+  mutate( interval = difference( local_time, 1 )) %>% 
+  ungroup() %>% 
+  { . } -> df_best_location
+
+```
+
+# calculate distance 
+  - calculate distance between successive best guess locations
+  - calculate speed based on interval and distance, in m/sec 
+
+
+```{r distancej}
+
+calc_interval_distance = function( longitude, latitude ) {
+  c( longitude, latitude ) %>%
+    matrix( ncol = 2 ) %>%
+    spDists( segments=TRUE, longlat=TRUE) %>%
+    c(0,.)
+}
+
+ 
+calc_distance_from_start = function( longitude, latitude ) {
+  c( longitude, latitude ) %>%
+    matrix( ncol = 2 ) %>%
+    spDistsN1(., .[1,], longlat=TRUE) 
+}
+
+df_best_location %>% 
+  group_by( night ) %>%
+  mutate( dist = calc_interval_distance(longitude, latitude),
+         speed = dist/interval * 1000) %>%  # in m/sec
+  select( interval, dist, speed, accuracy, bearing, everything())  %>% 
+  { . } -> df_filtered_location
+
+```
+# Inaccurate GPS investigation
+Sometimes, the person 'moves' very quickly;  for example, many samples where speed > 100.  This has to be related to measurement issues
+
+GPS has problems.  There are several solutions
+  1. delete out of bounds measurements
+  1. average successive points (eg moving average)
+  1. use median of successive points (https://gis.stackexchange.com/a/245009/70843)
+  1. eliminate changes in location where accellerometer clearly states that the phone is not moving
+  1. Calculate Euclidean minimum spanning tree of points:
+  1. use a kalman filter, which would use more of teh  sensor data.  Difficult. Here is an impllementation for android (https://blog.maddevs.io/reduce-gps-data-error-on-android-with-kalman-filter-and-accelerometer-43594faed19c)
+
+For this initial work, I use the median 7 filter
+
+
+```{r dataFiltering}
+
+
+df_best_location %>%
+  group_by( userid, night ) %>%
+  mutate( 
+         latitude_median = rollapplyr( latitude, 7, median, partial = TRUE ),
+         longitude_median = rollapplyr( longitude, 7, median, partial = TRUE ),
+         dist_original = calc_interval_distance(longitude, latitude),
+         dist_cumul_original = calc_distance_from_start(latitude, longitude),
+         speed_original = dist_original/interval * 1000,   # in m/sec
+         dist_filtered = calc_interval_distance(latitude_median, longitude_median ),
+         dist_cumul_filtered = calc_distance_from_start(latitude_median, longitude_median ),
+         speed_filtered = dist_filtered/interval * 1000) %>%  # in m/sec
+  select( interval, dist_filtered, speed_filtered, accuracy, bearing, everything())  %>% 
+    { . } -> df_filtered_location
+
+
+
+```
+
+# Distance sanity checking
+## any points greater than 10km from previous point?
+
+```{r DistanceTesting}
+  
+df_filtered_location %>% filter( dist_original >10 ) %>% head(10) %>% kable()
+
+```
+
+# top 10 raw lat and long points
+
+```{r }
+
+df_filtered_location %>% ungroup() %>% count( longitude, latitude, sort=TRUE) %>% head(10) %>% kable()
+
+
+```
+
+# distance exploration
+
+```{r distance display}
+ggplot(df_filtered_location, aes( latitude )) + geom_histogram()
+ggplot(df_filtered_location, aes( longitude )) + geom_histogram()
+
+ggplot(df_filtered_location, aes( dist_original )) +
+ geom_histogram() +
+ scale_y_log10() +
+ xlab( 'range of original distances in km between successive points')
+
+
+ggplot(df_filtered_location, aes( speed_filtered )) +
+ geom_histogram() +
+ scale_y_log10() +
+ xlab('speed in m/sec between successive filtered points')
+
+ggplot(df_filtered_location, aes( y=speed_filtered, x=night )) +
+ geom_violin() + 
+ geom_boxplot(width=0.1)+
+ scale_y_log10() +
+ xlab('speed in m/sec') + 
+ ggtitle( 'Range of filtered speeds per night, log scale, outliers dropped')
+
+ 
+``` 
+
+# Demonstrations of cleaned and uncleaned data
+
+First, the number of points/ night Number with speed > 100 m/s
+
+```{r excess_speed }
+df_filtered_location %>% filter( speed_filtered > 100 ) %>% count()
+
+df_filtered_location %>% 
+  ggplot( ) + geom_line( aes( local_time, speed_original  )) +
+  facet_wrap( ~night , scales='free') +
+  ggtitle( "original intersample speed measurements" )
+
+
+df_filtered_location %>% 
+  ggplot( ) + geom_line( aes( local_time, dist_original  )) +
+  facet_wrap( ~night , scales='free') +
+  ggtitle( "original intersample distance measurements" )
+
+df_filtered_location %>% 
+  ggplot( ) + geom_line( aes( local_time, dist_cumul_original  )) +
+  facet_wrap( ~night , scales='free') +
+  ggtitle( "original cumulative distance measurements" )
+
+
+df_filtered_location %>% 
+  ggplot( ) + geom_line( aes( local_time, speed_filtered  )) +
+  facet_wrap( ~night , scales='free') +
+  ggtitle( "Filtered intersample speed measurements" )
+
+
+df_filtered_location %>% 
+  ggplot( ) + geom_line( aes( local_time, dist_filtered  )) +
+  facet_wrap( ~night , scales='free') +
+  ggtitle( "Filtered intersample distance measurements" )
+
+
+
+df_filtered_location %>% 
+  ggplot( ) + geom_line( aes( local_time, dist_cumul_filtered  )) +
+  facet_wrap( ~night , scales='free') +
+  ggtitle( "Filtered cumulative distance measurements" )
+
+```
+
+# Heterogeneous Time series exploration: to be continued
+
+```{r time_series}
+
+
+df_filtered_location %>%  
+  as.tsibble( key=id( userid, night), 
+             index=local_time, 
+             regular=FALSE
+             ) %>% 
+  { . } ->  ts_location
+
+
+```
+
+
+```{r end }
+
+options(warn=0)
+```
+

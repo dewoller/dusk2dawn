@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Initial Analysis</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.0.13/css/fa-svg-with-js.css" rel="stylesheet" />
+<script src="site_libs/font-awesome-5.0.13/js/fontawesome-all.min.js"></script>
+<script src="site_libs/font-awesome-5.0.13/js/fa-v4-shims.min.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">initialAnalysis</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Initial Analysis</h1>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2018-08-06</p>
+<strong>workflowr checks:</strong> <small>(Click a bullet for more information)</small>
+<ul>
+<li>
+<p><details> <summary> <strong style="color:red;">✖</strong> <strong>R Markdown file:</strong> uncommitted changes </summary> The R Markdown is untracked by Git. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Environment:</strong> empty </summary></p>
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Seed:</strong> <code>set.seed(20180727)</code> </summary></p>
+<p>The command <code>set.seed(20180727)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Session information:</strong> recorded </summary></p>
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</details>
+</li>
+<li>
+<p><details> <summary> <strong style="color:blue;">✔</strong> <strong>Repository version:</strong> addee5d </summary></p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+<pre><code>
+Ignored files:
+    Ignored:    data/ldr/
+    Ignored:    data/sql_load/
+    Ignored:    data/summary/
+    Ignored:    docs/figure/
+    Ignored:    explore/
+
+Untracked files:
+    Untracked:  analysis/initial.Rmd
+    Untracked:  csv2db.R
+    Untracked:  lib/
+    Untracked:  q
+
+Unstaged changes:
+    Modified:   .gitignore
+
+</code></pre>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes. </details>
+</li>
+</ul>
+<hr />
+<pre class="r"><code>source(&#39;lib/functions.R&#39;)
+source(&#39;lib/get_data.R&#39;)
+
+library(tsibble)
+library(lubridate)
+library(sp)
+library(tidyquant)
+
+read.csv(&#39;data/EveningMasterFullAnonym.csv&#39;) %&gt;% 
+  as.tibble %&gt;% 
+{ . } -&gt; df_all
+
+my_db_read( &#39;select * from location_rr&#39;) %&gt;% 
+  as.tibble() %&gt;% 
+  { . } -&gt;  df_location
+
+my_db_read( &#39;select * from passivelocation_rr&#39;) %&gt;% 
+  as.tibble() %&gt;% 
+  { . } -&gt;  df_passive_location</code></pre>
+<div id="how-clean-is-the-gps-data---plan" class="section level1">
+<h1>how clean is the gps data - Plan</h1>
+<ul>
+<li>for each person / night, what is the range of distance between successive gps points</li>
+<li>what are the different attributes of gps data (passive/active, etc)</li>
+</ul>
+</div>
+<div id="data-preperation" class="section level1">
+<h1>Data preperation</h1>
+<div id="merge-in-passive-location" class="section level2">
+<h2>merge in passive location</h2>
+<p>passive location is just as good as active location (but mostly duplicated, we will come to that later</p>
+<pre class="r"><code>df_location %&lt;&gt;% bind_rows( df_passive_location )</code></pre>
+</div>
+<div id="data-cleaning" class="section level2">
+<h2>data cleaning</h2>
+<ol style="list-style-type: decimal">
+<li>eliminate duplicates - many duplicate locations at a time stamp. Keep most accurate location at a time stamp</li>
+<li>many locations at north pole, markedly wrong. Eliminate them.</li>
+<li>calculate interval between timestamps</li>
+</ol>
+<pre class="r"><code>df_location %&gt;%
+  mutate( my_accuracy = ifelse( longitude &gt;10 | latitude &lt;40, 1, 0),
+         night = as.factor(night)) %&gt;%
+  arrange( night, local_time, my_accuracy, accuracy ) %&gt;%
+  mutate( id=row_number() ) %&gt;%
+  group_by( night, local_time ) %&gt;%
+  filter( id == min(id ) ) %&gt;% 
+  filter( my_accuracy == 0 ) %&gt;% 
+  select( -my_accuracy ) %&gt;% 
+  ungroup() %&gt;% 
+  group_by( night ) %&gt;%
+  mutate( interval = difference( local_time, 1 )) %&gt;% 
+  ungroup() %&gt;% 
+  { . } -&gt; df_best_location</code></pre>
+</div>
+</div>
+<div id="calculate-distance" class="section level1">
+<h1>calculate distance</h1>
+<ul>
+<li>calculate distance between successive best guess locations</li>
+<li>calculate speed based on interval and distance, in m/sec</li>
+</ul>
+<pre class="r"><code>calc_interval_distance = function( longitude, latitude ) {
+  c( longitude, latitude ) %&gt;%
+    matrix( ncol = 2 ) %&gt;%
+    spDists( segments=TRUE, longlat=TRUE) %&gt;%
+    c(0,.)
+}
+
+ 
+calc_distance_from_start = function( longitude, latitude ) {
+  c( longitude, latitude ) %&gt;%
+    matrix( ncol = 2 ) %&gt;%
+    spDistsN1(., .[1,], longlat=TRUE) 
+}
+
+df_best_location %&gt;% 
+  group_by( night ) %&gt;%
+  mutate( dist = calc_interval_distance(longitude, latitude),
+         speed = dist/interval * 1000) %&gt;%  # in m/sec
+  select( interval, dist, speed, accuracy, bearing, everything())  %&gt;% 
+  { . } -&gt; df_filtered_location</code></pre>
+</div>
+<div id="inaccurate-gps-investigation" class="section level1">
+<h1>Inaccurate GPS investigation</h1>
+<p>Sometimes, the person ‘moves’ very quickly; for example, many samples where speed &gt; 100. This has to be related to measurement issues</p>
+<p>GPS has problems. There are several solutions 1. delete out of bounds measurements 1. average successive points (eg moving average) 1. use median of successive points (<a href="https://gis.stackexchange.com/a/245009/70843" class="uri">https://gis.stackexchange.com/a/245009/70843</a>) 1. eliminate changes in location where accellerometer clearly states that the phone is not moving 1. Calculate Euclidean minimum spanning tree of points: 1. use a kalman filter, which would use more of teh sensor data. Difficult. Here is an impllementation for android (<a href="https://blog.maddevs.io/reduce-gps-data-error-on-android-with-kalman-filter-and-accelerometer-43594faed19c" class="uri">https://blog.maddevs.io/reduce-gps-data-error-on-android-with-kalman-filter-and-accelerometer-43594faed19c</a>)</p>
+<p>For this initial work, I use the median 7 filter</p>
+<pre class="r"><code>df_best_location %&gt;%
+  group_by( userid, night ) %&gt;%
+  mutate( 
+         latitude_median = rollapplyr( latitude, 7, median, partial = TRUE ),
+         longitude_median = rollapplyr( longitude, 7, median, partial = TRUE ),
+         dist_original = calc_interval_distance(longitude, latitude),
+         dist_cumul_original = calc_distance_from_start(latitude, longitude),
+         speed_original = dist_original/interval * 1000,   # in m/sec
+         dist_filtered = calc_interval_distance(latitude_median, longitude_median ),
+         dist_cumul_filtered = calc_distance_from_start(latitude_median, longitude_median ),
+         speed_filtered = dist_filtered/interval * 1000) %&gt;%  # in m/sec
+  select( interval, dist_filtered, speed_filtered, accuracy, bearing, everything())  %&gt;% 
+    { . } -&gt; df_filtered_location</code></pre>
+</div>
+<div id="distance-sanity-checking" class="section level1">
+<h1>Distance sanity checking</h1>
+<pre class="r"><code>df_filtered_location %&gt;% filter( dist_original &gt;10 ) %&gt;% head(10) %&gt;% kable()</code></pre>
+<p>interval dist_filtered speed_filtered accuracy bearing userid night time_stamp timezone source latitude longitude speed provider local_time id latitude_median longitude_median dist_original dist_cumul_original speed_original dist_cumul_filtered ——— ————– ————— ——— ——– ——- —— ———– ——— ——- ——— ———- —— ——— ———– — —————- —————– ————– ——————– ————— ——————–</p>
+</div>
+<div id="top-10-raw-lat-and-long-points" class="section level1">
+<h1>top 10 raw lat and long points</h1>
+<pre class="r"><code>df_filtered_location %&gt;% ungroup() %&gt;% count( longitude, latitude, sort=TRUE) %&gt;% head(10) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">longitude</th>
+<th align="right">latitude</th>
+<th align="right">n</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">6.641538</td>
+<td align="right">46.58672</td>
+<td align="right">100</td>
+</tr>
+<tr class="even">
+<td align="right">6.641790</td>
+<td align="right">46.58663</td>
+<td align="right">66</td>
+</tr>
+<tr class="odd">
+<td align="right">6.626204</td>
+<td align="right">46.52211</td>
+<td align="right">55</td>
+</tr>
+<tr class="even">
+<td align="right">6.644990</td>
+<td align="right">46.58474</td>
+<td align="right">19</td>
+</tr>
+<tr class="odd">
+<td align="right">6.644990</td>
+<td align="right">46.58474</td>
+<td align="right">19</td>
+</tr>
+<tr class="even">
+<td align="right">6.644990</td>
+<td align="right">46.58474</td>
+<td align="right">19</td>
+</tr>
+<tr class="odd">
+<td align="right">6.630602</td>
+<td align="right">46.55331</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="right">6.641412</td>
+<td align="right">46.58676</td>
+<td align="right">14</td>
+</tr>
+<tr class="odd">
+<td align="right">6.644871</td>
+<td align="right">46.58474</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="right">6.658875</td>
+<td align="right">46.59766</td>
+<td align="right">14</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="distance-exploration" class="section level1">
+<h1>distance exploration</h1>
+<pre class="r"><code>ggplot(df_filtered_location, aes( latitude )) + geom_histogram()</code></pre>
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="figure/initial.Rmd/distance%20display-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(df_filtered_location, aes( longitude )) + geom_histogram()</code></pre>
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="figure/initial.Rmd/distance%20display-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(df_filtered_location, aes( dist_original )) +
+ geom_histogram() +
+ scale_y_log10() +
+ xlab( &#39;range of original distances in km between successive points&#39;)</code></pre>
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<pre><code>Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<pre><code>Warning: Removed 10 rows containing missing values (geom_bar).</code></pre>
+<p><img src="figure/initial.Rmd/distance%20display-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(df_filtered_location, aes( speed_filtered )) +
+ geom_histogram() +
+ scale_y_log10() +
+ xlab(&#39;speed in m/sec between successive filtered points&#39;)</code></pre>
+<pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<pre><code>Warning: Removed 7 rows containing non-finite values (stat_bin).</code></pre>
+<pre><code>Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<pre><code>Warning: Removed 17 rows containing missing values (geom_bar).</code></pre>
+<p><img src="figure/initial.Rmd/distance%20display-4.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(df_filtered_location, aes( y=speed_filtered, x=night )) +
+ geom_violin() + 
+ geom_boxplot(width=0.1)+
+ scale_y_log10() +
+ xlab(&#39;speed in m/sec&#39;) + 
+ ggtitle( &#39;Range of filtered speeds per night, log scale, outliers dropped&#39;)</code></pre>
+<pre><code>Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<pre><code>Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<pre><code>Warning: Removed 1763 rows containing non-finite values (stat_ydensity).</code></pre>
+<pre><code>Warning: Removed 1763 rows containing non-finite values (stat_boxplot).</code></pre>
+<p><img src="figure/initial.Rmd/distance%20display-5.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="demonstrations-of-cleaned-and-uncleaned-data" class="section level1">
+<h1>Demonstrations of cleaned and uncleaned data</h1>
+<p>First, the number of points/ night Number with speed &gt; 100 m/s</p>
+<pre class="r"><code>df_filtered_location %&gt;% filter( speed_filtered &gt; 100 ) %&gt;% count()</code></pre>
+<pre><code># A tibble: 5 x 3
+# Groups:   userid, night [5]
+  userid                               night          n
+  &lt;chr&gt;                                &lt;fct&gt;      &lt;int&gt;
+1 39146290-ed15-4ca3-9f00-ce935128c1a6 2014-09-27    14
+2 39146290-ed15-4ca3-9f00-ce935128c1a6 2014-10-03     5
+3 39146290-ed15-4ca3-9f00-ce935128c1a6 2014-10-04     1
+4 39146290-ed15-4ca3-9f00-ce935128c1a6 2014-10-10     3
+5 39146290-ed15-4ca3-9f00-ce935128c1a6 2014-10-24     1</code></pre>
+<pre class="r"><code>df_filtered_location %&gt;% 
+  ggplot( ) + geom_line( aes( local_time, speed_original  )) +
+  facet_wrap( ~night , scales=&#39;free&#39;) +
+  ggtitle( &quot;original intersample speed measurements&quot; )</code></pre>
+<pre><code>Warning: Removed 1 rows containing missing values (geom_path).</code></pre>
+<p><img src="figure/initial.Rmd/excess_speed-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_filtered_location %&gt;% 
+  ggplot( ) + geom_line( aes( local_time, dist_original  )) +
+  facet_wrap( ~night , scales=&#39;free&#39;) +
+  ggtitle( &quot;original intersample distance measurements&quot; )</code></pre>
+<p><img src="figure/initial.Rmd/excess_speed-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_filtered_location %&gt;% 
+  ggplot( ) + geom_line( aes( local_time, dist_cumul_original  )) +
+  facet_wrap( ~night , scales=&#39;free&#39;) +
+  ggtitle( &quot;original cumulative distance measurements&quot; )</code></pre>
+<p><img src="figure/initial.Rmd/excess_speed-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_filtered_location %&gt;% 
+  ggplot( ) + geom_line( aes( local_time, speed_filtered  )) +
+  facet_wrap( ~night , scales=&#39;free&#39;) +
+  ggtitle( &quot;Filtered intersample speed measurements&quot; )</code></pre>
+<pre><code>Warning: Removed 1 rows containing missing values (geom_path).</code></pre>
+<p><img src="figure/initial.Rmd/excess_speed-4.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_filtered_location %&gt;% 
+  ggplot( ) + geom_line( aes( local_time, dist_filtered  )) +
+  facet_wrap( ~night , scales=&#39;free&#39;) +
+  ggtitle( &quot;Filtered intersample distance measurements&quot; )</code></pre>
+<p><img src="figure/initial.Rmd/excess_speed-5.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_filtered_location %&gt;% 
+  ggplot( ) + geom_line( aes( local_time, dist_cumul_filtered  )) +
+  facet_wrap( ~night , scales=&#39;free&#39;) +
+  ggtitle( &quot;Filtered cumulative distance measurements&quot; )</code></pre>
+<p><img src="figure/initial.Rmd/excess_speed-6.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="basic-stats" class="section level1">
+<h1>basic Stats</h1>
+<pre class="r"><code>df_all %&gt;%
+  count(user) %&gt;%
+  ggplot( aes( n )) + 
+  geom_histogram( bins=80) +
+  ggtitle( &#39;Number of events / person&#39;) + 
+  xlab(&quot;Number of events&quot;) +
+  ylab(&quot;number of people&quot;)</code></pre>
+<p><img src="figure/initial.Rmd/basic_stats-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_all %&gt;%
+  select( starts_with( &#39;tom&#39;)) %&gt;% names()</code></pre>
+<pre><code> [1] &quot;tomorrow_id&quot;                &quot;tom_timestamp&quot;             
+ [3] &quot;tom_timezone_id&quot;            &quot;tom_timezone_display_name&quot; 
+ [5] &quot;tom_timezone_raw_offset&quot;    &quot;tom_consequence_drankmore&quot; 
+ [7] &quot;tom_consequence_driving&quot;    &quot;tom_consequence_fight&quot;     
+ [9] &quot;tom_consequence_hangover&quot;   &quot;tom_consequence_injured&quot;   
+[11] &quot;tom_consequence_memoryloss&quot; &quot;tom_consequence_regret&quot;    
+[13] &quot;tom_consequence_sexatrisk&quot;  &quot;tom_consequence_spentmore&quot; 
+[15] &quot;tom_nb_drinks_last_night&quot;  </code></pre>
+<pre class="r"><code>df_all %&gt;%
+  select( ends_with( &#39;stamp&#39;)) %&gt;% names()</code></pre>
+<pre><code>[1] &quot;pre_timestamp&quot;   &quot;load_timestamp&quot;  &quot;forg_timestamp&quot;  &quot;dq_timestamp&quot;   
+[5] &quot;tom_timestamp&quot;   &quot;env_timestamp&quot;   &quot;video_timestamp&quot;</code></pre>
+<pre class="r"><code>df_all %&gt;% names()</code></pre>
+<pre><code>  [1] &quot;id&quot;                                         
+  [2] &quot;user&quot;                                       
+  [3] &quot;evening&quot;                                    
+  [4] &quot;day&quot;                                        
+  [5] &quot;intention_id&quot;                               
+  [6] &quot;loading_id&quot;                                 
+  [7] &quot;episode_id&quot;                                 
+  [8] &quot;type&quot;                                       
+  [9] &quot;episod_id&quot;                                  
+ [10] &quot;episod_drink_survey&quot;                        
+ [11] &quot;episod_ambiance_survey&quot;                     
+ [12] &quot;episod_video_survey&quot;                        
+ [13] &quot;forgotten_id&quot;                               
+ [14] &quot;tomorrow_id&quot;                                
+ [15] &quot;warning&quot;                                    
+ [16] &quot;episod_episode&quot;                             
+ [17] &quot;episod_picture_file_exists&quot;                 
+ [18] &quot;episod_video_done&quot;                          
+ [19] &quot;episod_video_url&quot;                           
+ [20] &quot;episod_video_file_exits&quot;                    
+ [21] &quot;episod_warning&quot;                             
+ [22] &quot;pre_timestamp&quot;                              
+ [23] &quot;pre_timezone_id&quot;                            
+ [24] &quot;pre_timezone_display_name&quot;                  
+ [25] &quot;pre_timezone_raw_offset&quot;                    
+ [26] &quot;pre_beer_cider&quot;                             
+ [27] &quot;pre_coffee_tee&quot;                             
+ [28] &quot;pre_cocktail_alcopops&quot;                      
+ [29] &quot;pre_energy&quot;                                 
+ [30] &quot;pre_fruit_juice&quot;                            
+ [31] &quot;pre_liqueur_aperitive&quot;                      
+ [32] &quot;pre_milky&quot;                                  
+ [33] &quot;pre_shots&quot;                                  
+ [34] &quot;pre_soft_drinks&quot;                            
+ [35] &quot;pre_spirits&quot;                                
+ [36] &quot;pre_water&quot;                                  
+ [37] &quot;pre_wine_champagne&quot;                         
+ [38] &quot;load_timestamp&quot;                             
+ [39] &quot;load_timezone_id&quot;                           
+ [40] &quot;load_timezone_display_name&quot;                 
+ [41] &quot;load_timezone_raw_offset&quot;                   
+ [42] &quot;load_beer_cider&quot;                            
+ [43] &quot;load_coffee_tee&quot;                            
+ [44] &quot;load_cocktail_alcopops&quot;                     
+ [45] &quot;load_energy&quot;                                
+ [46] &quot;load_fruit_juice&quot;                           
+ [47] &quot;load_liqueur_aperitive&quot;                     
+ [48] &quot;load_milky&quot;                                 
+ [49] &quot;load_shots&quot;                                 
+ [50] &quot;load_soft_drinks&quot;                           
+ [51] &quot;load_spirits&quot;                               
+ [52] &quot;load_water&quot;                                 
+ [53] &quot;load_wine_champagne&quot;                        
+ [54] &quot;forg_timestamp&quot;                             
+ [55] &quot;forg_timezone_id&quot;                           
+ [56] &quot;forg_timezone_display_name&quot;                 
+ [57] &quot;forg_timezone_raw_offset&quot;                   
+ [58] &quot;forg_beer_cider&quot;                            
+ [59] &quot;forg_coffee_tee&quot;                            
+ [60] &quot;forg_cocktail_alcopops&quot;                     
+ [61] &quot;forg_energy&quot;                                
+ [62] &quot;forg_fruit_juice&quot;                           
+ [63] &quot;forg_liqueur_aperitive&quot;                     
+ [64] &quot;forg_milky&quot;                                 
+ [65] &quot;forg_shots&quot;                                 
+ [66] &quot;forg_soft_drinks&quot;                           
+ [67] &quot;forg_spirits&quot;                               
+ [68] &quot;forg_water&quot;                                 
+ [69] &quot;forg_wine_champagne&quot;                        
+ [70] &quot;dq_timestamp&quot;                               
+ [71] &quot;dq_timezone_id&quot;                             
+ [72] &quot;dq_timezone_display_name&quot;                   
+ [73] &quot;dq_timezone_raw_offset&quot;                     
+ [74] &quot;dq_drink_alcool&quot;                            
+ [75] &quot;dq_drink_glass&quot;                             
+ [76] &quot;dq_drink_name&quot;                              
+ [77] &quot;dq_env_light_percent&quot;                       
+ [78] &quot;dq_env_people_percent&quot;                      
+ [79] &quot;dq_env_sound_percent&quot;                       
+ [80] &quot;dq_social_family_members_counter&quot;           
+ [81] &quot;dq_social_female_friends_colleagues_counter&quot;
+ [82] &quot;dq_social_male_friends_colleagues_counter&quot;  
+ [83] &quot;dq_social_other_people_counter&quot;             
+ [84] &quot;dq_social_partner_spouse_counter&quot;           
+ [85] &quot;dq_imageFileName&quot;                           
+ [86] &quot;tom_timestamp&quot;                              
+ [87] &quot;tom_timezone_id&quot;                            
+ [88] &quot;tom_timezone_display_name&quot;                  
+ [89] &quot;tom_timezone_raw_offset&quot;                    
+ [90] &quot;tom_consequence_drankmore&quot;                  
+ [91] &quot;tom_consequence_driving&quot;                    
+ [92] &quot;tom_consequence_fight&quot;                      
+ [93] &quot;tom_consequence_hangover&quot;                   
+ [94] &quot;tom_consequence_injured&quot;                    
+ [95] &quot;tom_consequence_memoryloss&quot;                 
+ [96] &quot;tom_consequence_regret&quot;                     
+ [97] &quot;tom_consequence_sexatrisk&quot;                  
+ [98] &quot;tom_consequence_spentmore&quot;                  
+ [99] &quot;tom_nb_drinks_last_night&quot;                   
+[100] &quot;env_timestamp&quot;                              
+[101] &quot;env_timezone_id&quot;                            
+[102] &quot;env_timezone_display_name&quot;                  
+[103] &quot;env_timezone_raw_offset&quot;                    
+[104] &quot;env_artsy_percent&quot;                          
+[105] &quot;env_dingy_percent&quot;                          
+[106] &quot;env_formal_percent&quot;                         
+[107] &quot;env_loud_percent&quot;                           
+[108] &quot;env_oldfashioned_percent&quot;                   
+[109] &quot;env_romantic_percent&quot;                       
+[110] &quot;env_sophisticated_percent&quot;                  
+[111] &quot;env_trendy_percent&quot;                         
+[112] &quot;env_upscale_percent&quot;                        
+[113] &quot;env_place_city&quot;                             
+[114] &quot;env_place_id_name&quot;                          
+[115] &quot;env_place_type&quot;                             
+[116] &quot;video_timestamp&quot;                            
+[117] &quot;video_timezone_id&quot;                          
+[118] &quot;video_timezone_display_name&quot;                
+[119] &quot;video_timezone_raw_offset&quot;                  
+[120] &quot;video_no_video_reason_ethical&quot;              
+[121] &quot;video_no_video_reason_legal&quot;                
+[122] &quot;video_no_video_reason_other&quot;                
+[123] &quot;video_no_video_reason_safety&quot;               
+[124] &quot;video_no_video_reason_social&quot;               
+[125] &quot;video_videoAvailable&quot;                       
+[126] &quot;video_videoFileName&quot;                        
+[127] &quot;video_imageFileName&quot;                        
+[128] &quot;city&quot;                                       
+[129] &quot;city_str&quot;                                   
+[130] &quot;time_baseline&quot;                              
+[131] &quot;dem1&quot;                                       
+[132] &quot;dem2&quot;                                       
+[133] &quot;dem3&quot;                                       
+[134] &quot;dem4&quot;                                       
+[135] &quot;dem5&quot;                                       
+[136] &quot;dem6&quot;                                       
+[137] &quot;dem7&quot;                                       
+[138] &quot;out1&quot;                                       
+[139] &quot;out2&quot;                                       
+[140] &quot;out3&quot;                                       
+[141] &quot;out4a&quot;                                      
+[142] &quot;out4b&quot;                                      
+[143] &quot;out4c&quot;                                      
+[144] &quot;out4d&quot;                                      
+[145] &quot;out4e&quot;                                      
+[146] &quot;out4f&quot;                                      
+[147] &quot;out5&quot;                                       
+[148] &quot;out6_1&quot;                                     
+[149] &quot;out7_1&quot;                                     
+[150] &quot;out8_1&quot;                                     
+[151] &quot;out9_1a&quot;                                    
+[152] &quot;out9_1b&quot;                                    
+[153] &quot;out9_1c&quot;                                    
+[154] &quot;out9_1d&quot;                                    
+[155] &quot;out9_1e&quot;                                    
+[156] &quot;out10_1a&quot;                                   
+[157] &quot;out10_1b&quot;                                   
+[158] &quot;out10_1c&quot;                                   
+[159] &quot;out10_1d&quot;                                   
+[160] &quot;out10_1e&quot;                                   
+[161] &quot;out10_1f&quot;                                   
+[162] &quot;out10_1g&quot;                                   
+[163] &quot;out10_1h&quot;                                   
+[164] &quot;out10_1i&quot;                                   
+[165] &quot;out10_1j&quot;                                   
+[166] &quot;out10_1k&quot;                                   
+[167] &quot;out10_1l&quot;                                   
+[168] &quot;out10_1m&quot;                                   
+[169] &quot;out6_2&quot;                                     
+[170] &quot;out7_2&quot;                                     
+[171] &quot;out8_2&quot;                                     
+[172] &quot;out9_2a&quot;                                    
+[173] &quot;out9_2b&quot;                                    
+[174] &quot;out9_2c&quot;                                    
+[175] &quot;out9_2d&quot;                                    
+[176] &quot;out9_2e&quot;                                    
+[177] &quot;out10_2a&quot;                                   
+[178] &quot;out10_2b&quot;                                   
+[179] &quot;out10_2c&quot;                                   
+[180] &quot;out10_2d&quot;                                   
+[181] &quot;out10_2e&quot;                                   
+[182] &quot;out10_2f&quot;                                   
+[183] &quot;out10_2g&quot;                                   
+[184] &quot;out10_2h&quot;                                   
+[185] &quot;out10_2i&quot;                                   
+[186] &quot;out10_2j&quot;                                   
+[187] &quot;out10_2k&quot;                                   
+[188] &quot;out10_2l&quot;                                   
+[189] &quot;out10_2m&quot;                                   
+[190] &quot;out6_3&quot;                                     
+[191] &quot;out7_3&quot;                                     
+[192] &quot;out8_3&quot;                                     
+[193] &quot;out9_3a&quot;                                    
+[194] &quot;out9_3b&quot;                                    
+[195] &quot;out9_3c&quot;                                    
+[196] &quot;out9_3d&quot;                                    
+[197] &quot;out9_3e&quot;                                    
+[198] &quot;out10_3a&quot;                                   
+[199] &quot;out10_3b&quot;                                   
+[200] &quot;out10_3c&quot;                                   
+[201] &quot;out10_3d&quot;                                   
+[202] &quot;out10_3e&quot;                                   
+[203] &quot;out10_3f&quot;                                   
+[204] &quot;out10_3g&quot;                                   
+[205] &quot;out10_3h&quot;                                   
+[206] &quot;out10_3i&quot;                                   
+[207] &quot;out10_3j&quot;                                   
+[208] &quot;out10_3k&quot;                                   
+[209] &quot;out10_3l&quot;                                   
+[210] &quot;out10_3m&quot;                                   
+[211] &quot;per1a&quot;                                      
+[212] &quot;per1b&quot;                                      
+[213] &quot;per1c&quot;                                      
+[214] &quot;per1d&quot;                                      
+[215] &quot;per1e&quot;                                      
+[216] &quot;per1f&quot;                                      
+[217] &quot;per1g&quot;                                      
+[218] &quot;per1h&quot;                                      
+[219] &quot;per1i&quot;                                      
+[220] &quot;per1j&quot;                                      
+[221] &quot;alc1&quot;                                       
+[222] &quot;alc2&quot;                                       
+[223] &quot;alc3a&quot;                                      
+[224] &quot;alc3b&quot;                                      
+[225] &quot;alc3c&quot;                                      
+[226] &quot;alc3d&quot;                                      
+[227] &quot;alc3e&quot;                                      
+[228] &quot;alc3f&quot;                                      
+[229] &quot;alc3g&quot;                                      
+[230] &quot;alc4a&quot;                                      
+[231] &quot;alc4b&quot;                                      
+[232] &quot;alc4c&quot;                                      
+[233] &quot;alc4d&quot;                                      
+[234] &quot;alc4e&quot;                                      
+[235] &quot;alc5&quot;                                       
+[236] &quot;mot1&quot;                                       
+[237] &quot;mot2&quot;                                       
+[238] &quot;mot3&quot;                                       
+[239] &quot;mot4&quot;                                       
+[240] &quot;mot5&quot;                                       
+[241] &quot;mot6&quot;                                       
+[242] &quot;mot7&quot;                                       
+[243] &quot;mot8&quot;                                       
+[244] &quot;mot9&quot;                                       
+[245] &quot;mot10&quot;                                      
+[246] &quot;mot11&quot;                                      
+[247] &quot;mot12&quot;                                      
+[248] &quot;mot13&quot;                                      
+[249] &quot;mot14&quot;                                      
+[250] &quot;mot15&quot;                                      
+[251] &quot;mot16&quot;                                      
+[252] &quot;pre1&quot;                                       
+[253] &quot;pre2a&quot;                                      
+[254] &quot;pre2b&quot;                                      
+[255] &quot;pre2c&quot;                                      
+[256] &quot;pre2d&quot;                                      
+[257] &quot;pre2e&quot;                                      
+[258] &quot;pre2f&quot;                                      
+[259] &quot;pre2g&quot;                                      
+[260] &quot;pre2h&quot;                                      
+[261] &quot;pre2i&quot;                                      
+[262] &quot;pre2j&quot;                                      
+[263] &quot;pre2k&quot;                                      
+[264] &quot;pre2l&quot;                                      
+[265] &quot;pre2m&quot;                                      
+[266] &quot;pre2n&quot;                                      
+[267] &quot;pre2o&quot;                                      
+[268] &quot;pre2p&quot;                                      
+[269] &quot;pre2q&quot;                                      
+[270] &quot;pre2r&quot;                                      
+[271] &quot;pre2s&quot;                                      
+[272] &quot;pre2t&quot;                                      
+[273] &quot;pre2u&quot;                                      
+[274] &quot;pre2v&quot;                                      
+[275] &quot;pre2w&quot;                                      
+[276] &quot;pre2x&quot;                                      
+[277] &quot;mob1&quot;                                       
+[278] &quot;mob2&quot;                                       
+[279] &quot;mob3&quot;                                       
+[280] &quot;mob4&quot;                                       
+[281] &quot;mob5&quot;                                       
+[282] &quot;mob6&quot;                                       
+[283] &quot;mob7a&quot;                                      
+[284] &quot;mob7b&quot;                                      
+[285] &quot;mob7c&quot;                                      
+[286] &quot;mob7d&quot;                                      
+[287] &quot;mob7e&quot;                                      
+[288] &quot;net1a&quot;                                      
+[289] &quot;net1b&quot;                                      
+[290] &quot;net1c&quot;                                      
+[291] &quot;net2a&quot;                                      
+[292] &quot;net2b&quot;                                      
+[293] &quot;net2c&quot;                                      
+[294] &quot;net3a&quot;                                      
+[295] &quot;net3b&quot;                                      
+[296] &quot;net3c&quot;                                      
+[297] &quot;net4a&quot;                                      
+[298] &quot;net4b&quot;                                      
+[299] &quot;net4c&quot;                                      
+[300] &quot;net5a&quot;                                      
+[301] &quot;net5b&quot;                                      
+[302] &quot;net5c&quot;                                      
+[303] &quot;net6a&quot;                                      
+[304] &quot;net6b&quot;                                      
+[305] &quot;net6c&quot;                                      
+[306] &quot;net7a&quot;                                      
+[307] &quot;net7b&quot;                                      
+[308] &quot;time_discharge&quot;                             
+[309] &quot;rec1&quot;                                       
+[310] &quot;rec2&quot;                                       
+[311] &quot;rec3&quot;                                       
+[312] &quot;rec4&quot;                                       
+[313] &quot;rec5&quot;                                       
+[314] &quot;exp1&quot;                                       
+[315] &quot;exp2&quot;                                       
+[316] &quot;exp3&quot;                                       
+[317] &quot;exp4&quot;                                       
+[318] &quot;exp5&quot;                                       
+[319] &quot;exp6&quot;                                       
+[320] &quot;exp7&quot;                                       
+[321] &quot;exp8&quot;                                       
+[322] &quot;eval1&quot;                                      
+[323] &quot;eval2&quot;                                      
+[324] &quot;eval3&quot;                                      
+[325] &quot;eval4&quot;                                      
+[326] &quot;eval5&quot;                                      
+[327] &quot;eval6&quot;                                      
+[328] &quot;eval7&quot;                                      
+[329] &quot;eval8&quot;                                      
+[330] &quot;eval9&quot;                                      
+[331] &quot;eval10&quot;                                     
+[332] &quot;eval11&quot;                                     
+[333] &quot;eval12&quot;                                     
+[334] &quot;eval13&quot;                                     
+[335] &quot;eval14&quot;                                     
+[336] &quot;eval15&quot;                                     
+[337] &quot;alc1_dis&quot;                                   
+[338] &quot;alc3a_dis&quot;                                  
+[339] &quot;alc3b_dis&quot;                                  
+[340] &quot;alc3c_dis&quot;                                  
+[341] &quot;alc3d_dis&quot;                                  
+[342] &quot;alc3e_dis&quot;                                  
+[343] &quot;alc3f_dis&quot;                                  
+[344] &quot;alc3g_dis&quot;                                  
+[345] &quot;alc5_dis&quot;                                   
+[346] &quot;pre1_dis&quot;                                   
+[347] &quot;out5_dis&quot;                                   
+[348] &quot;fin1&quot;                                       
+[349] &quot;fin2&quot;                                       
+[350] &quot;fin3&quot;                                       
+[351] &quot;cons1&quot;                                      
+[352] &quot;cons2&quot;                                      
+[353] &quot;cons3&quot;                                      
+[354] &quot;cons4&quot;                                      
+[355] &quot;cons5&quot;                                      
+[356] &quot;cons6&quot;                                      
+[357] &quot;cons7&quot;                                      
+[358] &quot;cons8&quot;                                      
+[359] &quot;cons9&quot;                                      
+[360] &quot;cons10&quot;                                     
+[361] &quot;cons11&quot;                                     
+[362] &quot;cons12&quot;                                     
+[363] &quot;cons13&quot;                                     
+[364] &quot;cons14&quot;                                     
+[365] &quot;out1_dis&quot;                                   
+[366] &quot;out7&quot;                                       
+[367] &quot;out10_1a_dis&quot;                               
+[368] &quot;out10_1e_dis&quot;                               
+[369] &quot;out10_1f_dis&quot;                               
+[370] &quot;out10_1g_dis&quot;                               
+[371] &quot;out10_1h_dis&quot;                               
+[372] &quot;out10_1i_dis&quot;                               
+[373] &quot;out10_1k_dis&quot;                               
+[374] &quot;out10_1l_dis&quot;                               
+[375] &quot;out10_1m_dis&quot;                               
+[376] &quot;app1&quot;                                       
+[377] &quot;app2&quot;                                       
+[378] &quot;app3&quot;                                       </code></pre>
+<pre class="r"><code># for each file </code></pre>
+<pre class="r"><code>df_best_location %&gt;%  
+  as.tsibble( key=id( userid, night), 
+             index=local_time, 
+             regular=FALSE
+             ) %&gt;% 
+  { . } -&gt;  ts_location</code></pre>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.4.4 (2018-03-15)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 17.10
+
+Matrix products: default
+BLAS: /usr/lib/x86_64-linux-gnu/openblas/libblas.so.3
+LAPACK: /usr/lib/x86_64-linux-gnu/libopenblasp-r0.2.20.so
+
+locale:
+ [1] LC_CTYPE=en_AU.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_AU.UTF-8        LC_COLLATE=en_AU.UTF-8    
+ [5] LC_MONETARY=en_AU.UTF-8    LC_MESSAGES=en_AU.UTF-8   
+ [7] LC_PAPER=en_AU.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_AU.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets 
+[8] methods   base     
+
+other attached packages:
+ [1] bindrcpp_0.2.2             tidyquant_0.5.5           
+ [3] quantmod_0.4-13            TTR_0.23-3                
+ [5] PerformanceAnalytics_1.5.2 xts_0.11-0                
+ [7] zoo_1.8-3                  sp_1.3-1                  
+ [9] tsibble_0.4.0.9000         keyring_1.1.0             
+[11] RPostgreSQL_0.6-2          DBI_1.0.0                 
+[13] forcats_0.3.0              dplyr_0.7.6               
+[15] purrr_0.2.5                readr_1.1.1               
+[17] tidyr_0.8.1                tibble_1.4.2              
+[19] ggplot2_2.2.1              tidyverse_1.2.1           
+[21] multidplyr_0.0.0.9000      IRanges_2.12.0            
+[23] S4Vectors_0.16.0           BiocGenerics_0.24.0       
+[25] fuzzyjoin_0.1.4            DataCache_0.9             
+[27] wrapr_1.5.1                readstata13_0.9.2         
+[29] lubridate_1.7.4            knitr_1.20                
+[31] stringr_1.3.1              magrittr_1.5              
+[33] workflowr_1.1.1            nvimcom_0.9-72            
+
+loaded via a namespace (and not attached):
+ [1] httr_1.3.1        jsonlite_1.5      R.utils_2.6.0    
+ [4] modelr_0.1.2      assertthat_0.2.0  highr_0.7        
+ [7] cellranger_1.1.0  yaml_2.1.19       pillar_1.3.0     
+[10] backports_1.1.2   lattice_0.20-35   glue_1.3.0       
+[13] quadprog_1.5-5    digest_0.6.15     rvest_0.3.2      
+[16] colorspace_1.3-2  htmltools_0.3.6   R.oo_1.22.0      
+[19] plyr_1.8.4        pkgconfig_2.0.1   broom_0.5.0      
+[22] haven_1.1.2       scales_0.5.0      whisker_0.3-2    
+[25] git2r_0.23.0      lazyeval_0.2.1    cli_1.0.0        
+[28] crayon_1.3.4      readxl_1.1.0      evaluate_0.10.1  
+[31] R.methodsS3_1.7.1 fansi_0.2.3       nlme_3.1-137     
+[34] xml2_1.2.0        tools_3.4.4       hms_0.4.2        
+[37] munsell_0.5.0     compiler_3.4.4    rlang_0.2.1      
+[40] grid_3.4.4        rstudioapi_0.7    labeling_0.3     
+[43] rmarkdown_1.10    gtable_0.2.0      curl_3.2         
+[46] R6_2.2.2          utf8_1.1.4        bindr_0.1.1      
+[49] rprojroot_1.3-2   Quandl_2.8.0      stringi_1.2.3    
+[52] Rcpp_0.12.17      tidyselect_0.2.4 </code></pre>
+</div>
+</div>
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+<hr>
+<p>
+  This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+  analysis was created with
+  <a href="https://github.com/jdblischak/workflowr">workflowr</a> 1.1.1
+</p>
+<hr>
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
