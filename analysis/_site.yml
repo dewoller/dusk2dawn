@@ -1,12 +1,12 @@
 name: "initialAnalysis"
 output_dir: "../docs"
 navbar:
-  title: "initialAnalysis"
+  title: "Dusk2dawn data analysis"
   left:
     - text: "Home"
       href: index.html
-    - text: "About"
-      href: about.html
+    - text: "Analysis"
+      href: initial.html
     - text: "License"
       href: license.html
   right:
