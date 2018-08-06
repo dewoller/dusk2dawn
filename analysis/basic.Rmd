@@ -1,0 +1,55 @@
+---
+title:           Basic stats
+author:          Dennis Wollersheim 
+date:            06.08.2018
+output:
+  workflowr::wflow_html:
+    toc: false
+    code_folding: hide
+  ---
+
+
+```{r results='hide', message=FALSE, warning=FALSE}
+source('lib/functions.R')
+source('lib/get_data.R')
+
+library(tsibble)
+library(lubridate)
+library(sp)
+library(tidyquant)
+
+read.csv('data/EveningMasterFullAnonym.csv') %>% 
+  as.tibble %>% 
+  { . } -> df_all
+
+
+```
+
+# basic Stats
+
+```{r basic_stats}
+
+df_all %>%
+  count(user, sort=TRUE) %>%
+  ggplot( aes( n )) + 
+  geom_histogram( bins=80) +
+  ggtitle( 'Number of events / person') + 
+  xlab("Number of events") +
+  ylab("number of people")
+
+
+df_all %>%
+  select( starts_with( 'tom')) %>% names()
+
+df_all %>%
+  select( ends_with( 'stamp')) 
+
+
+df_all %>% names() %>%  grep( 'night')
+
+#df_all %>% filter( starts_with('night'))
+
+
+```
+
+
