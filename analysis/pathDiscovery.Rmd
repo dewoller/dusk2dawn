@@ -1,3 +1,4 @@
+
 ---
 title: "Initial Analysis"
 output:
@@ -13,29 +14,148 @@ options(warn=-1)
 source('lib/functions.R')
 source('lib/get_data.R')
 
-library(tsibble)
-library(lubridate)
-library(sp)
-#library(tidyquant)
 opts_chunk$set(cache=TRUE, autodep=TRUE)
+
+db_suffix = '_rr'
 
 read.csv('data/EveningMasterFullAnonym.csv') %>% 
   as.tibble %>% 
 { . } -> df_all
+
+
 ```
 
-# 
+# read data
+Get Location, accelerometer, wifi, bluetooth
 
 ```{r read_data }
-my_db_read( 'select * from location') %>% 
+my_db_read( paste0( 'select * from location', db_suffix, ' union select * from passivelocation', db_suffix)) %>% 
   as.tibble() %>% 
   { . } ->  df_location
 
-my_db_read( 'select * from passivelocation') %>% 
+my_db_read( paste0( 'select * from accelerometer', db_suffix)) %>% 
   as.tibble() %>% 
-  { . } ->  df_passive_location
+  { . } ->  df_accelerometer
+
+my_db_read( paste0( 'select * from wifi', db_suffix)) %>% 
+  as.tibble() %>% 
+  { . } ->  df_wifi
+
+my_db_read( paste0( 'select * from bluetooth', db_suffix)) %>% 
+  as.tibble() %>% 
+  { . } ->  df_bluetooth
+
+my_db_read( paste0( 'select * from proximity', db_suffix)) %>% 
+  as.tibble() %>% 
+  { . } ->  df_proximity
+
+my_db_read( paste0( 'select * from connectionstrength', db_suffix)) %>% 
+  as.tibble() %>% 
+  { . } ->  df_connection_strength
+
+my_db_read( paste0( 'select * from battery', db_suffix)) %>% 
+  as.tibble() %>% 
+  { . } ->  df_battery  # is charging
+
+my_db_read( paste0( 'select * from application', db_suffix)) %>% 
+  as.tibble() %>% 
+  { . } ->  df_application
+
+
 
 ```
+
+# what are the characteristics of the accellerometer data
+
+1) sometimes, we accellerometer gets stuck, eg 792 for one second
+2) even sensor_timestamps, our finest resolution counter, has multiple 
+2) but generally, we have 50 samples for each  second measured
+3) and generally, there is 50 seconds between samples
+
+
+```{r play_with_accel}
+
+df_accelerometer %>%
+  count( local_time, sort=TRUE ) %>%
+  head() %>% kable()
+
+df_accelerometer %>%
+  count( sensortime_stamps, sort=TRUE ) %>%
+  filter(  n <100 ) %>%
+  ggplot( aes( n )) + geom_histogram( bins=100) +
+  ggtitle( "number of samples for each sensor_timestamp value")
+
+df_accelerometer %>%
+  count( local_time, sort=TRUE ) %>%
+  filter(  n <100 ) %>%
+  ggplot( aes( n )) + geom_histogram( bins=100) +
+  ggtitle( "number of samples for each second")
+
+
+df_accelerometer %>%
+  group_by( userid, night ) %>%
+  mutate( idist = local_time - lag( local_time )) %>%
+  filter(  idist >1 ) %>%
+  count( idist , sort=TRUE) %>%
+  ggplot( aes( idist )) + geom_histogram()
+
+
+```
+
+Using Smart Phone Sensors to Detect Transportation Modes - MDPI
+www.mdpi.com/1424-8220/14/11/20843/pdf
+
+2 modes - stationary and moving.
+Moving  - 
+DFFT features 0, 4.6875, 6.2500, and 11.9141 (Hz), respectively. The indices of the
+minimum, maximum, mean, and standard deviation of velocity values, and the SampEn.
+stationary:
+
+
+
+Average[3]: Average acceleration (for each axis)
+• Standard Deviation[3]: Standard deviation (for each axis)
+• Average Absolute Difference[3]: Average absolute
+difference between the value of each of the 200 readings
+within the ED and the mean value over those 200 values
+(for each axis)
+• Average Resultant Acceleration[1]: Average of the square
+roots of the sum of the values of each axis squared
+√(x i2 + y i2 + z i2 ) over the ED
+• Time Between Peaks[3]: Time in milliseconds between
+peaks in the sinusoidal waves associated with most
+activities (for each axis)
+• Binned Distribution[30]: We determine the range of values
+for each axis (maximum – minimum), divide this range into
+10 equal sized bins, and then record what fraction of the
+200 values fell within each of the bins
+
+
+```{r use_accel}
+
+df_accelerometer %>%
+  mutate ( local_minute = floor_date(local_time, unit = "minutes")) %>%
+  group_by( userid, night, local_minute ) %>%
+  do( a = fft( zaxis )) %>%
+  filter(  idist >1 ) %>%
+  count( idist , sort=TRUE) %>%
+  ggplot( aes( idist )) + geom_histogram()
+
+
+df_accelerometer %>%
+  mutate ( local_minute = floor_date(local_time, unit = "minutes")) %>%
+  head(100 ) -> a
+
+fft(a$zaxis) -> b
+
+plot(b)
+
+plot(a$zaxis) 
+
+
+
+```
+
 
 # how clean is the gps data - Plan
   * for each person / night, what is the range of distance between successive gps points
@@ -67,6 +187,16 @@ df_filtered_location %>%
   filter(userid=='f181ac9f-f678-40ce-89ea-7d5c807e3b68' & night == '2014-10-18') %>%
   filter( dist_filtered > 10) %>%
   select( id ) %$% id -> b
+
+df_location %>% 
+  filter( any( abs(id - b)<10))
+
+  filter( id - b10))
+
+
+
+  select(id) %>%
+  mutate( id )
 
 
 

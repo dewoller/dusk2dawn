@@ -1,8 +1,6 @@
 safe_load("RPostgreSQL")
 safe_load("keyring")
-
-my_db_name='dusk2dawn'
-
+my_db_name = 'dusk2dawn'
 # -------------------------------------------------
 my_db_write <- function ( df, table_name ) {
   # loads the PostgreSQL driver

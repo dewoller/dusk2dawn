@@ -2,6 +2,8 @@
 
 source( "lib/functions_preload.R")
 detach_all_packages()
+library(tsibble)
+#library(sp)
 
 safe_load( 'workflowr')
 #safe_load("seas")
