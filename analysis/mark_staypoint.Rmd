@@ -1,9 +1,7 @@
---f
+---
 title: "Initial Analysis"
 output:
-  workflowr::wflow_html:
-    toc: false
-    code_folding: hide
+  workflowr::wflow_html
 ---
 
 
@@ -24,7 +22,7 @@ read.csv('data/EveningMasterFullAnonym.csv') %>%
 { . } -> df_all
 ```
 
-# 
+
 
 ```{r read_data }
 
@@ -63,20 +61,36 @@ df_location %<>%
 
 
 
+```{r one_test, eval=FALSE}
 
 
 df_filtered_location %>%
   filter(userid=='f181ac9f-f678-40ce-89ea-7d5c807e3b68' & night == '2014-10-18') %>%
   filter( dist_filtered > 10) %>%
   select( id ) %$% id -> b
+```
 
 ```{r  data_cleaning}
 library(geosphere)
+library(zoo)
+library(glue)
 
 distance2centroid = function( df ) {
   # distance from last point to centroid
   distm(
-    colMeans( df  %>% select( latitude, longitude )),
+        colMeans( df  %>% select( latitude, longitude )),
+        df %>% slice(n()) %>% select( latitude, longitude ),
+        fun = distHaversine
+  )
+
+}
+
+
+
+distanceBetween = function( df ) {
+  # distance from last 2 points
+  distm(
+    df %>% slice(n()-1)   %>% select( latitude, longitude ),
     df %>% slice(n()) %>% select( latitude, longitude ),
     fun = distHaversine
   )
@@ -87,66 +101,78 @@ distance2centroid = function( df ) {
 findStayPoint = function (df, max_jump_time, min_staypoint_time, max_staypoint_distance) {
 
   n_staypoint = 0  # 0 not in, 1:n which staypoint
-  df$n_staypoint = n_staypoint
+  df$n_staypoint = 0
+  df$duration = -1
+  df$last_duration = -1
+  df$distance = -1
+  df$velocity = -1
+  df$start = -1
+  df$n_staypoint = 0
   n_staypoint = n_staypoint + 1
   in_staypoint=FALSE
   nrow = nrow( df )
-  start=1
-  end=1
+  sp_start=1
+  sp_end=1
 
-  while ( end <= nrow ) {
+  while ( sp_end <= nrow ) {
+    df[ sp_end,]$start = sp_start
 
-    if ( end <= start ) {
-      end = end + 1
+    if ( sp_end <= sp_start ) {
+      sp_end = sp_end + 1
       next
     }
 
-    last_duration = df[ end, ]$time_stamp - df[ end-1, ]$time_stamp
-    entire_duration = df[ end, ]$time_stamp - df[ start, ]$time_stamp
+    last_duration = df[ sp_end, ]$time_stamp - df[ sp_end-1, ]$time_stamp
+    entire_duration = df[ sp_end, ]$time_stamp - df[ sp_start, ]$time_stamp
+    df[ sp_end,]$duration = entire_duration
+    df[ sp_end,]$last_duration = last_duration
 
-    #cat( paste( start, end, 'last_duration', last_duration , 'entire_duration',    entire_duration,in_staypoint,"\n"))
+    #cat( paste( sp_start, sp_end, 'last_duration', last_duration , 'entire_duration',    entire_duration,in_staypoint,"\n"))
 
     if ( last_duration >= max_jump_time )   {
 
         # we have too much time between this point and the last point
-        # leave untagged points outside staypoint
-        start = end
+        sp_start = sp_end
         if (in_staypoint ){
           n_staypoint = n_staypoint + 1
           in_staypoint = FALSE
+        } else {
+          # leave untagged points outside staypoint
+          df[ sp_start:sp_end,]$distance = -1
         }
         next
     }
 
-    # is this point a staypoint
-    d = distance2centroid( slice( df, start:end ))
-    #cat( paste( d, "\n"))
+    # is this point within current staypoint centroid
+    d = distance2centroid( slice( df, sp_start:sp_end ))
+    df[ sp_end,]$distance = d
+    df[ sp_end,]$velocity = distanceBetween( slice( df, (sp_end-1):sp_end )) / last_duration
 
     if ( d > max_staypoint_distance ) {
 
-      # we have physically moved out of the previous staypoint zone, start:end
+      # we have physically moved out of the previous staypoint zone, sp_start:sp_end
       if ( in_staypoint ){
 
-        # this is a mark, keep the previous staypoint, start afresh
+        # this is a mark, keep the previous staypoint, sp_start afresh
         n_staypoint = n_staypoint + 1
         in_staypoint = FALSE
-        start=end
+        sp_start=sp_end
       } else {
 
         # keep looking, move the staypoint zone forward
-        start = start + 1
+        sp_start = sp_start + 1
       }
       next
     }
 
-    # we are within staypoint distance of centroid( start:end )
+    # we are within staypoint distance of centroid( sp_start:sp_end )
     if ((entire_duration >= min_staypoint_time ) ) {
 
       # we have been in staypoint sufficient time
-      df[ start:end,]$n_staypoint = n_staypoint
+      df[ sp_start:sp_end,]$n_staypoint = n_staypoint
       in_staypoint = TRUE
     }
-    end = end + 1
+    sp_end = sp_end + 1
   }
 
 df
@@ -168,19 +194,109 @@ df_location %>%
   filter( is_broken_reading == 0 ) %>% 
   select( -is_broken_reading ) %>% 
   group_by( userid, night ) %>%
-  filter( length(local_time) > 1 ) %>%
+  filter( length(local_time) > 1 ) %>%  # we want people who had at least 1 reading/night
   mutate( interval = difference( local_time, lag=1 )) %>% 
   ungroup() %>% 
   { . } -> df_best_location
 
 df_best_location %>% 
-  filter( userid==.[1,]$userid & night==.[1,]$night  ) %>% 
+  filter( userid=='05f35693-7fec-4372-af78-7bd904c187e0' & night=='2014-10-10'  ) %>% 
   { . } -> b
+
+
+b %>% 
+  arrange( userid, night, local_time ) %>%
+  mutate( longitude = rollapply( data=longitude, align='center', width=5, FUN=mean, fill=NA,NA.rm=TRUE)  ) %>%
+  mutate( latitude = rollapply( data=latitude, align='center', width=5, FUN=mean, fill=NA,NA.rm=TRUE)  ) %>%
+  drop_na(latitude, longitude) %>%
+  group_by( userid, night ) %>%
+  group_modify( ~findStayPoint(.x,  max_jump_time, min_staypoint_time, max_staypoint_distance)) %>%
+  select( n_staypoint, duration, distance, everything()) %>% 
+  { . } -> b1_m
+
+ggplot(b1, aes( velocity)) + geom_histogram()
+
+
+b %>% 
+  arrange( userid, night, local_time ) %>%
+  mutate( longitude = rollapply( data=longitude, align='center', width=20, FUN=median, fill=NA,NA.rm=TRUE)  ) %>%
+  mutate( latitude = rollapply( data=latitude, align='center', width=20, FUN=median, fill=NA,NA.rm=TRUE)  ) %>%
+  drop_na(latitude, longitude) %>%
+arrange( local_time ) %>%
+group_by( userid, night ) %>%
+group_modify( ~findStayPoint(.x,  max_jump_time, min_staypoint_time, max_staypoint_distance)) %>%
+  ggplot( aes( longitude, latitude)) + geom_point() + geom_line( aes( size=velocity))
+
+b %>% 
+  arrange( userid, night, local_time ) %>%
+  gpsbabel( 'simplify,count=100') %>%
+  ggplot( aes( longitude, latitude)) + geom_point() + geom_line( )
+
+df=b
+parameters='simplify,count=50'
+
+
+gpsbabel = function( df, parameters ) {
+
+  f_in=tempfile()
+  f_out=tempfile()
+  f_in='/tmp/a.xml'
+  f_out='/tmp/b.xml'
+
+  df %>% 
+    mutate( .id = row_number()) %>% 
+    { . } -> df
+
+
+  df %>% 
+    select( longitude, latitude, .id ) %>% 
+    rename( name=.id) %>% 
+    glue_data( '<rtept lat="{latitude}" lon="{longitude}" name="{name}"></rtept>') %>% 
+    paste( collapse = "\\n") %>%
+    { . } -> body
+
+
+  writeLines(paste0( "<gpx>\n <rte>\n", body, "</rte>\n</gpx>\n"), f_in)
+
+
+  system( paste ( " gpsbabel -i gpx -f  ", 
+                 f_in,
+                 "-x ", 
+                 parameters,
+                 "-o csv -F ",
+                 f_out 
+                 )
+  )
+
+  read_csv( f_out, col_names=c("longitude", "latitude", ".id"), col_types='ddc') %>%
+    mutate( .id = str_replace(.id, 'RPT','') %>% as.numeric()) %>% 
+    { . } -> df_simplified
+
+  df %>%
+    select( -longitude, -latitude ) %>%
+    inner_join( df_simplified, by=".id")  %>%
+    select(-.id)
+
+}
+
+b1_m  %>% 
+    mutate( id=row_number() ) %>%
+    arrange( desc( id )) %>%
+  select( id, velocity, n_staypoint, duration, distance, everything()) %>%  View
+
+  { . } -> b1
 
 df_best_location %>% 
   group_by( userid, night ) %>%
   group_modify( ~findStayPoint(.x,  max_jump_time, min_staypoint_time, max_staypoint_distance)) %>%
 { . } -> df_staypoints
+
+df_staypoints %>%
+  summarise( n_staypoint = max(n_staypoint ),
+            ts = (max( time_stamp) - min(time_stamp)) / 60,
+            n=n()
+            ) %>%
+  filter( ts > 60 & n>10) %>%
 
 ```
 
@@ -368,7 +484,7 @@ df_filtered_location %>%
 ```
 
 
-```{r end }
+```{r end_last }
 
 options(warn=0)
 ```
