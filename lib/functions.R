@@ -619,6 +619,8 @@ find_pill_group = function( supply_date, difference, ndays, threshold  = .25) {
 }
 
 
+df$lat=b$latitude
+df$lon=b$longitude
 
 kalman = function ( lat, lon ) {
 
