@@ -46,7 +46,7 @@ recipe(Ozone ~ ., data = airquality) %>%
 
 
 
-```{r read_data }
+```{r read_data_from_db, eval=FALSE }
 
 my_db_read( 'select * from location') %>% 
   as.tibble() %>% 
@@ -61,7 +61,7 @@ my_db_read( 'select * from passivelocation') %>%
 ## merge in passive location
 passive location is just as good as active location (but mostly duplicated)
 
-```{r merge}
+```{r merge, eval=FALSE}
 
 df_location %<>% 
   bind_rows( df_passive_location ) %>%
@@ -84,7 +84,7 @@ df_filtered_location %>%
   select( id ) %$% id -> b
 ```
 
-```{r  data_cleaning}
+```{r  data_cleaning, eval=FALSE}
 
 
 
@@ -134,12 +134,6 @@ df_best_location %>%
   { . } -> df_best_location1
 saveRDS( df_best_location1, 'data/df_best_location1.rds')
 
-readRDS( 'data/df_best_location1.rds') %>% 
-  as.tibble() %>% 
-{ . } -> df_best_location1
-
-
-
 ```
 
 ```{r test_with_subset,eval=FALSE }
@@ -184,7 +178,13 @@ geom_path()
 
 ```
 
-```{r eval=FALSE }
+```{r generate_staypoints }
+
+readRDS( 'data/df_best_location1.rds') %>% 
+  as.tibble() %>% 
+  { . } -> df_best_location1
+
+
 
 min_staypoint_time=c(5,10,20,30)*60
 max_jump_time=c(10,20,30)*60
@@ -198,29 +198,24 @@ expand.grid(min_staypoint_time,max_jump_time,max_staypoint_distance, max_speed_f
   
 
 
-b=readRDS('/tmp/a.rds') %>% as.tibble()
+b=readRDS('data/b.rds') %>% as.tibble()
 
 
 library(multidplyr)
 library(parallel)
 cl <- detectCores()
-cluster <- create_cluster(cores = 1)
-
-debug(findStayPoint)
+cluster <- create_cluster(cores = cl)
 
 do_one_search = function( df ) {
-  cat(df)
+  dput(df)
   cat("\n")
 
   fname  = glue( "data/save_{df$i_min_staypoint_time}_{df$i_max_jump_time}_{df$i_max_staypoint_distance}_{df$i_max_speed_filter}df$i_rds")
 
-  df_best_location1 %>% 
-#    partition(userid, night, cluster = cluster) %>%   
-#    cluster_library("tidyverse") %>%
-#    cluster_copy( findStayPoint) %>%
-#    cluster_copy( df ) %>%
-    filter( speed <=df$i_max_speed_filter  ) %>%
-    findStayPoint(df$i_max_jump_time, df$i_min_staypoint_time, df$i_max_staypoint_distance) %>%
+  b %>% 
+   group_by( userid, night ) %>%
+   filter( speed <=df$i_max_speed_filter  ) %>%
+   findStayPoint(df$i_max_jump_time, df$i_min_staypoint_time, df$i_max_staypoint_distance) %>%
 #    collect()  %>% 
 { . } -> df
 
@@ -228,8 +223,30 @@ do_one_search = function( df ) {
   data.frame(1)
 }
 
+debug(findStayPoint)
+debug(do_one_search )
+
+undebug(findStayPoint)
+undebug(do_one_search )
+
+options(error = recover) # setting the error option
+options(error = traceback) # setting the error option
+options(show.error.locations = TRUE)
+
 grid_search %>%
-  rowwise() %>%
-  do( do_one_search( .) ) 
+  mutate( row_num=row_number()) %>%
+  partition(row_num, cluster = cluster) %>%
+  group_by(row_num) %>%
+  cluster_library("glue") %>%
+  cluster_library("geosphere") %>%
+  cluster_library("tidyverse") %>%
+  cluster_copy( b) %>%
+  cluster_copy( distanceBetween) %>%
+  cluster_copy( findStayPoint) %>%
+  cluster_copy( do_one_search) %>%
+  cluster_copy( distance2centroid ) %>%
+  do( do_one_search( .) ) %>%
+  collect() %>% 
+  { . } -> grid_output
 
 

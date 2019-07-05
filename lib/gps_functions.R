@@ -9,8 +9,8 @@ needs(tibbletime)
 distance2centroid = function( df ) {
   # distance from last point to centroid
   distm(
-        colMeans( df  %>% select(  longitude, latitude )),
-        df %>% slice(n()) %>% select( longitude, latitude ),
+        colMeans( df[c('longitude', 'latitude' )]),
+        df[ nrow(df), c('longitude', 'latitude' )],
         fun = distHaversine
   )
 }
@@ -21,8 +21,8 @@ distance2centroid = function( df ) {
 distanceBetween = function( df ) {
   # distance from last 2 points
   distm(
-        df %>% slice(n()-1)   %>% select( longitude, latitude ),
-        df %>% slice(n()) %>% select( longitude, latitude ),
+        df[nrow(df)-1,c('longitude', 'latitude' )],
+        df[nrow(df),c('longitude', 'latitude' )],
         fun = distHaversine
   )
 }
