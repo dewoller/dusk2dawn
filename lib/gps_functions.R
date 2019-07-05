@@ -1,7 +1,7 @@
-library(geosphere)
-library(zoo)
-library(glue)
-library(tibbletime)
+needs(geosphere)
+needs(zoo)
+needs(glue)
+needs(tibbletime)
 
 ################################################################################
 # distance2centroid 
@@ -27,6 +27,20 @@ distanceBetween = function( df ) {
   )
 }
 
+
+################################################################################
+# geo_dist_calc 
+# expects 4 columns;  lat, lon, lat, lon
+################################################################################
+
+geo_dist_calc <- function(x) {
+  x=as.matrix(x)
+  x = cbind( x, rbind( tail( x, -1 ), matrix(c(NA,NA), nrow=1)) )
+  apply(x, 1, function(x) sqrt((x[1] - x[3]) ^ 2 + (x[2] - x[4]) ^ 2))
+}
+
+
+
 ################################################################################
 # calculate_distance 
 ################################################################################
@@ -43,6 +57,7 @@ calculate_distance_roll = rollify( calculate_distance, window=2)
 ################################################################################
 # findStayPoint 
 ################################################################################
+
 findStayPoint = function (df, max_jump_time, min_staypoint_time, max_staypoint_distance) {
   n_staypoint = 0  # 0 not in, 1:n which staypoint
   df$n_staypoint = 0
@@ -123,8 +138,6 @@ findStayPoint = function (df, max_jump_time, min_staypoint_time, max_staypoint_d
 }
 
 
-df=b
-parameters='simplify,count=50'
 ################################################################################
 # gpsbabel 
 ################################################################################
@@ -178,7 +191,7 @@ calc_interval_distance = function( longitude, latitude ) {
   c( longitude, latitude ) %>%
     matrix( ncol = 2 ) %>%
     spDists( segments=TRUE, longlat=TRUE) %>%
-    c(0,.)
+    c(NA,.)
 }
 
 ################################################################################

@@ -1,0 +1,95 @@
+---
+```{r}
+
+needs(rworldmap)
+newmap <- getMap(resolution = "low")
+plot(newmap, xlim = c(-20, 59), ylim = c(35, 71), asp = 1)
+
+points(airports$lon, airports$lat, col = "red", cex = .6)
+
+routes <- read.csv("http://openflights.svn.sourceforge.net/viewvc/openflights/openflights/data/routes.dat", header=F)
+colnames(routes) <- c("airline", "airlineID", "sourceAirport", "sourceAirportID", "destinationAirport", "destinationAirportID", "codeshare", "stops", "equipment")
+head(routes)
+
+library(plyr)
+departures <- ddply(routes, .(sourceAirportID), "nrow")
+names(departures)[2] <- "flights"
+arrivals <- ddply(routes, .(destinationAirportID), "nrow")
+names(arrivals)[2] <- "flights"
+
+airportD <- merge(airports, departures, by.x = "ID", by.y = "sourceAirportID")
+airportA <- merge(airports, arrivals, by.x = "ID", by.y = "destinationAirportID")
+
+map = get_map(location = c(lon = 78.4, lat = 17.5), zoom = 12, 
+              maptype = 'roadmap', source = "google")
+
+
+?register_google
+ggmap(map)
+
+library(ggmap)
+map <- get_map(location = 'Europe', zoom = 4)
+
+mapPoints <- ggmap(map) +
+geom_point(aes(x = lon, y = lat, size = sqrt(flights)), data = airportD, alpha = .5)
+
+mapPointsLegend <- mapPoints +
+scale_area(breaks = sqrt(c(1, 5, 10, 50, 100, 500)), labels = c(1, 5, 10, 50, 100, 500), name = "departing routes")
+mapPointsLegend
+
+
+# create the data set containing both departures and arrivals
+airportD$type <- "departures"
+airportA$type <- "arrivals"
+airportDA <- rbind(airportD, airportA)
+
+# map the data
+# map + data points
+mapPointsDA <- ggmap(map) +
+geom_point(aes(x = lon, y = lat, size = sqrt(flights)), data = airportDA, alpha = .5)
+# adjust the legend
+mapPointsLegendDA <- mapPointsDA +
+scale_area(breaks = sqrt(c(1, 5, 10, 50, 100, 500)), labels = c(1, 5, 10, 50, 100, 500), name = "routes")
+# panels according to type (departure/arrival)
+mapPointsFacetsDA <- mapPointsLegendDA +
+facet_grid(. ~ type)
+# plot the map
+mapPointsFacetsDA
+
+
+
+
+b %>%
+  ggplot( aes( latitude, longitude )) +
+  geom_line()
+
+
+
+library(tmap)
+data("NLD_prov")
+
+tmap_mode('view')
+
+tm_shape(NLD_prov) + tm_polygons('population') + tm_layout(basemaps = c('OpenStreetMap'))
+
+needs(sf)
+
+boston <- st_read("../data/boston.geojson")
+
+proj4 <- st_crs(world)$proj4string
+
+
+tm_shape(boston) +
+  tm_polygons('#f0f0f0f0', border.alpha = 0.2) +
+  tm_shape(student_points_rastered) +
+  tm_raster(alpha = 0.7, title = '# of students')
+
+student_points <- b %>% 
+  st_as_sf(coords = c('longitude', 'latitude'), crs = proj4)
+
+tm_shape(boston) +
+  tm_polygons('#f0f0f0f0', border.alpha = 0.2) +
+  tm_shape(student_points_rastered) +
+  tm_raster(alpha = 0.7, title = '# of students')
+
+```
