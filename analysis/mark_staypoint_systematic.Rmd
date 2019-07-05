@@ -134,6 +134,11 @@ df_best_location %>%
   { . } -> df_best_location1
 saveRDS( df_best_location1, 'data/df_best_location1.rds')
 
+readRDS( 'data/df_best_location1.rds') %>% 
+  as.tibble() %>% 
+{ . } -> df_best_location1
+
+
 
 ```
 
@@ -187,243 +192,44 @@ max_staypoint_distance = c(5,10,20,40,80,160)
 max_speed_filter=c( 20,30)
 
 expand.grid(min_staypoint_time,max_jump_time,max_staypoint_distance, max_speed_filter ) %>% 
-  setNames( qc(min_staypoint_time,max_jump_time,max_staypoint_distance, max_speed_filter )) %>%
+  setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_max_speed_filter )) %>%
   as.tibble() %>% 
   { . } -> grid_search 
   
 
 
-do_one_search(b, 1,1,1,1)
+b=readRDS('/tmp/a.rds') %>% as.tibble()
 
-debug( do_one_search)
 
-do_one_search = function( .min_staypoint_time,.max_jump_time,.max_staypoint_distance, .max_speed_filter ) {
+library(multidplyr)
+library(parallel)
+cl <- detectCores()
+cluster <- create_cluster(cores = 1)
 
-  fname  = glue( "data/save_{.min_staypoint_time}_{.max_jump_time}_{.max_staypoint_distance}_{.max_speed_filter}.rds")
+debug(findStayPoint)
 
-  b %>% 
+do_one_search = function( df ) {
+  cat(df)
+  cat("\n")
+
+  fname  = glue( "data/save_{df$i_min_staypoint_time}_{df$i_max_jump_time}_{df$i_max_staypoint_distance}_{df$i_max_speed_filter}df$i_rds")
+
+  df_best_location1 %>% 
 #    partition(userid, night, cluster = cluster) %>%   
 #    cluster_library("tidyverse") %>%
 #    cluster_copy( findStayPoint) %>%
-#    cluster_copy( .max_speed_filter) %>%
-#    cluster_copy( .max_staypoint_distance) %>%
-#    cluster_copy( .max_jump_time) %>%
-#    cluster_copy( .min_staypoint_time) %>%
-    filter( speed <=.max_speed_filter  ) %>%
-    findStayPoint(.max_jump_time, .min_staypoint_time, .max_staypoint_distance) %>%
+#    cluster_copy( df ) %>%
+    filter( speed <=df$i_max_speed_filter  ) %>%
+    findStayPoint(df$i_max_jump_time, df$i_min_staypoint_time, df$i_max_staypoint_distance) %>%
 #    collect()  %>% 
-    { . } 
+{ . } -> df
 
+    saveRDS(df, file=fname)
+  data.frame(1)
 }
 
 grid_search %>%
-  head(1) %>%
   rowwise() %>%
-  do( do_one_search( min_staypoint_time,max_jump_time,max_staypoint_distance, max_speed_filter ) ) %>%
+  do( do_one_search( .) ) 
 
-b %>%
-  mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
-         velocity = distance / elapsed_time, 
-         longitude= ifelse( velocity > 20, lag( longitude), longitude),
-         latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
-  select( distance, everything()) %>%
-  ggplot( aes( longitude, latitude, color=log(velocity))) + geom_point() + geom_line( )
-
-
-b1_m  %>% 
-    mutate( id=row_number() ) %>%
-    arrange( desc( id )) %>%
-  select( id, velocity, n_staypoint, duration, distance, everything()) %>%  View
-
-  { . } -> b1
-
-df_best_location %>% 
-  group_by( userid, night ) %>%
-  group_modify( ~findStayPoint(.x,  max_jump_time, min_staypoint_time, max_staypoint_distance)) %>%
-{ . } -> df_staypoints
-
-df_staypoints %>%
-  summarise( n_staypoint = max(n_staypoint ),
-            ts = (max( time_stamp) - min(time_stamp)) / 60,
-            n=n()
-            ) %>%
-  filter( ts > 60 & n>10) %>%
-
-```
-
-# calculate distance 
-  - calculate distance between successive best guess locations
-  - calculate speed based on interval and distance, in m/sec 
-
-
-```{r distance}
-
-df_best_location %>% 
-  group_by( night ) %>%
-  mutate( dist = calc_interval_distance(longitude, latitude),
-         speed = dist/interval * 1000) %>%  # in m/sec
-  select( interval, dist, speed, accuracy, bearing, everything())  %>% 
-  { . } -> df_filtered_location
-
-```
-# Inaccurate GPS investigation
-Sometimes, the person 'moves' very quickly;  for example, many samples where speed > 100.  This has to be related to measurement issues
-
-GPS has problems.  There are several solutions
-  1. delete out of bounds measurements
-  1. average successive points (eg moving average)
-  1. use median of successive points (https://gis.stackexchange.com/a/245009/70843)
-  1. eliminate changes in location where accellerometer clearly states that the phone is not moving
-  1. Calculate Euclidean minimum spanning tree of points:
-  1. use a kalman filter, which would use more of teh  sensor data.  Difficult. Here is an impllementation for android (https://blog.maddevs.io/reduce-gps-data-error-on-android-with-kalman-filter-and-accelerometer-43594faed19c)
-
-For this initial work, I use the median 7 filter
-
-
-```{r dataFiltering}
-
-
-df_best_location %>%
-  group_by( userid, night ) %>%
-  mutate( 
-         latitude_median = rollapplyr( latitude, 11, median, partial = TRUE ),
-         longitude_median = rollapplyr( longitude, 11, median, partial = TRUE ),
-#         dist_original = calc_interval_distance(longitude, latitude),
-#         dist_cumul_original = calc_distance_from_start(latitude, longitude),
-#         speed_original = dist_original/interval * 1000,   # in m/sec
-         dist_filtered = calc_interval_distance(latitude_median, longitude_median ),
-         dist_cumul_filtered = calc_distance_from_start(latitude_median, longitude_median ),
-         speed_filtered = dist_filtered/interval * 1000) %>%  # in m/sec
-  select( interval, dist_filtered, speed_filtered, accuracy, bearing, everything())  %>% 
-    ungroup() %>%
-    { . } -> df_filtered_location
-
-
-
-```
-
-# Distance sanity checking
-## any points greater than 10km from previous point?
-
-```{r DistanceTesting}
-  
-df_filtered_location %>% filter( dist_filtered >10 ) %>% head(10) %>% kable()
-
-df_filtered_location %>%
-  ungroup() %>%
-  arrange( desc(dist_filtered )) %>%
-  select( dist_filtered, userid, night ) %>%
-  head(20) -> a
-
-
-a
-
-
-```
-
-# top 10 raw lat and long points
-
-```{r }
-
-df_filtered_location %>% ungroup() %>% count( longitude, latitude, sort=TRUE) %>% head(10) %>% kable()
-
-
-```
-
-# distance exploration
-
-```{r distance display}
-ggplot(df_filtered_location, aes( latitude )) + geom_histogram()
-ggplot(df_filtered_location, aes( longitude )) + geom_histogram()
-
-ggplot(df_filtered_location, aes( dist_original )) +
- geom_histogram() +
- scale_y_log10() +
- xlab( 'range of original distances in km between successive points')
-
-
-ggplot(df_filtered_location, aes( speed_filtered )) +
- geom_histogram() +
- scale_y_log10() +
- xlab('speed in m/sec between successive filtered points')
-
-ggplot(df_filtered_location, aes( y=speed_filtered, x=night )) +
- geom_violin() + 
- geom_boxplot(width=0.1)+
- scale_y_log10() +
- xlab('speed in m/sec') + 
- ggtitle( 'Range of filtered speeds per night, log scale, outliers dropped')
-
- 
-``` 
-
-# Demonstrations of cleaned and uncleaned data
-
-First, the number of points/ night Number with speed > 100 m/s
-
-```{r excess_speed }
-df_filtered_location %>% filter( speed_filtered > 100 ) %>% count(sort=TRUE)
-df_filtered_location %>% filter( dist_filtered > 100 ) %>% count(sort=TRUE)
-
-#df_filtered_location %>% 
-#  ggplot( ) + geom_line( aes( local_time, speed_original  )) +
-#  facet_wrap( ~night , scales='free') +
-#  ggtitle( "original intersample speed measurements" )
-#
-#
-#df_filtered_location %>% 
-#  ggplot( ) + geom_line( aes( local_time, dist_original  )) +
-#  facet_wrap( ~night , scales='free') +
-#  ggtitle( "original intersample distance measurements" )
-#
-#df_filtered_location %>% 
-#  ggplot( ) + geom_line( aes( local_time, dist_cumul_original  )) +
-#  facet_wrap( ~night , scales='free') +
-#  ggtitle( "original cumulative distance measurements" )
-
-
-df_filtered_location %>% 
-  inner_join( a, by=c('userid','night')) %>%
-  ggplot( ) + geom_line( aes( local_time, speed_filtered  )) +
-  facet_wrap( ~userid, scales='free') +
-  ggtitle( "Filtered intersample speed measurements" )
-
-
-df_filtered_location %>% 
-  inner_join( a, by=c('userid','night')) %>%
-  ggplot( ) + geom_line( aes( local_time, dist_filtered.x  )) +
-  facet_wrap( ~userid, scales='free') + 
-  ggtitle( "Filtered intersample distance measurements" )
-
-
-
-df_filtered_location %>% 
-  inner_join( a, by=c('userid','night')) %>%
-  ggplot( ) + geom_line( aes( local_time, dist_cumul_filtered  )) +
-  facet_wrap( ~userid, scales='free') + 
-  ggtitle( "Filtered cumulative distance measurements" )
-
-```
-
-# Heterogeneous Time series exploration: to be continued
-
-```{r time_series}
-
-
-df_filtered_location %>%  
-  as.tsibble( key=id( userid, night), 
-             index=local_time, 
-             regular=FALSE
-             ) %>% 
-  { . } ->  ts_location
-
-
-```
-
-
-```{r end_last }
-
-options(warn=0)
-```
 
