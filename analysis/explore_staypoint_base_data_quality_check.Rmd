@@ -1,0 +1,174 @@
+---
+title: "Explore Staypoint base Data Evaluation and Preperation"
+output:
+  workflowr::wflow_html
+---
+
+
+```{r dataPrep, results='hide', message=FALSE, warning=FALSE, cache=FALSE}
+options(warn=-1)
+
+source('lib/functions.R')
+source('lib/get_data.R')
+source('lib/location_prep.R')
+library(tidyverse)
+library(lubridate)
+
+opts_chunk$set(cache=TRUE, autodep=TRUE)
+
+
+df_location = get_df_location()
+df_best_location = get_df_best_location( df_location )
+df_all = get_df_all()
+df_all_ts = get_df_all_ts( df_all )
+
+
+```
+
+# problems with the survey data
+  - timezone is all over the place, is it valid?
+  - we can't check it
+  - we  have to assume it is all valid (because we are going to use it only to substantiate the location data)
+
+# problems with the gps location data
+  - timezone, timestamp and localtime are not consistent with each other
+
+# what order do they do their timestamping in (given the timezone they say they are in  )
+Ten most popular survey orderings
+
+
+```{r}
+
+df_all %>% 
+  select( userid, day, id ) %>%
+  inner_join( df_all_ts, by='id') %>%
+  arrange( userid, day, ts ) %>%
+  group_by( userid, id ) %>%
+  summarise( ordr = paste( which, collapse='-')) %>%
+  ungroup() %>%
+  count( ordr, sort=TRUE ) %>% 
+  head(10)
+
+
+```
+
+# what is the range of purported survey timestamp and gps location durations
+```{r}
+
+df_all %>% 
+  mutate( id = row_number()) %>%
+  select( userid, day, id ) %>%
+  inner_join( df_all_ts, by='id') %>%
+  arrange( userid, day, ts ) %>%
+  group_by( userid, id ) %>%
+  summarise( d=as.numeric( max( ts ) - min( ts), units='mins')) %>%
+  filter( d<3000 ) %>%
+  ggplot( aes( d)) + geom_histogram() + xlab("minutes, limited to 3000 ") + ggtitle( 'Survey duration (max timestamp-min)')
+
+
+df_best_location %>%
+  group_by( userid, night ) %>% 
+  summarise( d = as.numeric( max( local_time ) - min( local_time ), units='mins' ),
+            max( local_time ) , min( local_time ), 
+            n=n()) %>%
+    filter( d<500 ) %>%
+  ggplot( aes( d)) + geom_histogram() + xlab("minutes, limited to 500 ") + ggtitle( 'GPS duration (max timestamp-min)')
+
+
+df_all %>% 
+  select( userid, night, id ) %>%
+  inner_join( df_all_ts, by='id') %>%
+  group_by( userid, night ) %>%
+  summarise( night_min = min( date( ts ))
+            , max_ts = max( ts )
+            , min_ts = min( ts )
+            , ordr = paste( which, collapse='-')) %>%
+  ungroup() %>%
+  { . } -> df_all_nights
+
+df_all %>% 
+  select( userid, day, id ) %>%
+  inner_join( df_all_ts, by='id') %>%
+  arrange( userid, day, ts ) %>%
+  group_by( userid, id ) %>%
+  summarise( ordr = paste( which, collapse='-')) %>%
+  ungroup() %>%
+  count( ordr, sort=TRUE ) %>% 
+  head(10)
+
+
+```
+
+# what is the range of 'nights', and how do they match between the datasets
+
+first, GPS traces with NO surveys
+```{r}
+
+df_best_location %>%
+  distinct( userid, night ) %>%  
+  anti_join( df_all_nights) %>%
+  arrange( userid, night) %>%
+  nrow()
+
+```
+
+
+next, number of survey evenings with no GPS traces :-(
+```{r}
+
+
+df_all_nights %>%
+  anti_join( df_best_location ) %>%
+  arrange( userid, night) %>%
+  nrow()
+
+```
+# Survey timezones
+We can assume survey timezones are correct, despite them being very disparate.  For example, 
+
+```{r  survey_timezones  }
+
+df_all_ts %>%
+  count( timezone ) %>%
+  arrange( desc( n), timezone) %>%
+  head(20)
+
+```
+
+Sometime surveys from the same night are 2 or more timezones!
+
+
+```{r explore_location_timezones_variety}
+
+df_all %>% 
+  select( userid, night, id ) %>%
+  inner_join( df_all_ts, by='id') %>%
+  group_by( userid, night ) %>%
+  distinct( timezone, .keep_all=TRUE ) %>%
+  inner_join( df_all_nights) %>%
+  mutate( n=n()) %>%
+  filter( n > 1) %>%
+  arrange( desc( n), ts) %>%
+  select( -night_min, -max_ts, -min_ts, -userid, -timestamp) 
+
+```
+
+
+# location data
+timezone, time_stamp , and localtime all consistent (if we take DST into account).  We can use time_stamp
+
+
+```{r explore_location_timezones}
+
+df_location %>%
+  mutate( lt = local_time %>% as.character() %>% ymd_hms( tz = "UTC") %>% seconds() - time_stamp- timezone) %>% 
+  count( lt )
+
+
+```
+
+# Survey data Final decision
+- we will use timestamp, despite messy timezone
+
+
+

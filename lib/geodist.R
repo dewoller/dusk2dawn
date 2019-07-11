@@ -1,3 +1,5 @@
+library(sf)
+
 
 step_last_dist <- function(recipe,
                          lat = NULL,

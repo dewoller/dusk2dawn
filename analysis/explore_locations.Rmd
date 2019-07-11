@@ -1,0 +1,86 @@
+---
+title: "Explore Staypoint base Data Evaluation and Preperation"
+output:
+  workflowr::wflow_html
+---
+
+
+```{r dataPrep, results='hide', message=FALSE, warning=FALSE}
+options(warn=-1)
+
+source('lib/functions.R')
+source('lib/get_data.R')
+source('lib/location_prep.R')
+library(tsibble)
+library(lubridate)
+library(sp)
+library(sf)
+library(tmap)
+library(methods)
+library(tidyverse)
+library(sp)
+library(sf)
+
+opts_chunk$set(cache=TRUE, autodep=TRUE)
+
+```
+
+# how is the cleaning?
+We lose 23K locations due to cleaning
+
+```{r}
+
+
+df_location = get_df_location( )
+df_best_location = get_df_best_location( df_location )
+
+df_best_location %>% distinct( userid, night, local_time ) %>% nrow()
+
+df_location %>% distinct( userid, night, local_time ) %>% nrow()
+
+
+
+```
+#Solution
+
+the locations are outside CH, we will exclude them
+
+
+```{r}
+
+df_location %>%
+  count( latitude, longitude, sort=TRUE ) %>%
+  st_as_sf( coords = c("longitude", "latitude"), 
+           crs = 4326, agr = "constant") -> a
+
+  df_location %>%
+    mutate( latitude = round( latitude, 3), 
+           longitude = round( longitude, 3)
+           ) %>%
+  count( latitude, longitude, sort=TRUE ) %>% 
+  st_as_sf( coords = c("longitude", "latitude"), 
+           crs = 4326, agr = "constant") %>%
+  { . } -> df_locations_summarised
+
+
+```
+
+
+```{r}
+
+
+df  <- df_locations_summarised %>% st_as_sf( coords = c("longitude", "latitude"), 
+              crs = 4326, agr = "constant")
+
+data(World)
+
+     World %>%
+       filter( name == 'Switzerland') %>%
+       tm_shape( ) +
+       tm_polygons()  +
+       tm_shape(df)  + 
+       tm_symbols(col = "red", size = "n", scale = .5) 
+
+```
+
+

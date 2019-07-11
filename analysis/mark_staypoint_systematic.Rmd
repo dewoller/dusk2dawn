@@ -4,172 +4,115 @@ output:
   workflowr::wflow_html
 ---
 
+# Staypoint analysis
 
-```{r results='hide', message=FALSE, warning=FALSE, cache=TRUE}
-options(warn=-1)
-
-source('lib/functions.R')
-source('lib/gps_functions.R')
-source('lib/get_data.R')
-library(tsibble)
-library(lubridate)
-library(sp)
-needs(recipes)
-
-source('lib/geodist.R')
-source('lib/nafill_down.R')
-source('lib/nafill_mean.R')
-opts_chunk$set(cache=TRUE, autodep=TRUE)
-
-read.csv('data/EveningMasterFullAnonym.csv') %>% 
-  as.tibble %>% 
-{ . } -> df_all
-
-
-df_all %>% 
-  select( user, evening, day, dq_timestamp, dq_drink_alcool ) %>% 
-  { . } -> df_stay_points_baseline
-
-```
-
-
-```{r example_usage, eval=FALSE }
-
-recipe(Ozone ~ ., data = airquality) %>%
-  step_naomit( all_numeric() ) %>%
-  step_last_dist (lat='Solar.R', lon='Ozone') %>%
-  prep(airquality, verbose = FALSE, retain = TRUE) %>%
-  juice()
-
-
-```
-
-
-
-```{r read_data_from_db, eval=FALSE }
-
-my_db_read( 'select * from location') %>% 
-  as.tibble() %>% 
-  { . } ->  df_location
-
-my_db_read( 'select * from passivelocation') %>% 
-  as.tibble() %>% 
-  { . } ->  df_passive_location
- 
-```
-# Data preperation
-## merge in passive location
-passive location is just as good as active location (but mostly duplicated)
-
-```{r merge, eval=FALSE}
-
-df_location %<>% 
-  bind_rows( df_passive_location ) %>%
-  mutate( id=row_number() )
-
-```
-
-## data cleaning
+## preliminary data cleaning
 1) eliminate duplicates - many duplicate locations at a time stamp. Keep most accurate location at a time stamp
 2) many locations at north pole, markedly wrong.  Eliminate them.
 3) calculate interval and distance between timestamps
 
 
-```{r one_test, eval=FALSE}
 
 
-df_filtered_location %>%
-  filter(userid=='f181ac9f-f678-40ce-89ea-7d5c807e3b68' & night == '2014-10-18') %>%
-  filter( dist_filtered > 10) %>%
-  select( id ) %$% id -> b
+```{r results='hide', message=FALSE, warning=FALSE, cache=TRUE}
+options(warn=-1)
+library( knitr )
+opts_chunk$set(cache=TRUE, autodep=TRUE)
+
+source('lib/functions.R')
+source('lib/get_data.R')
+source('lib/location_prep.R')
+library(tidyverse)
+library(lubridate)
+
+df_location = get_df_location()
+df_best_location = get_df_best_location( df_location )
+df_all = get_df_all()
+df_all_ts = get_df_all_ts( df_all )
+
 ```
 
-```{r  data_cleaning, eval=FALSE}
+```{r process_one_set}
 
 
+debug( do_one_search)
+undebug( do_one_search)
 
-f_location %>%
-  head(1000) %>%
-  filter( longitude > 0 &   longitude <10 & latitude > 40) %>%
-  group_by( userid, night, local_time ) %>%
-  filter( accuracy == min(accuracy)) %>%
-  group_by( userid, night ) %>%
-  filter( length(local_time) > 1 ) %>%  # we want people who had at least 1 reading/night
+do_one_search = function( .df ) {
+  dput(.df)
+  cat("\n")
 
-arrange_.party_df <- function (.data, ..., .dots = list()) 
-{
-  multidplyr:::shard_call(.data, quote(dplyr::arrange), ..., .dots = .dots, 
-                          groups = .data$groups[-length(.data$groups)])
+  fname  = glue( "data/save_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_max_speed_filter}.df$i.rds")
+
+  df_best_location %>%  
+    filter( speed <=.df$i_max_speed_filter  ) %>%
+    group_by( userid, night ) %>%
+    group_modify( ~findStayPoint(.x,  .df$i_max_jump_time, .df$i_min_staypoint_time, .df$i_max_staypoint_distance)) %>%
+    select( local_time, time_stamp, n_staypoint, duration, distance, everything()) %>% 
+    { . } -> df
+
+    saveRDS(df,  file=fname)
+
+  data.frame(1)
 }
 
-library(multidplyr)
-library(parallel)
-cl <- detectCores()
-cluster <- create_cluster(cores = cl)
-
-df_location %>%
-  partition(userid, night, cluster = cluster) %>%   
-  cluster_library("tidyverse") %>%
-  filter( longitude > 0 &   longitude <10 & latitude > 40) %>%
-  group_by( local_time ) %>%
-  filter( accuracy == min(accuracy)) %>%
-  collect() %>%
-  ungroup() %>% 
-  { . } -> df_best_location
-
-saveRDS( df_best_location, 'data/df_best_location.rds')
-
-df_best_location %>%
-  partition(userid, night, local_time, cluster = cluster) %>%   
-  group_by( userid, night, local_time, time_stamp, accuracy ) %>%
-  filter( n() > 1 ) %>%  # we want people who had at least 1 reading/night
-  summarise( longitude=mean(longitude), latitude=mean(latitude) ) %>%
-  collect() %>%
-  ungroup() %>% 
-  arrange( userid, night, time_stamp ) %>%
-  mutate( interval = difference( time_stamp, 1 ), 
-         dist = calc_interval_distance(longitude, latitude),
-         speed = dist/interval * 1000) %>%  # in m/sec
-  select( interval, dist, speed, accuracy, everything())  %>% 
-  { . } -> df_best_location1
-saveRDS( df_best_location1, 'data/df_best_location1.rds')
 
 ```
 
+
+# generate a subset of staypoints for a single parameter set
+
+
 ```{r test_with_subset,eval=FALSE }
-df_best_location1 %>% 
+
+df_best_location %>% 
+  #filter(userid=='f181ac9f-f678-40ce-89ea-7d5c807e3b68' & night == '2014-10-18') %>%
   filter( userid=='05f35693-7fec-4372-af78-7bd904c187e0' & night=='2014-10-10'  ) %>% 
   arrange( userid, night, time_stamp ) %>%
   { . } -> b
 
 
-min_staypoint_time=20*60
+min_staypoint_time=10*60
 max_jump_time=20*60
 max_staypoint_distance=200
 max_speed_filter=30*1000/3600
 
-b %>% 
-  mutate( interval = difference( time_stamp, 1 ), 
-      dist = calc_interval_distance(longitude, latitude),
-            speed = dist/interval * 1000) %>%  # in m/sec
-  select( interval, dist, speed, accuracy, everything())  %>% 
-  filter( speed <=max_speed_filter  ) %>%
-  group_by( userid, night ) %>%
-  group_modify( ~findStayPoint(.x,  max_jump_time, min_staypoint_time, max_staypoint_distance)) %>%
-  select( local_time, time_stamp, n_staypoint, duration, distance, everything()) %>% 
-  { . } -> b1_m
+list(
+i_min_staypoint_time=min_staypoint_time,
+i_max_jump_time=max_jump_time,
+i_max_staypoint_distance=max_staypoint_distance,
+i_max_speed_filter=max_speed_filter
+     ) %>% as.tibble() %>% 
+     { . } -> df
+
+do_one_search( df )
+
+  df_best_location %>%  
+    filter( speed <=max_speed_filter  ) %>%
+    group_by( userid, night ) %>%
+    group_modify( ~findStayPoint(.x,  max_jump_time, min_staypoint_time, max_staypoint_distance)) %>%
+    select( local_time, time_stamp, n_staypoint, duration, distance, everything()) %>% 
+    { . } -> b1_m
 
 b1_m %>% count( n_staypoint )
 
+
 ```
+
+```{r explore_subset}
+
+df_best_location %>% distinct( userid, night )
+
+df_best_location %>% 
+  filter( is.na( interval ))
+
+```
+
 
 ```{r good_path_visualisation,eval=FALSE }
 
 max_speed_filter=30*1000/3600
 b %>% 
-  mutate( interval = difference( time_stamp, 1 ), 
-         dist = calc_interval_distance(longitude, latitude),
-         speed = dist/interval * 1000) %>%  # in m/sec
 select( interval, dist, speed, accuracy, everything())  %>% 
   filter( speed <=max_speed_filter  ) %>%
 ggplot(aes( latitude, longitude, color=time_stamp, size=speed)) + 
@@ -178,50 +121,30 @@ geom_path()
 
 ```
 
+
+
+# generate a range of staypoint estimates
+
+
 ```{r generate_staypoints }
 
-readRDS( 'data/df_best_location1.rds') %>% 
-  as.tibble() %>% 
-  { . } -> df_best_location1
+min_staypoint_time_range=c(5,10,20,30)*60
+max_jump_time_range=c(10,20,30)*60
+max_staypoint_distance_range= c(5,10,20,40,80,160)
+max_speed_filter_range=c( 20,30)
 
-
-
-min_staypoint_time=c(5,10,20,30)*60
-max_jump_time=c(10,20,30)*60
-max_staypoint_distance = c(5,10,20,40,80,160)
-max_speed_filter=c( 20,30)
-
-expand.grid(min_staypoint_time,max_jump_time,max_staypoint_distance, max_speed_filter ) %>% 
+expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, max_speed_filter_range ) %>% 
   setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_max_speed_filter )) %>%
   as.tibble() %>% 
   { . } -> grid_search 
   
 
 
-b=readRDS('data/b.rds') %>% as.tibble()
-
 
 library(multidplyr)
 library(parallel)
 cl <- detectCores()
 cluster <- create_cluster(cores = cl)
-
-do_one_search = function( df ) {
-  dput(df)
-  cat("\n")
-
-  fname  = glue( "data/save_{df$i_min_staypoint_time}_{df$i_max_jump_time}_{df$i_max_staypoint_distance}_{df$i_max_speed_filter}df$i_rds")
-
-  b %>% 
-   group_by( userid, night ) %>%
-   filter( speed <=df$i_max_speed_filter  ) %>%
-   findStayPoint(df$i_max_jump_time, df$i_min_staypoint_time, df$i_max_staypoint_distance) %>%
-#    collect()  %>% 
-{ . } -> df
-
-    saveRDS(df, file=fname)
-  data.frame(1)
-}
 
 debug(findStayPoint)
 debug(do_one_search )
@@ -234,13 +157,13 @@ options(error = traceback) # setting the error option
 options(show.error.locations = TRUE)
 
 grid_search %>%
+  head(2) %>%
   mutate( row_num=row_number()) %>%
   partition(row_num, cluster = cluster) %>%
-  group_by(row_num) %>%
   cluster_library("glue") %>%
   cluster_library("geosphere") %>%
   cluster_library("tidyverse") %>%
-  cluster_copy( b) %>%
+  cluster_copy( df_best_location ) %>%
   cluster_copy( distanceBetween) %>%
   cluster_copy( findStayPoint) %>%
   cluster_copy( do_one_search) %>%

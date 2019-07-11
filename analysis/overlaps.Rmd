@@ -1,0 +1,65 @@
+
+---
+title:           overlaps
+author:          Dennis Wollersheim 
+date:            07.07.2019
+linkcolor:       cyan
+citecolor:       grey
+output:
+pdf_document:
+highlight:   zenburn
+---
+
+\tableofcontents
+
+```{r overlaps_setup, cache=FALSE, include=FALSE}
+
+mtime <- function(files){
+  lapply(Sys.glob(files),function(x) file.info(x)$mtime)
+}
+files <- c('')
+opts_chunk$set(cache.extra=mtime(files), cache=TRUE, engine.opts='-l', tidy=FALSE)
+knit_hooks$set(inline=function(x) prettyNum(round(x,2), big.mark=","))
+
+```
+
+
+
+```{r}
+
+#
+no_cores <- detectCores() - 1
+cluster <- create_cluster(no_cores)
+#
+df_benzo_nested %>%
+  inner_join( df_opioid_nested ) %>% 
+  partition(pin, cluster=cluster )  %>%
+  { . } -> df_both
+#
+cluster_library(df_both, c("tidyverse", "IRanges", "fuzzyjoin"))
+#
+
+
+df_both %>%
+  do( joined = interval_inner_join( data.frame(.$opioids), 
+                                   data.frame(.$benzo), 
+                                   by=c('supply_date','end_date'),
+                                   minoverlap=7))  %>%
+collect() %>%
+ungroup() %>%
+unnest() %>% 
+mutate( supply_year = year( supply_date.x), 
+       diff= pmin( end_date.x, end_date.y ) - 
+         pmax( supply_date.x, supply_date.y )+1) %>%
+ungroup() %>%
+{ . } -> df_intersect
+
+names(df_intersect) %>%
+  sub( '\\.x', '.opioid', . ) %>%
+  sub( '\\.y', '.benzo', . ) %>% 
+  { . } -> names( df_intersect)
+
+
+
+```
+

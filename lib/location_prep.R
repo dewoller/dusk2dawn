@@ -1,0 +1,96 @@
+
+library(multidplyr)
+library(parallel)
+source('lib/gps_functions.R')
+
+
+get_df_best_location <- function( df_location ) {
+
+  cl <- detectCores()
+  cluster <- create_cluster(cores = cl)
+
+
+  df_location %>%
+  arrange( userid, night, time_stamp ) %>%
+  partition(userid, night, cluster = cluster) %>%   
+  cluster_library("tidyverse") %>%
+  cluster_library("sp") %>%
+  cluster_library("tsibble") %>%
+  cluster_copy( calc_interval_distance ) %>%
+  #
+  # clean gps noise, take the most accurate point for a timestamp
+  filter( longitude > 0 &   longitude <10 & latitude > 40) %>%
+  group_by( userid, night, local_time ) %>%
+  filter( accuracy == min(accuracy)) %>%
+  #
+  # take the mean location for accuracy ties
+  group_by( userid, night, local_time, time_stamp, accuracy ) %>%
+  summarise( longitude=mean(longitude), latitude=mean(latitude) ) %>%
+  collect() %>%
+  group_by( userid, night) %>%
+  #
+  # we want people who had at least 1 reading/night
+  filter( n() > 1 ) %>%  
+  #
+  # find distance, speed between successive gps locationa on a night
+  mutate( interval = difference( time_stamp, 1 ), 
+      dist = calc_interval_distance(longitude, latitude),
+      speed = dist/interval * 1000) %>%  # in m/sec
+  select( interval, dist, speed, accuracy, everything())  %>% 
+  ungroup() 
+
+}
+
+
+
+get_df_location <- function( ) {
+
+  my_db_read( 'select * from location') %>% 
+    as.tibble() %>% 
+    { . } ->  df_location
+
+  my_db_read( 'select * from passivelocation') %>% 
+    as.tibble() %>% 
+    { . } ->  df_passive_location
+
+  df_location %>% 
+    bind_rows( df_passive_location ) 
+
+}
+
+
+
+get_df_all <- function( ) {
+
+  read.csv('data/EveningMasterFullAnonym.csv') %>% 
+    as.tibble %>% 
+    rename( userid=user ) %>%
+    mutate( night =  ymd(sprintf('2014%04.0f', day ))) %>% 
+    mutate( id = row_number())
+}
+
+get_df_all_ts <- function( df_all ) {
+
+  df_all %>% 
+    select( id, ends_with('timestamp'))  %>% 
+    gather( which, timestamp , -id ) %>%
+    mutate( which = str_replace( which, "_.*","")) %>%
+    { . } -> ts
+
+  df_all %>% 
+    select( id, ends_with('timezone_id'))  %>% 
+    gather( which, timezone , -id ) %>%
+    mutate( which = str_replace( which, "_.*","")) %>%
+    { . } -> tz
+
+
+  inner_join( ts, tz, by = c("id", "which")    ) %>% 
+    filter( timestamp != '') %>%
+    group_by( timezone ) %>%
+    mutate( ts = ymd_hms( timestamp, tz=min( timezone))) %>% 
+    mutate( timestamp= seconds( ts )) %>% 
+    { . } -> df_all_ts
+
+   df_all_ts
+}
+

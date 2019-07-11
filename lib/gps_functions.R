@@ -1,7 +1,7 @@
-needs(geosphere)
-needs(zoo)
-needs(glue)
-needs(tibbletime)
+library(geosphere)
+library(zoo)
+library(glue)
+library(tibbletime)
 
 ################################################################################
 # distance2centroid 
@@ -203,4 +203,16 @@ calc_distance_from_start = function( longitude, latitude ) {
     matrix( ncol = 2 ) %>%
     spDistsN1(., .[1,], longlat=TRUE) 
 }
+
+
+
+################################################################################
+# arrange for party_df  
+################################################################################
+carrange_.party_df <- function (.data, ..., .dots = list()) 
+{
+  multidplyr:::shard_call(.data, quote(dplyr::arrange), ..., .dots = .dots, 
+                          groups = .data$groups[-length(.data$groups)])
+}
+
 
