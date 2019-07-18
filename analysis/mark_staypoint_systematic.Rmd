@@ -157,7 +157,6 @@ options(error = traceback) # setting the error option
 options(show.error.locations = TRUE)
 
 grid_search %>%
-  head(2) %>%
   mutate( row_num=row_number()) %>%
   partition(row_num, cluster = cluster) %>%
   cluster_library("glue") %>%
