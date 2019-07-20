@@ -23,7 +23,7 @@ The staypoint determination algorithm uses 4 variables;
 ```{r results='hide', message=FALSE, warning=FALSE, cache=FALSE}
 options(warn=-1)
 library( knitr )
-opts_chunk$set(cache=TRUE, autodep=TRUE)
+opts_chunk$set(cache=TRUE, autodep=TRUE, eval=TRUE)
 
 source('lib/functions.R')
 source('lib/get_data.R')
@@ -36,7 +36,7 @@ library(lubridate)
 
 ```
 
-```{r load_data_cacheable, cache=TRUE}
+```{r load_data_cacheable, cache=TRUE, eval=TRUE}
 
 
 # load in the individual locations information
@@ -62,6 +62,7 @@ df_all_ts = get_df_all_ts( df_all )
 
 
 ```{r find_homes, eval=FALSE}
+# old defunct code
 
 df_best_location %>%
   filter( accuracy <30) %>%
@@ -80,7 +81,7 @@ df_home_centroids %>%
   { . } -> df_estimated_home
 
 
-debug( calculate_distance)
+#debug( calculate_distance)
 
 df_home_centroids %>%
   inner_join( df_estimated_home, by='userid') %>%
@@ -102,7 +103,58 @@ a %>%
 
 
 
-```{r explore_locations}
+```{r load_staypoint_file_list}
+
+row= tribble( ~filename,'data/save_1200_1200_10_20_.rds')
+#********************************************************************************
+#analyse_staypoint_base_information
+#********************************************************************************
+analyse_staypoint_base_information <- function( row ) {
+
+
+  readRDS(row$filename) -> df
+  cat(row$filename)
+  cat("\n")
+
+  df %>% 
+    filter( n_staypoint > 0 ) %>%
+    group_by( userid, night, n_staypoint) %>%
+    summarise( latitude = mean( latitude), longitude  = mean( longitude)) %>% 
+    ungroup() %>%
+    { . } -> a
+
+  a %>% 
+    group_by( userid, night) %>%
+    summarise( n=n()) %>%
+    ungroup() %>%
+    summarise( n_staypoint = nrow(a), mean_sp_night=mean(n), max_sp_night=max(n), sd_sp_night=sd(n)) %>% 
+    bind_cols( row ) 
+
+}
+
+
+list.files( path='data/', pattern='save.*rds', full.names=TRUE ) %>%
+  enframe(value = 'filename' ) %>%
+  separate( col=filename, 
+           into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter)), 
+           sep='_', 
+           extra='drop' ,
+           remove=FALSE)  %>%
+  select( min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, everything() ) %>%
+  mutate_at(1:4, function(x) {sprintf('%06.1f', as.numeric(x) ) }) %>% 
+  head(2) %>%
+  rowwise() %>%
+  do( analyse_staypoint_base_information(.) ) %>% 
+  { . } -> df_files
+
+
+```
+
+# Bar Locations - calculate and clean input
+
+
+
+```{r clean_4square_locations, eval=TRUE}
 
 
 read_csv( 'data/foursquare_locations_data_ls.csv') %>%
@@ -168,11 +220,10 @@ head( 10 )
 
 # Staypoint evaluation
 
-For each proposed stay point, is there a bar location that is within 50M of the centroid of the proposed staypoint?
+For each proposed stay point, is there a bar location that is within 20M of the centroid of the proposed staypoint?
 
 ```{r evaluate_staypoints_geography}
 
-row= tribble( ~filename,'data/save_1200_1200_10_20_.rds')
 #undebug( analyse_staypoint_set_geography )
 #debug( analyse_staypoint_set_geography )
 
@@ -180,7 +231,8 @@ row= tribble( ~filename,'data/save_1200_1200_10_20_.rds')
 #analyse_staypoint_set_geography 
 #********************************************************************************
 analyse_staypoint_set_geography <- function( row ) {
-  
+  min_overlap_distance = 20 / 1000 # 20 m
+
 
   readRDS(row$filename) -> df
   cat(row$filename)
@@ -191,24 +243,7 @@ analyse_staypoint_set_geography <- function( row ) {
     group_by( userid, night, n_staypoint) %>%
     summarise( latitude = mean( latitude), longitude  = mean( longitude)) %>% 
     ungroup() %>%
-    { . } -> a
-
-  
-
-
-  a %>% 
-    group_by( userid, night) %>%
-    summarise( n=n()) %>%
-    ungroup() %>%
-    summarise( n_staypoint = nrow(a), mean_sp_night=mean(n), max_sp_night=max(n), sd_sp_night=sd(n)) %>% 
-    bind_cols( row ) %>%
-    { . } -> summary_stats
-
-  a %>%
-    geo_inner_join(df_4sq_locations_filtered, max_dist = .02, distance_col='dist') %>% 
-    { . } -> b
-
-  b %>% 
+    geo_inner_join(df_4sq_locations_filtered, max_dist = min_overlap_distance, distance_col='dist') %>% 
     mutate( dist = round( dist * 1000, 0)) %>%
     group_by( userid, night, n_staypoint ) %>% 
     arrange( dist , type) %>%
@@ -219,7 +254,7 @@ analyse_staypoint_set_geography <- function( row ) {
   d %>% 
     count( type, sort=TRUE) %>%
     spread(type, n) %>%
-    bind_cols(summary_stats) %>%
+    bind_cols( row ) %>%
     bind_cols (enframe( nrow(d), value='nhits')) %>%
     select(  nhits, everything() ) %>%
     select( -name )
@@ -227,54 +262,54 @@ analyse_staypoint_set_geography <- function( row ) {
 }
 
 
-list.files( path='data/', pattern='save.*rds', full.names=TRUE ) %>%
-  enframe(value = 'filename' ) %>%
-  separate( col=filename, 
-           into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter)), 
-           sep='_', 
-           extra='drop' ,
-           remove=FALSE)  %>%
-  select( min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, everything() ) %>%
-  mutate_at(1:4, function(x) {sprintf('%06.1f', as.numeric(x) ) }) %>%
+df_files %>%
   rowwise() %>%
   do( analyse_staypoint_set_geography(.) ) %>% 
-  { . } -> rv
+  { . } -> df_geography_matches
 
 
-rv %>%
+```
+
+# Reports - Staypoints evaluated according to geography
+
+```{r show_staypoints_geography}
+
+
+
+df_geography_matches %>%
   ggplot( aes(x=(max_jump_time), y=nhits, fill=(max_jump_time) )) +
   geom_boxplot()
 
-rv %>%
+df_geography_matches %>%
   ggplot( aes(x=(max_staypoint_distance), y=nhits, fill=( max_staypoint_distance) )) +
   geom_boxplot()
 
-rv %>%
+df_geography_matches %>%
   ggplot( aes(x=(max_speed_filter), y=nhits, fill=( max_speed_filter) )) +
   geom_boxplot()
 
-rv %>%
+df_geography_matches %>%
   ggplot( aes(x=(min_staypoint_time), y=nhits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot()
 
-rv %>%
+df_geography_matches %>%
   ggplot( aes(x=(max_jump_time), y=nhits/n_staypoint, fill=(max_jump_time) )) +
   geom_boxplot()
 
-rv %>%
+df_geography_matches %>%
   ggplot( aes(x=(max_staypoint_distance), y=nhits/n_staypoint, fill=( max_staypoint_distance) )) +
   geom_boxplot()
 
-rv %>%
+df_geography_matches %>%
   ggplot( aes(x=(max_speed_filter), y=nhits/n_staypoint, fill=( max_speed_filter) )) +
   geom_boxplot()
 
-rv %>%
+df_geography_matches %>%
   ggplot( aes(x=(min_staypoint_time), y=nhits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot()
 
 
-rv %>%
+df_geography_matches %>%
   ggplot( aes(x=(min_staypoint_time), y=nhits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot() + 
   facet_wrap( .~max_staypoint_distance)
@@ -293,12 +328,12 @@ For each person, take all their survey timestamps;  match them against all the s
 df_all_ts  %>%
   group_by( userid, night ) %>%
   mutate( start=timestamp, end=timestamp) %>%
-  select( start, end, which, userid) %>%
+  select( start, end, which, userid, night) %>%
   nest( .key='surveys') %>% 
   { . } -> df_all_ts_nested
 
 #********************************************************************************
-#
+#analyse_staypoint_set_time
 #********************************************************************************
 analyse_staypoint_set_time <- function( row ) {
 
@@ -311,10 +346,10 @@ analyse_staypoint_set_time <- function( row ) {
     filter( n_staypoint > 0 ) %>%
     group_by( userid, night, n_staypoint) %>%
     summarise( start=min(time_stamp), end=max(time_stamp), duration=end-start ) %>% 
-    group_by( userid ) %>%
+    group_by( userid, night ) %>%
     nest( .key='staypoints') %>%
     ungroup() %>%
-    inner_join( df_all_ts_nested, by='userid') %>% 
+    inner_join( df_all_ts_nested, by=c('userid', 'night')) %>% 
     group_by( userid, night) %>%
     do( joined = interval_inner_join( data.frame(.$surveys), 
                                      data.frame(.$staypoints), 
@@ -342,84 +377,84 @@ analyse_staypoint_set_time <- function( row ) {
 }
 
 
-rv %>%
+df_files %>%
   rowwise () %>%
   do( analyse_staypoint_set_time(.)) %>%
-  { . } -> rv1
+  { . } -> df_survey_time_matches
 
-rv1 %>%
+df_survey_time_matches %>%
   separate( col=filename, 
            into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, NA)), 
            sep='_', 
            remove=FALSE)  %>%
 select( min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, everything() ) %>%
 mutate_at(1:4, function(x) {sprintf('%06.1f', as.numeric(x) ) }) %>%
-{ . } -> rv1
+{ . } -> df_survey_time_matches
 
 
 ```
 
 # Reports - Staypoints evaluated according to survey timestamps
 
-```{r}
+```{r show_survey}
 
 
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(max_jump_time), y=nsurvey_hits, fill=(max_jump_time) )) +
   geom_boxplot() + 
   ggtitle("maximum jump time x Number of survey discoveries")
 
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(max_staypoint_distance), y=nsurvey_hits, fill=( max_staypoint_distance) )) +
   geom_boxplot()
 
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(max_speed_filter), y=nsurvey_hits, fill=( max_speed_filter) )) +
   geom_boxplot()
 
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(min_staypoint_time), y=nsurvey_hits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot()
 
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(max_jump_time), y=nsurvey_hits/n_staypoint, fill=(max_jump_time) )) +
   geom_boxplot()
 
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(max_staypoint_distance), y=nsurvey_hits/n_staypoint, fill=( max_staypoint_distance) )) +
   geom_boxplot()
 
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(max_speed_filter), y=nsurvey_hits/n_staypoint, fill=( max_speed_filter) )) +
   geom_boxplot()
 
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(min_staypoint_time), y=nsurvey_hits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot()
 
 
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(min_staypoint_time), y=nsurvey_hits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot() + 
   facet_wrap( .~max_staypoint_distance)
 
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( n_staypoint) )) +
   geom_point()
 
-rv1 %>%
-  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( nhits / n_staypoint) )) +
-  geom_point()
-
-rv1 %>%
+df_survey_time_matches %>%
   ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( nsurvey_hits / n_staypoint) )) +
   geom_point()
 
-rv1 %>%
-  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( nhits) )) +
+df_survey_time_matches %>%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( nsurvey_hits / n_staypoint) )) +
   geom_point()
 
-rv1 %>%
+df_survey_time_matches %>%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( nsurvey_hits) )) +
+  geom_point()
+
+df_survey_time_matches %>%
   ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=(nsurvey_hits ) )) +
   geom_point()
 
@@ -452,7 +487,7 @@ gps_lausanne = tribble( ~id, ~name, ~lat1, ~lon1, ~lat2, ~lon2,
 
 ```
 
-```{r analyse_both}
+```{r analyse_both, eval=TRUE}
 
 
 
@@ -470,7 +505,7 @@ analyse_staypoint_set_time_and_geography <- function( row ) {
     filter( n_staypoint > 0 ) %>%
     group_by( userid, night, n_staypoint) %>%
     summarise( start=min(time_stamp), end=max(time_stamp), duration=end-start ) %>% 
-    group_by( userid ) %>%
+    group_by( userid, night ) %>%
     nest( .key='staypoints') %>%
     ungroup() %>%
     inner_join( df_all_ts_nested, by='userid') %>% 
@@ -514,70 +549,69 @@ analyse_staypoint_set_time_and_geography <- function( row ) {
 
     df_intersect_both %>%
       count( is.na( start.x), is.na( latitude.x)) %>%
-      mutate( hit_count = qc( Both_hits, Time_only_hits, Location_only_hits)) %>%
+      mutate( hit_count = qc( both_hits, Time_only_hits, Location_only_hits)) %>%
       select( n, hit_count ) %>%
       spread( hit_count, n ) %>%
       bind_cols( row )
 }
 
-rv1 %>%
+df_files %>%
   rowwise () %>%
   do( analyse_staypoint_set_time_and_geography(.)) %>%
-  { . } -> rv2
+  { . } -> df_both_matches
 
-saveRDS( rv2, 'data/rv2.rds')
 
 ```
 
-```{r graph_both}
+```{r graph_both, eval=TRUE}
 
 
 
-rv2 %>%
-  ggplot( aes(x=(max_jump_time), y=Both_hits, fill=(max_jump_time) )) +
+df_both_matches %>%
+  ggplot( aes(x=(max_jump_time), y=both_hits, fill=(max_jump_time) )) +
   geom_boxplot() + 
   ggtitle("maximum jump time x Number of survey discoveries")
 
-rv2 %>%
-  ggplot( aes(x=(max_staypoint_distance), y=Both_hits, fill=( max_staypoint_distance) )) +
+df_both_matches %>%
+  ggplot( aes(x=(max_staypoint_distance), y=both_hits, fill=( max_staypoint_distance) )) +
   geom_boxplot()
 
-rv2 %>%
-  ggplot( aes(x=(max_speed_filter), y=Both_hits, fill=( max_speed_filter) )) +
+df_both_matches %>%
+  ggplot( aes(x=(max_speed_filter), y=both_hits, fill=( max_speed_filter) )) +
   geom_boxplot()
 
-rv2 %>%
-  ggplot( aes(x=(min_staypoint_time), y=Both_hits/n_staypoint, fill=( min_staypoint_time) )) +
+df_both_matches %>%
+  ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot()
 
-rv2 %>%
-  ggplot( aes(x=(max_jump_time), y=Both_hits/n_staypoint, fill=(max_jump_time) )) +
+df_both_matches %>%
+  ggplot( aes(x=(max_jump_time), y=both_hits/n_staypoint, fill=(max_jump_time) )) +
   geom_boxplot()
 
-rv2 %>%
-  ggplot( aes(x=(max_staypoint_distance), y=Both_hits/n_staypoint, fill=( max_staypoint_distance) )) +
+df_both_matches %>%
+  ggplot( aes(x=(max_staypoint_distance), y=both_hits/n_staypoint, fill=( max_staypoint_distance) )) +
   geom_boxplot()
 
-rv2 %>%
-  ggplot( aes(x=(max_speed_filter), y=Both_hits/n_staypoint, fill=( max_speed_filter) )) +
+df_both_matches %>%
+  ggplot( aes(x=(max_speed_filter), y=both_hits/n_staypoint, fill=( max_speed_filter) )) +
   geom_boxplot()
 
-rv2 %>%
-  ggplot( aes(x=(min_staypoint_time), y=Both_hits/n_staypoint, fill=( min_staypoint_time) )) +
+df_both_matches %>%
+  ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot()
 
 
-rv2 %>%
-  ggplot( aes(x=(min_staypoint_time), y=Both_hits/n_staypoint, fill=( min_staypoint_time) )) +
+df_both_matches %>%
+  ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot() + 
   facet_wrap( .~max_staypoint_distance)
 
-rv2 %>%
-  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( Both_hits / n_staypoint) )) +
+df_both_matches %>%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( both_hits / n_staypoint) )) +
   geom_point()
 
-rv2 %>%
-  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=(Both_hits ) )) +
+df_both_matches %>%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=(both_hits ) )) +
   geom_point()
 
 

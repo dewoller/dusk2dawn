@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Staypoint estimate analysis</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Dusk2dawn data analysis</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="initial.html">Analysis</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Staypoint estimate analysis</h1>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2019-07-20
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 4 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 2
+</p>
+<p>
+<strong>Knit directory:</strong> <code>initialAnalysis/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.3.0.9000). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted changes </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20180727code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20180727)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20180727code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20180727)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongdetected"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>Cache:</strong> detected </a>
+</p>
+</div>
+<div id="strongCachestrongdetected" class="panel-collapse collapse">
+<div class="panel-body">
+The following chunks had caches available:
+<ul>
+<li>
+analyse_both
+</li>
+<li>
+analyse_staypoint_set_time
+</li>
+<li>
+clean_4square_locations
+</li>
+<li>
+evaluate_staypoints_geography
+</li>
+<li>
+explore_locations
+</li>
+<li>
+find_homes
+</li>
+<li>
+graph_both
+</li>
+<li>
+load_data_cacheable
+</li>
+<li>
+load_staypoint_file_list
+</li>
+<li>
+mapping
+</li>
+<li>
+session-info-chunk-inserted-by-workflowr
+</li>
+<li>
+unnamed-chunk-2
+</li>
+<li>
+unnamed-chunk-3
+</li>
+</ul>
+<p>To ensure reproducibility of the results, delete the cache directory <code>analyse_staypoint_estimates_cache</code> and re-run the analysis. To have workflowr automatically delete the cache directory prior to building the file, set <code>delete_cache = TRUE</code> when running <code>wflow_build()</code> or <code>wflow_publish()</code>.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntreeb207332bba38823c9a5496918c3f7142500b162atargetblankb207332a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/dewoller/dusk2dawn/tree/b207332bba38823c9a5496918c3f7142500b162a" target="_blank">b207332</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntreeb207332bba38823c9a5496918c3f7142500b162atargetblankb207332a" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    analysis/analyse_staypoint_estimates_cache/
+    Ignored:    analysis/exploreStaypointBase_cache/
+    Ignored:    analysis/explore_locations_cache/
+    Ignored:    analysis/explore_staypoint_base_data_quality_check_cache/
+    Ignored:    analysis/mark_staypoint_systematic_cache/
+    Ignored:    b.rds
+    Ignored:    data/ldr/
+    Ignored:    data/sql_load/
+    Ignored:    data/summary/
+
+Untracked files:
+    Untracked:  docs/figure/analyse_staypoint_estimates.Rmd/
+
+Unstaged changes:
+    Modified:   analysis/analyse_staypoint_estimates.Rmd
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the R Markdown and HTML files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view them.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/b207332bba38823c9a5496918c3f7142500b162a/analysis/analyse_staypoint_estimates.Rmd" target="_blank">b207332</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-20
+</td>
+<td>
+finished initial analysis pass
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="determine-which-staypoint-parameters-work-the-best" class="section level1">
+<h1>Determine which staypoint parameters work the best</h1>
+<div id="staypoint-parameters" class="section level2">
+<h2>staypoint parameters</h2>
+<p>The staypoint determination algorithm uses 4 variables; - min_staypoint_time - minimum time, in minutes, that must stay within max_staypoint_distance * max_jump_time - maximum time, in minutes, between readings * max_staypoint_distance - maximum distance for readings to be counted as a single staypoint * max_speed_filter - noise reduction parameter, eliminating points that would take over this speed to get there (in kmh)</p>
+</div>
+<div id="tests-for-good-staypoint-parameters" class="section level2">
+<h2>Tests for good staypoint parameters</h2>
+<ul>
+<li>See if they match the survey data timestamps - we assume that survey data timestamps correspond to staypoints</li>
+<li>see if they match drinking establishment locations</li>
+<li>see if they match home locations - todo later 4</li>
+</ul>
+<pre class="r"><code>options(warn=-1)
+library( knitr )
+opts_chunk$set(cache=TRUE, autodep=TRUE, eval=FALSE)
+
+source(&#39;lib/functions.R&#39;)
+source(&#39;lib/get_data.R&#39;)
+source(&#39;lib/location_prep.R&#39;)
+source(&#39;lib/gps_functions.R&#39;)
+library(tidyverse)
+library(lubridate)</code></pre>
+<pre class="r"><code># load in the individual locations information
+df_location = get_df_location()
+
+# load in the best guess location information
+df_best_location = get_df_best_location( df_location )</code></pre>
+<pre><code>Initialising 4 core cluster.</code></pre>
+<pre><code>
+Attaching package: &#39;sp&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:IRanges&#39;:
+
+    %over%</code></pre>
+<pre class="r"><code># get survey data
+df_all = get_df_all()
+
+# get survey timestamps
+df_all_ts = get_df_all_ts( df_all )</code></pre>
+</div>
+</div>
+<div id="determine-home-locations" class="section level1">
+<h1>determine home locations</h1>
+<ul>
+<li>For each person, if they have more than one night’s reading, if the centroid of the first 10 points of each night is in the same vicinity, this is their home</li>
+<li>Vicinity is 20 m</li>
+<li>Doesn’t work, too much noise</li>
+</ul>
+<pre class="r"><code>df_best_location %&gt;%
+  filter( accuracy &lt;30) %&gt;%
+  group_by( userid, night) %&gt;%
+  do( head(., 2 )) %&gt;%
+  summarise( latitude = median( latitude), longitude = mean( longitude) ) %&gt;%
+  filter( n()&gt;1) %&gt;% 
+  ungroup() %&gt;%
+  { . } -&gt; df_home_centroids
+
+
+df_home_centroids %&gt;%
+  group_by( userid ) %&gt;%
+  summarise( latitude = median( latitude), longitude = mean( longitude) ) %&gt;% 
+  ungroup() %&gt;%
+  { . } -&gt; df_estimated_home
+
+
+#debug( calculate_distance)
+
+df_home_centroids %&gt;%
+  inner_join( df_estimated_home, by=&#39;userid&#39;) %&gt;%
+  mutate( distance = geo_dist_pairs( longitude.x,latitude.x, longitude.y[1], latitude.y[1] )) %&gt;% 
+  { . } -&gt; a
+
+
+a %&gt;% 
+  filter( distance &lt; 1) 
+
+
+a %&gt;%
+  ggplot( ) + geom_histogram( aes( distance, color=userid))</code></pre>
+</div>
+<div id="bar-locations---calculate-and-clean-input" class="section level1">
+<h1>Bar Locations - calculate and clean input</h1>
+<pre class="r"><code>list.files( path=&#39;data/&#39;, pattern=&#39;save.*rds&#39;, full.names=TRUE ) %&gt;%
+  enframe(value = &#39;filename&#39; ) %&gt;%
+  separate( col=filename, 
+           into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter)), 
+           sep=&#39;_&#39;, 
+           extra=&#39;drop&#39; ,
+           remove=FALSE)  %&gt;%
+  select( min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, everything() ) %&gt;%
+  mutate_at(1:4, function(x) {sprintf(&#39;%06.1f&#39;, as.numeric(x) ) }) %&gt;% 
+  { . } -&gt; df_files</code></pre>
+</div>
+<div id="bar-locations---calculate-and-clean-input-1" class="section level1">
+<h1>Bar Locations - calculate and clean input</h1>
+<pre class="r"><code>read_csv( &#39;data/foursquare_locations_data_ls.csv&#39;) %&gt;%
+  bind_rows( read_csv( &#39;data/foursquare_locations_data_zh.csv&#39;)) %&gt;% 
+  { . } -&gt; df_4sq_locations</code></pre>
+<pre><code>Parsed with column specification:
+cols(
+  name = col_character(),
+  shortUrl = col_character(),
+  longitude = col_double(),
+  latitude = col_double(),
+  rating = col_double(),
+  checkinsCount = col_double(),
+  tipsCount = col_double(),
+  photosCount = col_double(),
+  usersCount = col_double(),
+  primaryCategory = col_character(),
+  allCategories = col_character()
+)</code></pre>
+<pre><code>Parsed with column specification:
+cols(
+  name = col_character(),
+  id = col_character(),
+  shortUrl = col_character(),
+  longitude = col_double(),
+  latitude = col_double(),
+  rating = col_double(),
+  checkinsCount = col_double(),
+  tipsCount = col_double(),
+  photosCount = col_double(),
+  usersCount = col_double(),
+  primaryCategory = col_character(),
+  allCategories = col_character(),
+  X13 = col_logical()
+)</code></pre>
+<pre class="r"><code>source(&#39;lib/bad_categories.R&#39;)
+source(&#39;lib/restaurant_categories.R&#39;)
+df_type = tribble(
+                  ~primaryCategory, ~type,
+                  &#39;Subway&#39;, &#39;transport&#39;,
+                  &#39;Train&#39;, &#39;transport&#39;,
+                  &#39;Train Station&#39;, &#39;transport&#39;,
+                  &#39;Light Rail&#39;, &#39;transport&#39;,
+                  &#39;Platform&#39;, &#39;transport&#39;,
+                  &#39;Parking&#39;, &#39;transport&#39;,
+                  &#39;Field&#39;, &#39;park&#39;,
+                  &#39;Park&#39;, &#39;park&#39;,
+                  &#39;Plaza&#39;, &#39;park&#39;,
+                  &#39;Plaza / Square&#39;, &#39;park&#39;,
+                  &#39;Comedy Club&#39;, &#39;theater&#39;,
+                  &#39;Concert Hall&#39;, &#39;theater&#39;,
+                  &#39;Music Venue&#39;, &#39;theater&#39;,
+                  &#39;Movie Theater&#39;, &#39;theater&#39;,
+                  &#39;Cineplex&#39;, &#39;theater&#39;,
+                  &#39;Theater&#39;, &#39;theater&#39;)
+
+alcohol_venue_types = c(&quot;Bar&quot;, &quot;Nightclub&quot;, &quot;Lounge&quot;, &quot;Pub&quot;, &quot;Wine Bar&quot;, &quot;Gay Bar&quot;,
+  &quot;Nightlife&quot;, &quot;Sports Bar&quot;, &quot;Jazz Club&quot;, &quot;Brewery&quot;, &quot;Karaoke&quot;,
+  &quot;Liquor Store&quot;, &quot;Rock Club&quot;, &quot;Festival&quot;, &quot;Whisky Bar&quot;)
+
+df_4sq_locations %&gt;%
+  count( primaryCategory, sort=TRUE) </code></pre>
+<pre><code># A tibble: 359 x 2
+   primaryCategory        n
+   &lt;chr&gt;              &lt;int&gt;
+ 1 Corporate / Office   368
+ 2 &lt;NA&gt;                 357
+ 3 Bar                  201
+ 4 Light Rail           197
+ 5 Italian              175
+ 6 Swiss                170
+ 7 Home                 169
+ 8 Hotel                169
+ 9 Café                 145
+10 Bus Station          123
+# … with 349 more rows</code></pre>
+<pre class="r"><code>df_4sq_locations %&gt;%
+  filter( !primaryCategory %in% bad_categories ) %&gt;%
+  mutate( primaryCategory = ifelse( primaryCategory %in% restaurant_categories, &#39;food&#39;, primaryCategory)) %&gt;%
+  left_join( df_type, by=&#39;primaryCategory&#39;) %&gt;%
+  mutate( type=ifelse( is.na(type), primaryCategory, type)) %&gt;%
+  mutate( type=ifelse( type %in% alcohol_venue_types, &#39;alcohol&#39;, type)) %&gt;%
+  group_by( shortUrl,  primaryCategory, type ) %&gt;%
+  summarise( name=min(name), 
+              checkinsCount = max( checkinsCount),
+              latitude=mean(latitude), 
+              longitude=mean(longitude) 
+) %&gt;%
+  ungroup() %&gt;%
+  {.} -&gt; df_4sq_locations_filtered
+
+
+
+df_4sq_locations_filtered %&gt;%
+  count( type, sort=TRUE ) </code></pre>
+<pre><code># A tibble: 5 x 2
+  type          n
+  &lt;chr&gt;     &lt;int&gt;
+1 food       1390
+2 alcohol     423
+3 transport   382
+4 park        148
+5 theater      90</code></pre>
+<pre class="r"><code>df_4sq_locations_filtered %&gt;%
+count( shortUrl, sort=TRUE ) %&gt;%
+head( 10 )  </code></pre>
+<pre><code># A tibble: 10 x 2
+   shortUrl                   n
+   &lt;chr&gt;                  &lt;int&gt;
+ 1 http://4sq.com/1035Qj2     1
+ 2 http://4sq.com/10a2yIt     1
+ 3 http://4sq.com/10arqWA     1
+ 4 http://4sq.com/10aY4Wi     1
+ 5 http://4sq.com/10bwuIa     1
+ 6 http://4sq.com/10E4zkN     1
+ 7 http://4sq.com/10hMuWr     1
+ 8 http://4sq.com/10hsmJ6     1
+ 9 http://4sq.com/10iZpMF     1
+10 http://4sq.com/10k6LjQ     1</code></pre>
+</div>
+<div id="staypoint-evaluation" class="section level1">
+<h1>Staypoint evaluation</h1>
+<p>For each proposed stay point, is there a bar location that is within 20M of the centroid of the proposed staypoint?</p>
+<pre class="r"><code>#row= tribble( ~filename,&#39;data/save_1200_1200_10_20_.rds&#39;)
+#undebug( analyse_staypoint_set_geography )
+#debug( analyse_staypoint_set_geography )
+
+#********************************************************************************
+#analyse_staypoint_set_geography 
+#********************************************************************************
+analyse_staypoint_set_geography &lt;- function( row ) {
+  
+
+  readRDS(row$filename) -&gt; df
+  cat(row$filename)
+  cat(&quot;\n&quot;)
+
+  df %&gt;% 
+    filter( n_staypoint &gt; 0 ) %&gt;%
+    group_by( userid, night, n_staypoint) %&gt;%
+    summarise( latitude = mean( latitude), longitude  = mean( longitude)) %&gt;% 
+    ungroup() %&gt;%
+    { . } -&gt; a
+
+  
+
+
+  a %&gt;% 
+    group_by( userid, night) %&gt;%
+    summarise( n=n()) %&gt;%
+    ungroup() %&gt;%
+    summarise( n_staypoint = nrow(a), mean_sp_night=mean(n), max_sp_night=max(n), sd_sp_night=sd(n)) %&gt;% 
+    bind_cols( row ) %&gt;%
+    { . } -&gt; summary_stats
+
+  a %&gt;%
+    geo_inner_join(df_4sq_locations_filtered, max_dist = .02, distance_col=&#39;dist&#39;) %&gt;% 
+    { . } -&gt; b
+
+  b %&gt;% 
+    mutate( dist = round( dist * 1000, 0)) %&gt;%
+    group_by( userid, night, n_staypoint ) %&gt;% 
+    arrange( dist , type) %&gt;%
+    do( head(., 1)) %&gt;%
+    ungroup() %&gt;%
+    { . } -&gt; d
+
+  d %&gt;% 
+    count( type, sort=TRUE) %&gt;%
+    spread(type, n) %&gt;%
+    bind_cols(summary_stats) %&gt;%
+    bind_cols (enframe( nrow(d), value=&#39;nhits&#39;)) %&gt;%
+    select(  nhits, everything() ) %&gt;%
+    select( -name )
+
+}
+
+
+df_files %&gt;%
+  rowwise() %&gt;%
+  do( analyse_staypoint_set_geography(.) ) %&gt;% 
+  { . } -&gt; df_geography_matches</code></pre>
+</div>
+<div id="reports---staypoints-evaluated-according-to-geography" class="section level1">
+<h1>Reports - Staypoints evaluated according to geography</h1>
+<pre class="r"><code>df_geography_matches %&gt;%
+  ggplot( aes(x=(max_jump_time), y=nhits, fill=(max_jump_time) )) +
+  geom_boxplot()
+
+df_geography_matches %&gt;%
+  ggplot( aes(x=(max_staypoint_distance), y=nhits, fill=( max_staypoint_distance) )) +
+  geom_boxplot()
+
+df_geography_matches %&gt;%
+  ggplot( aes(x=(max_speed_filter), y=nhits, fill=( max_speed_filter) )) +
+  geom_boxplot()
+
+df_geography_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=nhits/n_staypoint, fill=( min_staypoint_time) )) +
+  geom_boxplot()
+
+df_geography_matches %&gt;%
+  ggplot( aes(x=(max_jump_time), y=nhits/n_staypoint, fill=(max_jump_time) )) +
+  geom_boxplot()
+
+df_geography_matches %&gt;%
+  ggplot( aes(x=(max_staypoint_distance), y=nhits/n_staypoint, fill=( max_staypoint_distance) )) +
+  geom_boxplot()
+
+df_geography_matches %&gt;%
+  ggplot( aes(x=(max_speed_filter), y=nhits/n_staypoint, fill=( max_speed_filter) )) +
+  geom_boxplot()
+
+df_geography_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=nhits/n_staypoint, fill=( min_staypoint_time) )) +
+  geom_boxplot()
+
+
+df_geography_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=nhits/n_staypoint, fill=( min_staypoint_time) )) +
+  geom_boxplot() + 
+  facet_wrap( .~max_staypoint_distance)</code></pre>
+</div>
+<div id="method---evaluating-staypoint-discovery-due-to-survey-timestamp" class="section level1">
+<h1>Method - Evaluating staypoint discovery due to survey timestamp</h1>
+<p>For each person, take all their survey timestamps; match them against all the staypoint timestamps, with a 300second leeway.</p>
+<pre class="r"><code>df_all_ts  %&gt;%
+  group_by( userid, night ) %&gt;%
+  mutate( start=timestamp, end=timestamp) %&gt;%
+  select( start, end, which, userid) %&gt;%
+  nest( .key=&#39;surveys&#39;) %&gt;% 
+  { . } -&gt; df_all_ts_nested
+
+#********************************************************************************
+#
+#********************************************************************************
+analyse_staypoint_set_time &lt;- function( row ) {
+
+
+  readRDS(row$filename) -&gt; df
+  cat(row$filename)
+  cat(&quot;\n&quot;)
+
+  df %&gt;% 
+    filter( n_staypoint &gt; 0 ) %&gt;%
+    group_by( userid, night, n_staypoint) %&gt;%
+    summarise( start=min(time_stamp), end=max(time_stamp), duration=end-start ) %&gt;% 
+    group_by( userid ) %&gt;%
+    nest( .key=&#39;staypoints&#39;) %&gt;%
+    ungroup() %&gt;%
+    inner_join( df_all_ts_nested, by=&#39;userid&#39;) %&gt;% 
+    group_by( userid, night) %&gt;%
+    do( joined = interval_inner_join( data.frame(.$surveys), 
+                                     data.frame(.$staypoints), 
+                                     by=c(&#39;start&#39;,&#39;end&#39;),
+                                     maxgap=300))  %&gt;%
+  ungroup() %&gt;%
+  unnest() %&gt;% 
+  { . } -&gt; df_intersect
+
+
+  df_intersect %&gt;% 
+    group_by( userid, night, n_staypoint ) %&gt;% 
+    arrange(  duration, which) %&gt;%
+    do( head(., 1)) %&gt;%
+    ungroup() %&gt;%
+    { . } -&gt; df_intersect1
+
+  df_intersect1 %&gt;% 
+    count( which, sort=TRUE) %&gt;%
+    spread(which, n) %&gt;%
+    bind_cols(row) %&gt;%
+    bind_cols (enframe( nrow(df_intersect1), value=&#39;nsurvey_hits&#39;)) %&gt;%
+    select( -name )
+
+}
+
+
+df_files %&gt;%
+  rowwise () %&gt;%
+  do( analyse_staypoint_set_time(.)) %&gt;%
+  { . } -&gt; df_survey_time_matches
+
+df_survey_time_matches %&gt;%
+  separate( col=filename, 
+           into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, NA)), 
+           sep=&#39;_&#39;, 
+           remove=FALSE)  %&gt;%
+select( min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, everything() ) %&gt;%
+mutate_at(1:4, function(x) {sprintf(&#39;%06.1f&#39;, as.numeric(x) ) }) %&gt;%
+{ . } -&gt; df_survey_time_matches</code></pre>
+</div>
+<div id="reports---staypoints-evaluated-according-to-survey-timestamps" class="section level1">
+<h1>Reports - Staypoints evaluated according to survey timestamps</h1>
+<pre class="r"><code>df_survey_time_matches %&gt;%
+  ggplot( aes(x=(max_jump_time), y=nsurvey_hits, fill=(max_jump_time) )) +
+  geom_boxplot() + 
+  ggtitle(&quot;maximum jump time x Number of survey discoveries&quot;)
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(max_staypoint_distance), y=nsurvey_hits, fill=( max_staypoint_distance) )) +
+  geom_boxplot()
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(max_speed_filter), y=nsurvey_hits, fill=( max_speed_filter) )) +
+  geom_boxplot()
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=nsurvey_hits/n_staypoint, fill=( min_staypoint_time) )) +
+  geom_boxplot()
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(max_jump_time), y=nsurvey_hits/n_staypoint, fill=(max_jump_time) )) +
+  geom_boxplot()
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(max_staypoint_distance), y=nsurvey_hits/n_staypoint, fill=( max_staypoint_distance) )) +
+  geom_boxplot()
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(max_speed_filter), y=nsurvey_hits/n_staypoint, fill=( max_speed_filter) )) +
+  geom_boxplot()
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=nsurvey_hits/n_staypoint, fill=( min_staypoint_time) )) +
+  geom_boxplot()
+
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=nsurvey_hits/n_staypoint, fill=( min_staypoint_time) )) +
+  geom_boxplot() + 
+  facet_wrap( .~max_staypoint_distance)
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( n_staypoint) )) +
+  geom_point()
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( nhits / n_staypoint) )) +
+  geom_point()
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( nsurvey_hits / n_staypoint) )) +
+  geom_point()
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( nhits) )) +
+  geom_point()
+
+df_survey_time_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=(nsurvey_hits ) )) +
+  geom_point()</code></pre>
+<pre class="r"><code>gps_zurich = tribble( ~id, ~name, ~lat1, ~lon1, ~lat2, ~lon2, 
+                      1, &#39;Zurich-west&#39;, 47.392066, 8.514331, 8.522678, 47.384563, 
+                      2, &#39;Langstrasse&#39;, 47.384718, 8.522091, 8.533506, 47.369843, 
+                      3, &#39;Gessneralle&#39;, 47.377371, 8.529566, 8.541196, 47.36528, 
+                      4, &#39;UmHB&#39;, 47.380218, 8.536948, 8.543814, 47.373302, 
+                      5, &#39;Niederdorf&#39;, 47.377574, 8.542347, 8.547977, 47.369494, 
+                      6, &#39;Bellevue&#39;, 47.369989, 8.541754, 8.551024, 47.361908, 
+                      7, &#39;Seeanlag&#39;, 47.364699, 8.534365, 8.539094, 47.357896, 
+                      8, &#39;Shilcity&#39;, 47.36246, 8.520597, 8.527077, 47.357605)
+
+gps_lausanne = tribble( ~id, ~name, ~lat1, ~lon1, ~lat2, ~lon2, 
+1, &#39;Riponne-Mudac&#39;          ,46.521375 , 46.524048 , 6.628332 , 6.636465 ,
+2, &#39;Flon&#39;                   ,46.520172 , 46.522254 , 6.625446 , 6.630254 ,
+3, &#39;Europe/Rue Centrale&#39;    ,46.520083 , 46.521375 , 6.630254 , 6.635359 ,
+4, &#39;Caroline&#39;               ,46.519264 , 46.521132 , 6.635683 , 6.639093 ,
+5, &#39;St-Fran�ois&#39;            ,46.517610 , 46.520083 , 6.629051 , 6.635359 ,
+6, &#39;Petit ch�ne/Gare&#39;       ,46.518659 , 46.520083 , 6.633106 , 6.635359 ,
+7, &#39;Montbenon&#39;              ,46.519249 , 46.520622 , 6.624631 , 6.630253 )</code></pre>
+<pre class="r"><code>#********************************************************************************
+#
+#********************************************************************************
+analyse_staypoint_set_time_and_geography &lt;- function( row ) {
+
+
+  readRDS(row$filename) -&gt; df
+  cat(row$filename)
+  cat(&quot;\n&quot;)
+
+  df %&gt;% 
+    filter( n_staypoint &gt; 0 ) %&gt;%
+    group_by( userid, night, n_staypoint) %&gt;%
+    summarise( start=min(time_stamp), end=max(time_stamp), duration=end-start ) %&gt;% 
+    group_by( userid ) %&gt;%
+    nest( .key=&#39;staypoints&#39;) %&gt;%
+    ungroup() %&gt;%
+    inner_join( df_all_ts_nested, by=&#39;userid&#39;) %&gt;% 
+    group_by( userid) %&gt;%
+    do( joined = interval_inner_join( data.frame(.$surveys), 
+                                     data.frame(.$staypoints), 
+                                     by=c(&#39;start&#39;,&#39;end&#39;),
+                                     maxgap=300))  %&gt;%
+    ungroup() %&gt;%
+    unnest() %&gt;% 
+    { . } -&gt; df_intersect_time
+
+
+  df_intersect %&gt;% 
+    group_by( userid, night, n_staypoint ) %&gt;% 
+    arrange(  duration, which) %&gt;%
+    do( head(., 1)) %&gt;%
+    ungroup() %&gt;%
+    { . } -&gt; df_intersect_time_cleaned
+
+    df %&gt;% 
+      filter( n_staypoint &gt; 0 ) %&gt;%
+      group_by( userid, night, n_staypoint) %&gt;%
+      summarise( latitude = mean( latitude), longitude  = mean( longitude)) %&gt;% 
+      ungroup() %&gt;%
+      geo_inner_join(df_4sq_locations_filtered, max_dist = .02, distance_col=&#39;dist&#39;) %&gt;% 
+      { . } -&gt; df_intersect_geo
+
+    df_intersect_geo %&gt;%
+      mutate( dist = round( dist * 1000, 0)) %&gt;%
+      group_by( userid, night, n_staypoint ) %&gt;% 
+      arrange( dist , type) %&gt;%
+      do( head(., 1)) %&gt;%
+      ungroup() %&gt;%
+      { . } -&gt; df_intersect_geo_cleaned
+
+    df_intersect_time_cleaned %&gt;%
+      full_join( df_intersect_geo_cleaned, by = qc( userid, night, n_staypoint )) %&gt;% 
+      { . } -&gt; df_intersect_both
+
+    df_intersect_both %&gt;%
+      count( is.na( start.x), is.na( latitude.x)) %&gt;%
+      mutate( hit_count = qc( both_hits, Time_only_hits, Location_only_hits)) %&gt;%
+      select( n, hit_count ) %&gt;%
+      spread( hit_count, n ) %&gt;%
+      bind_cols( row )
+}
+
+df_files %&gt;%
+  rowwise () %&gt;%
+  do( analyse_staypoint_set_time_and_geography(.)) %&gt;%
+  { . } -&gt; df_both_matches</code></pre>
+<pre class="r"><code>df_both_matches %&gt;%
+  ggplot( aes(x=(max_jump_time), y=both_hits, fill=(max_jump_time) )) +
+  geom_boxplot() + 
+  ggtitle(&quot;maximum jump time x Number of survey discoveries&quot;)
+
+df_both_matches %&gt;%
+  ggplot( aes(x=(max_staypoint_distance), y=both_hits, fill=( max_staypoint_distance) )) +
+  geom_boxplot()
+
+df_both_matches %&gt;%
+  ggplot( aes(x=(max_speed_filter), y=both_hits, fill=( max_speed_filter) )) +
+  geom_boxplot()
+
+df_both_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
+  geom_boxplot()
+
+df_both_matches %&gt;%
+  ggplot( aes(x=(max_jump_time), y=both_hits/n_staypoint, fill=(max_jump_time) )) +
+  geom_boxplot()
+
+df_both_matches %&gt;%
+  ggplot( aes(x=(max_staypoint_distance), y=both_hits/n_staypoint, fill=( max_staypoint_distance) )) +
+  geom_boxplot()
+
+df_both_matches %&gt;%
+  ggplot( aes(x=(max_speed_filter), y=both_hits/n_staypoint, fill=( max_speed_filter) )) +
+  geom_boxplot()
+
+df_both_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
+  geom_boxplot()
+
+
+df_both_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
+  geom_boxplot() + 
+  facet_wrap( .~max_staypoint_distance)
+
+df_both_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( both_hits / n_staypoint) )) +
+  geom_point()
+
+df_both_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=(both_hits ) )) +
+  geom_point()</code></pre>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
