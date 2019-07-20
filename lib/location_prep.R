@@ -60,6 +60,7 @@ get_df_location <- function( ) {
 
 
 
+# get survey data
 get_df_all <- function( ) {
 
   read.csv('data/EveningMasterFullAnonym.csv') %>% 
@@ -69,6 +70,8 @@ get_df_all <- function( ) {
     mutate( id = row_number())
 }
 
+
+# get timestamp information from survey data
 get_df_all_ts <- function( df_all ) {
 
   df_all %>% 
@@ -89,6 +92,7 @@ get_df_all_ts <- function( df_all ) {
     group_by( timezone ) %>%
     mutate( ts = ymd_hms( timestamp, tz=min( timezone))) %>% 
     mutate( timestamp= seconds( ts )) %>% 
+    inner_join( select( df_all, id, userid, night), by='id') %>%
     { . } -> df_all_ts
 
    df_all_ts

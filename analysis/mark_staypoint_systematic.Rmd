@@ -1,20 +1,28 @@
 ---
-title: "Staypoint analysis"
+title: "Staypoint estimation"
 output:
   workflowr::wflow_html
 ---
 
-# Staypoint analysis
+# Staypoint estimation
+
+We are trying determine what is the set of GPS points that participate in a staypoint
 
 ## preliminary data cleaning
 1) eliminate duplicates - many duplicate locations at a time stamp. Keep most accurate location at a time stamp
 2) many locations at north pole, markedly wrong.  Eliminate them.
 3) calculate interval and distance between timestamps
 
+## Determine staypoints
+
+The staypoint determination algorithm uses 4 variables;
+ - min_staypoint_time  - minimum time, in minutes, that must stay within max_staypoint_distance
+ * max_jump_time - maximum time, in minutes, between readings
+ * max_staypoint_distance - maximum distance for readings to be counted as a single staypoint
+ * max_speed_filter - noise reduction parameter, eliminating points that would take over this speed to get there (in kmh)
 
 
-
-```{r results='hide', message=FALSE, warning=FALSE, cache=TRUE}
+```{r results='hide', message=FALSE, warning=FALSE}
 options(warn=-1)
 library( knitr )
 opts_chunk$set(cache=TRUE, autodep=TRUE)
@@ -25,24 +33,25 @@ source('lib/location_prep.R')
 library(tidyverse)
 library(lubridate)
 
+# load in the individual locations information
 df_location = get_df_location()
+
+# load in the best guess location information
 df_best_location = get_df_best_location( df_location )
-df_all = get_df_all()
-df_all_ts = get_df_all_ts( df_all )
 
 ```
 
 ```{r process_one_set}
 
 
-debug( do_one_search)
-undebug( do_one_search)
+#debug( do_one_search)
+#undebug( do_one_search)
 
 do_one_search = function( .df ) {
   dput(.df)
   cat("\n")
 
-  fname  = glue( "data/save_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_max_speed_filter}.df$i.rds")
+  fname  = glue( "data/save_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_max_speed_filter}_df.rds")
 
   df_best_location %>%  
     filter( speed <=.df$i_max_speed_filter  ) %>%
@@ -99,7 +108,9 @@ b1_m %>% count( n_staypoint )
 
 ```
 
-```{r explore_subset}
+
+
+```{r explore_subset, eval=FALSE}
 
 df_best_location %>% distinct( userid, night )
 
@@ -121,12 +132,10 @@ geom_path()
 
 ```
 
+# generate a range of staypoint estimates, for a range of parameters
 
 
-# generate a range of staypoint estimates
-
-
-```{r generate_staypoints }
+```{r generate_staypoints, eval=FALSE }
 
 min_staypoint_time_range=c(5,10,20,30)*60
 max_jump_time_range=c(10,20,30)*60
@@ -146,15 +155,15 @@ library(parallel)
 cl <- detectCores()
 cluster <- create_cluster(cores = cl)
 
-debug(findStayPoint)
-debug(do_one_search )
+#debug(findStayPoint)
+#debug(do_one_search )
 
-undebug(findStayPoint)
-undebug(do_one_search )
+#undebug(findStayPoint)
+#undebug(do_one_search )
 
-options(error = recover) # setting the error option
-options(error = traceback) # setting the error option
-options(show.error.locations = TRUE)
+#options(error = recover) # setting the error option
+#options(error = traceback) # setting the error option
+#options(show.error.locations = TRUE)
 
 grid_search %>%
   mutate( row_num=row_number()) %>%
@@ -171,4 +180,4 @@ grid_search %>%
   collect() %>% 
   { . } -> grid_output
 
-
+```

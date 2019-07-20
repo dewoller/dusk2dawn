@@ -17,6 +17,12 @@ library(lubridate)
 opts_chunk$set(cache=TRUE, autodep=TRUE)
 
 
+```
+
+
+```{r load_data}
+
+
 df_location = get_df_location()
 df_best_location = get_df_best_location( df_location )
 df_all = get_df_all()

@@ -19,7 +19,7 @@ distance2centroid = function( df ) {
 # distanceBetween 
 ################################################################################
 distanceBetween = function( df ) {
-  # distance from last 2 points
+  #  calculate distance between last 2 points of df
   distm(
         df[nrow(df)-1,c('longitude', 'latitude' )],
         df[nrow(df),c('longitude', 'latitude' )],
@@ -27,10 +27,50 @@ distanceBetween = function( df ) {
   )
 }
 
+################################################################################
+# calc_interval_distance 
+# calc distance between every successive pair of points
+################################################################################
+calc_interval_distance = function( longitude, latitude ) {
+  c( longitude, latitude ) %>%
+    matrix( ncol = 2 ) %>%
+    spDists( segments=TRUE, longlat=TRUE) %>%
+    c(NA,.)
+}
+
+################################################################################
+# calc_distance_from_start 
+# from start of array to current point
+################################################################################
+calc_distance_from_start = function( longitude, latitude ) {
+  c( longitude, latitude ) %>%
+    matrix( ncol = 2 ) %>%
+    spDistsN1(., .[1,], longlat=TRUE) 
+}
+
+
+
+
+################################################################################
+# geo_dist_pairs 
+# expects 2 columns;  lon, lat, and a point, lon, lat
+# returns distance between each pair of points
+################################################################################
+
+geo_dist_pairs <- function(lon, lat, clon, clat) {
+  pts = c(lon, lat) %>%
+    matrix( ncol=2 ) 
+
+  spDistsN1(pts, c( clon, clat), longlat = TRUE) 
+}
+
+
+
 
 ################################################################################
 # geo_dist_calc 
-# expects 4 columns;  lat, lon, lat, lon
+# expects 2 columns;  lat, lon
+# returns distance between each pair of points
 ################################################################################
 
 geo_dist_calc <- function(x) {
@@ -43,9 +83,9 @@ geo_dist_calc <- function(x) {
 
 ################################################################################
 # calculate_distance 
+# distance between the first 2 points
 ################################################################################
 calculate_distance = function( .x, .y ) {
-  # distance from last 2 points
   warning('must be longitude, latitude pairs')
   distm(
         c( .x[1], .y[1]),
@@ -53,6 +93,7 @@ calculate_distance = function( .x, .y ) {
         fun = distHaversine
   )
 }
+
 calculate_distance_roll = rollify( calculate_distance, window=2)
 
 ################################################################################
@@ -141,6 +182,7 @@ findStayPoint = function (df, max_jump_time, min_staypoint_time, max_staypoint_d
 
 ################################################################################
 # gpsbabel 
+# for cleaning points using gpsbabel
 ################################################################################
 gpsbabel = function( df, parameters ) {
 
@@ -184,27 +226,6 @@ gpsbabel = function( df, parameters ) {
     select(-.id)
 
 }
- 
-################################################################################
-# calc_interval_distance 
-################################################################################
-calc_interval_distance = function( longitude, latitude ) {
-  c( longitude, latitude ) %>%
-    matrix( ncol = 2 ) %>%
-    spDists( segments=TRUE, longlat=TRUE) %>%
-    c(NA,.)
-}
-
-################################################################################
-# calc_distance_from_start 
-################################################################################
-calc_distance_from_start = function( longitude, latitude ) {
-  c( longitude, latitude ) %>%
-    matrix( ncol = 2 ) %>%
-    spDistsN1(., .[1,], longlat=TRUE) 
-}
-
-
 
 ################################################################################
 # arrange for party_df  
