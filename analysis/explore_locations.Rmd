@@ -18,8 +18,6 @@ library(sf)
 library(tmap)
 library(methods)
 library(tidyverse)
-library(sp)
-library(sf)
 
 opts_chunk$set(cache=TRUE, autodep=TRUE)
 

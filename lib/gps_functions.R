@@ -101,28 +101,34 @@ calculate_distance_roll = rollify( calculate_distance, window=2)
 ################################################################################
 
 findStayPoint = function (df, max_jump_time, min_staypoint_time, max_staypoint_distance) {
-  n_staypoint = 0  # 0 not in, 1:n which staypoint
-  df$n_staypoint = 0
+
+  # current staypoint proposal
+  # 0 not in, 1:n which staypoint
+  n_staypoint =  1          
+
   df$duration = -1
   df$last_duration = -1
-  df$distance = -1
+  df$distance2centroid = -1
   df$velocity = -1
-  df$start = -1
+  df$start_sp_proposal_index = -1
   df$n_staypoint = 0
-  n_staypoint = n_staypoint + 1
+  df$reason=NA
   in_staypoint=FALSE
   nrow = nrow( df )
   sp_start=1
   sp_end=1
 
   while ( sp_end <= nrow ) {
-    df[ sp_end,]$start = sp_start
+
+    # track the start of the current staypoint proposal
+    df[ sp_end,]$start_sp_proposal_index = sp_start
 
     if ( sp_end <= sp_start ) {
       sp_end = sp_end + 1
       next
     }
 
+    # track the durations
     last_duration = df[ sp_end, ]$time_stamp - df[ sp_end-1, ]$time_stamp
     entire_duration = df[ sp_end, ]$time_stamp - df[ sp_start, ]$time_stamp
     df[ sp_end,]$duration = entire_duration
@@ -139,14 +145,14 @@ findStayPoint = function (df, max_jump_time, min_staypoint_time, max_staypoint_d
         in_staypoint = FALSE
       } else {
         # leave untagged points outside staypoint
-        df[ sp_start:sp_end,]$distance = -1
+        df[ sp_end,]$reason = "Excessive Jump Time"
       }
       next
     }
 
     # is this point within current staypoint centroid
     d = distance2centroid( slice( df, sp_start:sp_end ))
-    df[ sp_end,]$distance = d
+    df[ sp_end,]$distance2centroid = d
     df[ sp_end,]$velocity = distanceBetween( slice( df, (sp_end-1):sp_end )) / last_duration
 
     if ( d > max_staypoint_distance ) {
@@ -158,9 +164,11 @@ findStayPoint = function (df, max_jump_time, min_staypoint_time, max_staypoint_d
         n_staypoint = n_staypoint + 1
         in_staypoint = FALSE
         sp_start=sp_end
+        df[ sp_end,]$reason = "Too Far From Centroid, closing staypoint"
       } else {
-
+        # we are STILL not in a staypoint
         # keep looking, move the staypoint zone forward
+        df[ sp_start,]$reason = "Too Far From Centroid, moving start forward"
         sp_start = sp_start + 1
       }
       next

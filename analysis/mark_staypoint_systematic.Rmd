@@ -138,9 +138,9 @@ geom_path()
 ```{r generate_staypoints, eval=FALSE }
 
 min_staypoint_time_range=c(5,10,20,30)*60
-max_jump_time_range=c(10,20,30)*60
+max_jump_time_range=c(1,2,5)*60
 max_staypoint_distance_range= c(5,10,20,40,80,160)
-max_speed_filter_range=c( 20,30)
+max_speed_filter_range=c(2,5,10, 20)
 
 expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, max_speed_filter_range ) %>% 
   setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_max_speed_filter )) %>%

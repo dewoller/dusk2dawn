@@ -589,6 +589,9 @@ Ignored files:
     Ignored:    data/sql_load/
     Ignored:    data/summary/
 
+Untracked files:
+    Untracked:  lib/evaluate_staypoint_estimates_helper.R
+
 Unstaged changes:
     Modified:   analysis/analyse_staypoint_estimates.Rmd
 
@@ -708,6 +711,7 @@ source(&#39;lib/functions.R&#39;)
 source(&#39;lib/get_data.R&#39;)
 source(&#39;lib/location_prep.R&#39;)
 source(&#39;lib/gps_functions.R&#39;)
+source(&#39;lib/evaluate_staypoint_estimates_helper.R&#39;)
 library(tidyverse)
 library(lubridate)</code></pre>
 <pre class="r"><code># load in the individual locations information
@@ -771,35 +775,7 @@ a %&gt;%
 </div>
 <div id="bar-locations---calculate-and-clean-input" class="section level1">
 <h1>Bar Locations - calculate and clean input</h1>
-<pre class="r"><code>row= tribble( ~filename,&#39;data/save_1200_1200_10_20_.rds&#39;)
-#********************************************************************************
-#analyse_staypoint_base_information
-#********************************************************************************
-analyse_staypoint_base_information &lt;- function( row ) {
-
-
-  readRDS(row$filename) -&gt; df
-  cat(row$filename)
-  cat(&quot;\n&quot;)
-
-  df %&gt;% 
-    filter( n_staypoint &gt; 0 ) %&gt;%
-    group_by( userid, night, n_staypoint) %&gt;%
-    summarise( latitude = mean( latitude), longitude  = mean( longitude)) %&gt;% 
-    ungroup() %&gt;%
-    { . } -&gt; a
-
-  a %&gt;% 
-    group_by( userid, night) %&gt;%
-    summarise( n=n()) %&gt;%
-    ungroup() %&gt;%
-    summarise( n_staypoint = nrow(a), mean_sp_night=mean(n), max_sp_night=max(n), sd_sp_night=sd(n)) %&gt;% 
-    bind_cols( row ) 
-
-}
-
-
-list.files( path=&#39;data/&#39;, pattern=&#39;save.*rds&#39;, full.names=TRUE ) %&gt;%
+<pre class="r"><code>list.files( path=&#39;data/&#39;, pattern=&#39;save.*rds&#39;, full.names=TRUE ) %&gt;%
   enframe(value = &#39;filename&#39; ) %&gt;%
   separate( col=filename, 
            into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter)), 
@@ -812,150 +788,6 @@ list.files( path=&#39;data/&#39;, pattern=&#39;save.*rds&#39;, full.names=TRUE )
   rowwise() %&gt;%
   do( analyse_staypoint_base_information(.) ) %&gt;% 
   { . } -&gt; df_files</code></pre>
-<pre><code>data//save_1200_1200_10_20_.rds
-data//save_1200_1200_10_30_.rds
-data//save_1200_1200_160_20_.rds
-data//save_1200_1200_160_30_.rds
-data//save_1200_1200_20_20_.rds
-data//save_1200_1200_20_30_.rds
-data//save_1200_1200_40_20_.rds
-data//save_1200_1200_40_30_.rds
-data//save_1200_1200_5_20_.rds
-data//save_1200_1200_5_30_.rds
-data//save_1200_1200_80_20_.rds
-data//save_1200_1200_80_30_.rds
-data//save_1200_1800_10_20_.rds
-data//save_1200_1800_10_30_.rds
-data//save_1200_1800_160_20_.rds
-data//save_1200_1800_160_30_.rds
-data//save_1200_1800_20_20_.rds
-data//save_1200_1800_20_30_.rds
-data//save_1200_1800_40_20_.rds
-data//save_1200_1800_40_30_.rds
-data//save_1200_1800_5_20_.rds
-data//save_1200_1800_5_30_.rds
-data//save_1200_1800_80_20_.rds
-data//save_1200_1800_80_30_.rds
-data//save_1200_600_10_20_.rds
-data//save_1200_600_10_30_.rds
-data//save_1200_600_160_20_.rds
-data//save_1200_600_160_30_.rds
-data//save_1200_600_20_20_.rds
-data//save_1200_600_20_30_.rds
-data//save_1200_600_40_20_.rds
-data//save_1200_600_40_30_.rds
-data//save_1200_600_5_20_.rds
-data//save_1200_600_5_30_.rds
-data//save_1200_600_80_20_.rds
-data//save_1200_600_80_30_.rds
-data//save_1800_1200_10_20_.rds
-data//save_1800_1200_10_30_.rds
-data//save_1800_1200_160_20_.rds
-data//save_1800_1200_160_30_.rds
-data//save_1800_1200_20_20_.rds
-data//save_1800_1200_20_30_.rds
-data//save_1800_1200_40_20_.rds
-data//save_1800_1200_40_30_.rds
-data//save_1800_1200_5_20_.rds
-data//save_1800_1200_5_30_.rds
-data//save_1800_1200_80_20_.rds
-data//save_1800_1200_80_30_.rds
-data//save_1800_1800_10_20_.rds
-data//save_1800_1800_10_30_.rds
-data//save_1800_1800_160_20_.rds
-data//save_1800_1800_160_30_.rds
-data//save_1800_1800_20_20_.rds
-data//save_1800_1800_20_30_.rds
-data//save_1800_1800_40_20_.rds
-data//save_1800_1800_40_30_.rds
-data//save_1800_1800_5_20_.rds
-data//save_1800_1800_5_30_.rds
-data//save_1800_1800_80_20_.rds
-data//save_1800_1800_80_30_.rds
-data//save_1800_600_10_20_.rds
-data//save_1800_600_10_30_.rds
-data//save_1800_600_160_20_.rds
-data//save_1800_600_160_30_.rds
-data//save_1800_600_20_20_.rds
-data//save_1800_600_20_30_.rds
-data//save_1800_600_40_20_.rds
-data//save_1800_600_40_30_.rds
-data//save_1800_600_5_20_.rds
-data//save_1800_600_5_30_.rds
-data//save_1800_600_80_20_.rds
-data//save_1800_600_80_30_.rds
-data//save_300_1200_10_20_.rds
-data//save_300_1200_10_30_.rds
-data//save_300_1200_160_20_.rds
-data//save_300_1200_160_30_.rds
-data//save_300_1200_20_20_.rds
-data//save_300_1200_20_30_.rds
-data//save_300_1200_40_20_.rds
-data//save_300_1200_40_30_.rds
-data//save_300_1200_5_20_.rds
-data//save_300_1200_5_30_.rds
-data//save_300_1200_80_20_.rds
-data//save_300_1200_80_30_.rds
-data//save_300_1800_10_20_.rds
-data//save_300_1800_10_30_.rds
-data//save_300_1800_160_20_.rds
-data//save_300_1800_160_30_.rds
-data//save_300_1800_20_20_.rds
-data//save_300_1800_20_30_.rds
-data//save_300_1800_40_20_.rds
-data//save_300_1800_40_30_.rds
-data//save_300_1800_5_20_.rds
-data//save_300_1800_5_30_.rds
-data//save_300_1800_80_20_.rds
-data//save_300_1800_80_30_.rds
-data//save_300_600_10_20_.rds
-data//save_300_600_10_30_.rds
-data//save_300_600_160_20_.rds
-data//save_300_600_160_30_.rds
-data//save_300_600_20_20_.rds
-data//save_300_600_20_30_.rds
-data//save_300_600_40_20_.rds
-data//save_300_600_40_30_.rds
-data//save_300_600_5_20_.rds
-data//save_300_600_5_30_.rds
-data//save_300_600_80_20_.rds
-data//save_300_600_80_30_.rds
-data//save_600_1200_10_20_.rds
-data//save_600_1200_10_30_.rds
-data//save_600_1200_160_20_.rds
-data//save_600_1200_160_30_.rds
-data//save_600_1200_20_20_.rds
-data//save_600_1200_20_30_.rds
-data//save_600_1200_40_20_.rds
-data//save_600_1200_40_30_.rds
-data//save_600_1200_5_20_.rds
-data//save_600_1200_5_30_.rds
-data//save_600_1200_80_20_.rds
-data//save_600_1200_80_30_.rds
-data//save_600_1800_10_20_.rds
-data//save_600_1800_10_30_.rds
-data//save_600_1800_160_20_.rds
-data//save_600_1800_160_30_.rds
-data//save_600_1800_20_20_.rds
-data//save_600_1800_20_30_.rds
-data//save_600_1800_40_20_.rds
-data//save_600_1800_40_30_.rds
-data//save_600_1800_5_20_.rds
-data//save_600_1800_5_30_.rds
-data//save_600_1800_80_20_.rds
-data//save_600_1800_80_30_.rds
-data//save_600_600_10_20_.rds
-data//save_600_600_10_30_.rds
-data//save_600_600_160_20_.rds
-data//save_600_600_160_30_.rds
-data//save_600_600_20_20_.rds
-data//save_600_600_20_30_.rds
-data//save_600_600_40_20_.rds
-data//save_600_600_40_30_.rds
-data//save_600_600_5_20_.rds
-data//save_600_600_5_30_.rds
-data//save_600_600_80_20_.rds
-data//save_600_600_80_30_.rds</code></pre>
 </div>
 <div id="bar-locations---calculate-and-clean-input-1" class="section level1">
 <h1>Bar Locations - calculate and clean input</h1>
@@ -1080,336 +912,154 @@ head( 10 )  </code></pre>
 <div id="staypoint-evaluation" class="section level1">
 <h1>Staypoint evaluation</h1>
 <p>For each proposed stay point, is there a bar location that is within 20M of the centroid of the proposed staypoint?</p>
-<pre class="r"><code>#undebug( analyse_staypoint_set_geography )
-#debug( analyse_staypoint_set_geography )
-
-#********************************************************************************
-#analyse_staypoint_set_geography 
-#********************************************************************************
-analyse_staypoint_set_geography &lt;- function( row ) {
-  min_overlap_distance = 20 / 1000 # 20 m
-
-
-  readRDS(row$filename) -&gt; df
-  cat(row$filename)
-  cat(&quot;\n&quot;)
-
-  df %&gt;% 
-    filter( n_staypoint &gt; 0 ) %&gt;%
-    group_by( userid, night, n_staypoint) %&gt;%
-    summarise( latitude = mean( latitude), longitude  = mean( longitude)) %&gt;% 
-    ungroup() %&gt;%
-    geo_inner_join(df_4sq_locations_filtered, max_dist = min_overlap_distance, distance_col=&#39;dist&#39;) %&gt;% 
-    mutate( dist = round( dist * 1000, 0)) %&gt;%
-    group_by( userid, night, n_staypoint ) %&gt;% 
-    arrange( dist , type) %&gt;%
-    do( head(., 1)) %&gt;%
-    ungroup() %&gt;%
-    { . } -&gt; d
-
-  d %&gt;% 
-    count( type, sort=TRUE) %&gt;%
-    spread(type, n) %&gt;%
-    bind_cols( row ) %&gt;%
-    bind_cols (enframe( nrow(d), value=&#39;nhits&#39;)) %&gt;%
-    select(  nhits, everything() ) %&gt;%
-    select( -name )
-
-}
-
-
-df_files %&gt;%
+<pre class="r"><code>df_files %&gt;%
   rowwise() %&gt;%
   do( analyse_staypoint_set_geography(.) ) %&gt;% 
   { . } -&gt; df_geography_matches</code></pre>
-<pre><code>data//save_1200_1200_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
+<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
 </div>
 <div id="reports---staypoints-evaluated-according-to-geography" class="section level1">
 <h1>Reports - Staypoints evaluated according to geography</h1>
@@ -1451,9 +1101,12 @@ df_files %&gt;%
   facet_wrap( .~max_staypoint_distance)</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/show_staypoints_geography-9.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-<div id="method---evaluating-staypoint-discovery-due-to-survey-timestamp" class="section level1">
-<h1>Method - Evaluating staypoint discovery due to survey timestamp</h1>
-<p>For each person, take all their survey timestamps; match them against all the staypoint timestamps, with a 300second leeway.</p>
+<div id="method---evaluating-staypoint-discovery-using-survey-timestamp" class="section level1">
+<h1>Method - Evaluating staypoint discovery using survey timestamp</h1>
+<ul>
+<li>see if a person’s staypoint match the times that they entered surveys</li>
+<li>Let there be a 5minute (300second) leeway around the first and last points, and the survey time stamp</li>
+</ul>
 <pre class="r"><code>df_all_ts  %&gt;%
   group_by( userid, night ) %&gt;%
   mutate( start=timestamp, end=timestamp) %&gt;%
@@ -1461,200 +1114,13 @@ df_files %&gt;%
   nest( .key=&#39;surveys&#39;) %&gt;% 
   { . } -&gt; df_all_ts_nested
 
-#********************************************************************************
-#analyse_staypoint_set_time
-#********************************************************************************
-analyse_staypoint_set_time &lt;- function( row ) {
-
-
-  readRDS(row$filename) -&gt; df
-  cat(row$filename)
-  cat(&quot;\n&quot;)
-
-  df %&gt;% 
-    filter( n_staypoint &gt; 0 ) %&gt;%
-    group_by( userid, night, n_staypoint) %&gt;%
-    summarise( start=min(time_stamp), end=max(time_stamp), duration=end-start ) %&gt;% 
-    group_by( userid, night ) %&gt;%
-    nest( .key=&#39;staypoints&#39;) %&gt;%
-    ungroup() %&gt;%
-    inner_join( df_all_ts_nested, by=c(&#39;userid&#39;, &#39;night&#39;)) %&gt;% 
-    group_by( userid, night) %&gt;%
-    do( joined = interval_inner_join( data.frame(.$surveys), 
-                                     data.frame(.$staypoints), 
-                                     by=c(&#39;start&#39;,&#39;end&#39;),
-                                     maxgap=300))  %&gt;%
-  ungroup() %&gt;%
-  unnest() %&gt;% 
-  { . } -&gt; df_intersect
-
-
-  df_intersect %&gt;% 
-    group_by( userid, night, n_staypoint ) %&gt;% 
-    arrange(  duration, which) %&gt;%
-    do( head(., 1)) %&gt;%
-    ungroup() %&gt;%
-    { . } -&gt; df_intersect1
-
-  df_intersect1 %&gt;% 
-    count( which, sort=TRUE) %&gt;%
-    spread(which, n) %&gt;%
-    bind_cols(row) %&gt;%
-    bind_cols (enframe( nrow(df_intersect1), value=&#39;nsurvey_hits&#39;)) %&gt;%
-    select( -name )
-
-}
-
 
 df_files %&gt;%
   rowwise () %&gt;%
   do( analyse_staypoint_set_time(.)) %&gt;%
-  { . } -&gt; df_survey_time_matches</code></pre>
-<pre><code>data//save_1200_1200_10_20_.rds
-data//save_1200_1200_10_30_.rds
-data//save_1200_1200_160_20_.rds
-data//save_1200_1200_160_30_.rds
-data//save_1200_1200_20_20_.rds
-data//save_1200_1200_20_30_.rds
-data//save_1200_1200_40_20_.rds
-data//save_1200_1200_40_30_.rds
-data//save_1200_1200_5_20_.rds
-data//save_1200_1200_5_30_.rds
-data//save_1200_1200_80_20_.rds
-data//save_1200_1200_80_30_.rds
-data//save_1200_1800_10_20_.rds
-data//save_1200_1800_10_30_.rds
-data//save_1200_1800_160_20_.rds
-data//save_1200_1800_160_30_.rds
-data//save_1200_1800_20_20_.rds
-data//save_1200_1800_20_30_.rds
-data//save_1200_1800_40_20_.rds
-data//save_1200_1800_40_30_.rds
-data//save_1200_1800_5_20_.rds
-data//save_1200_1800_5_30_.rds
-data//save_1200_1800_80_20_.rds
-data//save_1200_1800_80_30_.rds
-data//save_1200_600_10_20_.rds
-data//save_1200_600_10_30_.rds
-data//save_1200_600_160_20_.rds
-data//save_1200_600_160_30_.rds
-data//save_1200_600_20_20_.rds
-data//save_1200_600_20_30_.rds
-data//save_1200_600_40_20_.rds
-data//save_1200_600_40_30_.rds
-data//save_1200_600_5_20_.rds
-data//save_1200_600_5_30_.rds
-data//save_1200_600_80_20_.rds
-data//save_1200_600_80_30_.rds
-data//save_1800_1200_10_20_.rds
-data//save_1800_1200_10_30_.rds
-data//save_1800_1200_160_20_.rds
-data//save_1800_1200_160_30_.rds
-data//save_1800_1200_20_20_.rds
-data//save_1800_1200_20_30_.rds
-data//save_1800_1200_40_20_.rds
-data//save_1800_1200_40_30_.rds
-data//save_1800_1200_5_20_.rds
-data//save_1800_1200_5_30_.rds
-data//save_1800_1200_80_20_.rds
-data//save_1800_1200_80_30_.rds
-data//save_1800_1800_10_20_.rds
-data//save_1800_1800_10_30_.rds
-data//save_1800_1800_160_20_.rds
-data//save_1800_1800_160_30_.rds
-data//save_1800_1800_20_20_.rds
-data//save_1800_1800_20_30_.rds
-data//save_1800_1800_40_20_.rds
-data//save_1800_1800_40_30_.rds
-data//save_1800_1800_5_20_.rds
-data//save_1800_1800_5_30_.rds
-data//save_1800_1800_80_20_.rds
-data//save_1800_1800_80_30_.rds
-data//save_1800_600_10_20_.rds
-data//save_1800_600_10_30_.rds
-data//save_1800_600_160_20_.rds
-data//save_1800_600_160_30_.rds
-data//save_1800_600_20_20_.rds
-data//save_1800_600_20_30_.rds
-data//save_1800_600_40_20_.rds
-data//save_1800_600_40_30_.rds
-data//save_1800_600_5_20_.rds
-data//save_1800_600_5_30_.rds
-data//save_1800_600_80_20_.rds
-data//save_1800_600_80_30_.rds
-data//save_300_1200_10_20_.rds
-data//save_300_1200_10_30_.rds
-data//save_300_1200_160_20_.rds
-data//save_300_1200_160_30_.rds
-data//save_300_1200_20_20_.rds
-data//save_300_1200_20_30_.rds
-data//save_300_1200_40_20_.rds
-data//save_300_1200_40_30_.rds
-data//save_300_1200_5_20_.rds
-data//save_300_1200_5_30_.rds
-data//save_300_1200_80_20_.rds
-data//save_300_1200_80_30_.rds
-data//save_300_1800_10_20_.rds
-data//save_300_1800_10_30_.rds
-data//save_300_1800_160_20_.rds
-data//save_300_1800_160_30_.rds
-data//save_300_1800_20_20_.rds
-data//save_300_1800_20_30_.rds
-data//save_300_1800_40_20_.rds
-data//save_300_1800_40_30_.rds
-data//save_300_1800_5_20_.rds
-data//save_300_1800_5_30_.rds
-data//save_300_1800_80_20_.rds
-data//save_300_1800_80_30_.rds
-data//save_300_600_10_20_.rds
-data//save_300_600_10_30_.rds
-data//save_300_600_160_20_.rds
-data//save_300_600_160_30_.rds
-data//save_300_600_20_20_.rds
-data//save_300_600_20_30_.rds
-data//save_300_600_40_20_.rds
-data//save_300_600_40_30_.rds
-data//save_300_600_5_20_.rds
-data//save_300_600_5_30_.rds
-data//save_300_600_80_20_.rds
-data//save_300_600_80_30_.rds
-data//save_600_1200_10_20_.rds
-data//save_600_1200_10_30_.rds
-data//save_600_1200_160_20_.rds
-data//save_600_1200_160_30_.rds
-data//save_600_1200_20_20_.rds
-data//save_600_1200_20_30_.rds
-data//save_600_1200_40_20_.rds
-data//save_600_1200_40_30_.rds
-data//save_600_1200_5_20_.rds
-data//save_600_1200_5_30_.rds
-data//save_600_1200_80_20_.rds
-data//save_600_1200_80_30_.rds
-data//save_600_1800_10_20_.rds
-data//save_600_1800_10_30_.rds
-data//save_600_1800_160_20_.rds
-data//save_600_1800_160_30_.rds
-data//save_600_1800_20_20_.rds
-data//save_600_1800_20_30_.rds
-data//save_600_1800_40_20_.rds
-data//save_600_1800_40_30_.rds
-data//save_600_1800_5_20_.rds
-data//save_600_1800_5_30_.rds
-data//save_600_1800_80_20_.rds
-data//save_600_1800_80_30_.rds
-data//save_600_600_10_20_.rds
-data//save_600_600_10_30_.rds
-data//save_600_600_160_20_.rds
-data//save_600_600_160_30_.rds
-data//save_600_600_20_20_.rds
-data//save_600_600_20_30_.rds
-data//save_600_600_40_20_.rds
-data//save_600_600_40_30_.rds
-data//save_600_600_5_20_.rds
-data//save_600_600_5_30_.rds
-data//save_600_600_80_20_.rds
-data//save_600_600_80_30_.rds</code></pre>
-<pre class="r"><code>df_survey_time_matches %&gt;%
+  { . } -&gt; df_survey_time_matches
+
+df_survey_time_matches %&gt;%
   separate( col=filename, 
            into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, NA)), 
            sep=&#39;_&#39;, 
@@ -1723,6 +1189,9 @@ mutate_at(1:4, function(x) {sprintf(&#39;%06.1f&#39;, as.numeric(x) ) }) %&gt;%
   ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=(nsurvey_hits ) )) +
   geom_point()</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/show_survey-14.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="mapping-unused-code" class="section level1">
+<h1>Mapping (Unused code)</h1>
 <pre class="r"><code>gps_zurich = tribble( ~id, ~name, ~lat1, ~lon1, ~lat2, ~lon2, 
                       1, &#39;Zurich-west&#39;, 47.392066, 8.514331, 8.522678, 47.384563, 
                       2, &#39;Langstrasse&#39;, 47.384718, 8.522091, 8.533506, 47.369843, 
@@ -1741,6 +1210,9 @@ gps_lausanne = tribble( ~id, ~name, ~lat1, ~lon1, ~lat2, ~lon2,
 5, &#39;St-Fran�ois&#39;            ,46.517610 , 46.520083 , 6.629051 , 6.635359 ,
 6, &#39;Petit ch�ne/Gare&#39;       ,46.518659 , 46.520083 , 6.633106 , 6.635359 ,
 7, &#39;Montbenon&#39;              ,46.519249 , 46.520622 , 6.624631 , 6.630253 )</code></pre>
+</div>
+<div id="method---analyse-proposed-staypoints-according-to-both-geography-and-survey-timestamps" class="section level1">
+<h1>Method - analyse proposed staypoints according to BOTH geography and survey timestamps</h1>
 <pre class="r"><code>#********************************************************************************
 #
 #********************************************************************************
@@ -1748,8 +1220,8 @@ analyse_staypoint_set_time_and_geography &lt;- function( row ) {
 
 
   readRDS(row$filename) -&gt; df
-  cat(row$filename)
-  cat(&quot;\n&quot;)
+  #cat(row$filename)
+  #cat(&quot;\n&quot;)
 
   df %&gt;% 
     filter( n_staypoint &gt; 0 ) %&gt;%
@@ -1798,7 +1270,7 @@ analyse_staypoint_set_time_and_geography &lt;- function( row ) {
 
     df_intersect_both %&gt;%
       count( is.na( start.x), is.na( latitude.x)) %&gt;%
-      mutate( hit_count = qc( both_hits, Time_only_hits, Location_only_hits)) %&gt;%
+      mutate( hit_count = qc( both_hits, survey_only_hits, geo_only_hits)) %&gt;%
       select( n, hit_count ) %&gt;%
       spread( hit_count, n ) %&gt;%
       bind_cols( row )
@@ -1809,340 +1281,603 @@ df_files %&gt;%
   rowwise () %&gt;%
   do( analyse_staypoint_set_time_and_geography(.)) %&gt;%
   { . } -&gt; df_both_matches</code></pre>
-<pre><code>data//save_1200_1200_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1200_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_1800_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1200_600_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1200_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_1800_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_1800_600_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1200_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_1800_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_300_600_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1200_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_1800_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_10_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_10_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_160_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_160_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_20_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_20_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_40_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_40_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_5_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_5_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_80_20_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
-<pre><code>data//save_600_600_80_30_.rds</code></pre>
-<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
+<pre><code>Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)
+Joining by: c(&quot;latitude&quot;, &quot;longitude&quot;)</code></pre>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(max_jump_time), y=both_hits, fill=(max_jump_time) )) +
   geom_boxplot() + 
   ggtitle(&quot;maximum jump time x Number of survey discoveries&quot;)</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-1">
+Past versions of graph_both-1.png
+</button>
+</p>
+<div id="fig-graph_both-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-1.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(max_staypoint_distance), y=both_hits, fill=( max_staypoint_distance) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-2">
+Past versions of graph_both-2.png
+</button>
+</p>
+<div id="fig-graph_both-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-2.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(max_speed_filter), y=both_hits, fill=( max_speed_filter) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-3">
+Past versions of graph_both-3.png
+</button>
+</p>
+<div id="fig-graph_both-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-3.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-4">
+Past versions of graph_both-4.png
+</button>
+</p>
+<div id="fig-graph_both-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-4.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(max_jump_time), y=both_hits/n_staypoint, fill=(max_jump_time) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-5.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-5">
+Past versions of graph_both-5.png
+</button>
+</p>
+<div id="fig-graph_both-5" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-5.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(max_staypoint_distance), y=both_hits/n_staypoint, fill=( max_staypoint_distance) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-6.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-6">
+Past versions of graph_both-6.png
+</button>
+</p>
+<div id="fig-graph_both-6" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-6.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(max_speed_filter), y=both_hits/n_staypoint, fill=( max_speed_filter) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-7.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-7">
+Past versions of graph_both-7.png
+</button>
+</p>
+<div id="fig-graph_both-7" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-7.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-8.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-8">
+Past versions of graph_both-8.png
+</button>
+</p>
+<div id="fig-graph_both-8" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-8.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot() + 
   facet_wrap( .~max_staypoint_distance)</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-9.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-9">
+Past versions of graph_both-9.png
+</button>
+</p>
+<div id="fig-graph_both-9" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-9.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=( both_hits / n_staypoint) )) +
   geom_point()</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-10.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-10">
+Past versions of graph_both-10.png
+</button>
+</p>
+<div id="fig-graph_both-10" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-10.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_both_matches %&gt;%
   ggplot( aes(x=(min_staypoint_time), color=max_staypoint_distance, y=(both_hits ) )) +
   geom_point()</code></pre>
 <p><img src="figure/analyse_staypoint_estimates.Rmd/graph_both-11.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-graph_both-11">
+Past versions of graph_both-11.png
+</button>
+</p>
+<div id="fig-graph_both-11" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/7ae4962be455ab55733f4cb197c4c3e914ddf8cc/docs/figure/analyse_staypoint_estimates.Rmd/graph_both-11.png" target="_blank">7ae4962</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-07-21
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">

@@ -8,7 +8,14 @@ row= tribble( ~filename,'data/save_1200_1200_10_20_.rds')
 analyse_staypoint_base_information_detail <- function( row ) {
 
   readRDS(row$filename)  %>%
-    filter( n_staypoint > 0 ) 
+    filter( n_staypoint > 0 )  %>%
+    group_by( userid, night, n_staypoint) %>%
+    summarise( latitude = mean( latitude), 
+              longitude  = mean( longitude),
+              min_latitude = min( latitude), min_longitude  = min( longitude),
+              max_latitude = max( latitude), max_longitude  = max( longitude), 
+              start=min(time_stamp), end=max(time_stamp), duration=end-start ) %>% 
+    ungroup() 
 
 }
 #********************************************************************************
@@ -17,9 +24,6 @@ analyse_staypoint_base_information_detail <- function( row ) {
 analyse_staypoint_base_information_summary <- function( row ) {
 
   analyse_staypoint_base_information_detail ( row ) %>%
-    group_by( userid, night, n_staypoint) %>%
-    summarise( latitude = mean( latitude), longitude  = mean( longitude)) %>% 
-    ungroup() %>%
     { . } -> a
 
   a %>% 
@@ -39,9 +43,6 @@ analyse_staypoint_set_geography_detail <- function( row ) {
 
 
   analyse_staypoint_base_information_detail( row ) %>%
-    group_by( userid, night, n_staypoint) %>%
-    summarise( latitude = mean( latitude), longitude  = mean( longitude)) %>% 
-    ungroup() %>%
     geo_inner_join(df_4sq_locations_filtered, max_dist = min_overlap_distance, distance_col='dist') %>% 
     mutate( dist = round( dist * 1000, 0)) %>%
     group_by( userid, night, n_staypoint ) %>% 
@@ -75,14 +76,11 @@ analyse_staypoint_set_geography_summary <- function( row ) {
 
 #********************************************************************************
 #analyse_staypoint_set_time_detail 
+# match the staypoints to the survey times
 #********************************************************************************
 analyse_staypoint_set_time_detail <- function( row ) {
 
-
   analyse_staypoint_base_information_detail( row ) %>%
-    filter( n_staypoint > 0 ) %>%
-    group_by( userid, night, n_staypoint) %>%
-    summarise( start=min(time_stamp), end=max(time_stamp), duration=end-start ) %>% 
     group_by( userid, night ) %>%
     nest( .key='staypoints') %>%
     ungroup() %>%
@@ -132,17 +130,108 @@ analyse_staypoint_set_time_and_geography_summary <- function( row ) {
     { . } -> df_intersect_geo_cleaned
 
 
-    df_intersect_time_cleaned %>%
-      full_join( df_intersect_geo_cleaned, by = qc( userid, night, n_staypoint )) %>% 
-      { . } -> df_intersect_both
+  df_intersect_time_cleaned %>%
+    full_join( df_intersect_geo_cleaned, by = qc( userid, night, n_staypoint )) %>% 
+    { . } -> df_intersect_both
 
-    df_intersect_both %>%
-      count( is.na( start.x), is.na( latitude.x)) %>%
-      mutate( hit_count = qc( both_hits, survey_only_hits, geo_only_hits)) %>%
-      select( n, hit_count ) %>%
-      spread( hit_count, n ) %>%
-      bind_cols( row )
+  df_intersect_both %>%
+    count( is.na( start.x), is.na( latitude.x)) %>%
+    mutate( hit_count = qc( both_hits, survey_only_hits, geo_only_hits)) %>%
+    select( n, hit_count ) %>%
+    spread( hit_count, n ) %>%
+    bind_cols( row )
 }
 
+
+#********************************************************************************
+# analyse_staypoint_set_time_and_geography_detail 
+#********************************************************************************
+analyse_staypoint_set_time_and_geography_detail <- function( row ) {
+
+
+  analyse_staypoint_set_time_detail( row ) %>% 
+    { . } -> df_intersect_time_cleaned
+
+  analyse_staypoint_set_geography_detail( row ) %>% 
+    { . } -> df_intersect_geo_cleaned
+
+  df_intersect_time_cleaned %>%
+    full_join( df_intersect_geo_cleaned, by = qc( userid, night, n_staypoint )) %>% 
+    { . } -> df_intersect_both
+
+}
+
+
+
+test = function() {
+
+
+
+  df_intersect_both %>%
+    count( userid,night, sort=TRUE ) %>%
+    head(2) %>% 
+    tail(1) %>%
+    { . } -> limit
+
+  df_intersect_both %>%
+    inner_join( limit ) %>% View
+
+  readRDS(row$filename)  %>%
+    inner_join( limit ) %>% View
+
+
+
+  library(sp)
+  library(sf)
+  library(tmap)
+
+  readRDS(row$filename)  %>%
+    inner_join( limit ) %>% 
+    st_as_sf( coords = c("longitude", "latitude"), crs = 4326, agr = "constant") -> df
+
+  data(World)
+
+  df %>%
+    tm_shape( ) +
+    tm_point()  
+
+  df %>%
+    filter( speed < 2 ) %>%
+    mutate( n_staypoint = as.factor( n_staypoint )) %>%
+    tm_shape()  + 
+    tm_symbols(col = "red", shape = "n_staypoint", scale = .5) 
+
+
+
+  df %>%
+    ggplot( aes( latitude )) +
+    geom_histogram( )
+
+  readRDS(row$filename)  %>%
+    inner_join( limit ) %>% 
+    { . } -> a
+
+
+  a %>%
+    ungroup() %>%
+    arrange( desc( latitude)) %>% 
+    select( latitude ) %>%
+    head(1) %>% 
+    { . } -> b
+
+
+  a %>% View
+  a %>% inner_join( b) %>% View
+
+
+  a %>%
+    ggplot( aes( longitude )) +
+    geom_histogram( )
+
+  a %>%
+    ggplot( aes( latitude )) +
+    geom_histogram( )
+
+}
 
 
