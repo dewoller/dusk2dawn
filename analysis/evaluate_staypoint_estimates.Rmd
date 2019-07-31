@@ -121,6 +121,8 @@ list.files( path='data/', pattern='save.*rds', full.names=TRUE ) %>%
   do( analyse_staypoint_base_information_summary(.) ) %>% 
   { . } -> df_files
 
+df_files %>% arrange( desc( n_staypoint))
+
 
 ```
 
@@ -198,8 +200,9 @@ For each proposed stay point, is there a bar location that is within 20M of the 
 
 ```{r evaluate_staypoints_geography}
 
-
-df_files %>%
+list.files( path='data/', pattern='save.*rds', full.names=TRUE ) %>%
+  enframe(value = 'filename' ) %>%
+#  filter(startsWith(filename, 'data//save_1800' )) %>%
   rowwise() %>%
   do( analyse_staypoint_set_geography_summary(.) ) %>% 
   { . } -> df_geography_matches
@@ -271,7 +274,8 @@ df_all_ts  %>%
   { . } -> df_all_ts_nested
 
 
-df_files %>%
+list.files( path='data/', pattern='save.*rds', full.names=TRUE ) %>%
+  enframe(value = 'filename' ) %>%
   rowwise () %>%
   do( analyse_staypoint_set_time_summary(.)) %>%
   { . } -> df_survey_time_matches
@@ -359,7 +363,7 @@ df_survey_time_matches %>%
 ```{r mapping}
 
 
-gps_zurich = tribble( ~id, ~name, ~lat1, ~lon1, ~lat2, ~lon2, 
+gps_zurich = tribble( ~id, ~name, ~lat1, ~lon1,  ~lon2, ~lat2,
                       1, 'Zurich-west', 47.392066, 8.514331, 8.522678, 47.384563, 
                       2, 'Langstrasse', 47.384718, 8.522091, 8.533506, 47.369843, 
                       3, 'Gessneralle', 47.377371, 8.529566, 8.541196, 47.36528, 
@@ -367,16 +371,18 @@ gps_zurich = tribble( ~id, ~name, ~lat1, ~lon1, ~lat2, ~lon2,
                       5, 'Niederdorf', 47.377574, 8.542347, 8.547977, 47.369494, 
                       6, 'Bellevue', 47.369989, 8.541754, 8.551024, 47.361908, 
                       7, 'Seeanlag', 47.364699, 8.534365, 8.539094, 47.357896, 
-                      8, 'Shilcity', 47.36246, 8.520597, 8.527077, 47.357605)
+                      8, 'Shilcity', 47.36246, 8.520597, 8.527077, 47.357605) %>% 
+select( id, name, lat1, lon1, lat2, lon2 )
 
-gps_lausanne = tribble( ~id, ~name, ~lat1, ~lon1, ~lat2, ~lon2, 
+gps_lausanne = tribble( ~id, ~name, ~lat1, ~lat2, ~lon1,  ~lon2, 
 1, 'Riponne-Mudac'          ,46.521375 , 46.524048 , 6.628332 , 6.636465 ,
 2, 'Flon'                   ,46.520172 , 46.522254 , 6.625446 , 6.630254 ,
 3, 'Europe/Rue Centrale'    ,46.520083 , 46.521375 , 6.630254 , 6.635359 ,
 4, 'Caroline'               ,46.519264 , 46.521132 , 6.635683 , 6.639093 ,
 5, 'St-Fran�ois'            ,46.517610 , 46.520083 , 6.629051 , 6.635359 ,
 6, 'Petit ch�ne/Gare'       ,46.518659 , 46.520083 , 6.633106 , 6.635359 ,
-7, 'Montbenon'              ,46.519249 , 46.520622 , 6.624631 , 6.630253 )
+7, 'Montbenon'              ,46.519249 , 46.520622 , 6.624631 , 6.630253 ) %>% 
+select( id, name, lat1, lon1, lat2, lon2 )
 
 
 
@@ -431,7 +437,7 @@ df_both_matches %>%
   geom_boxplot()
 
 df_both_matches %>%
-  ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
+ ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
   geom_boxplot()
 
 
@@ -450,5 +456,4 @@ df_both_matches %>%
 
 
 ```
-
 

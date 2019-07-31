@@ -2,10 +2,14 @@
 library(tidyverse)
 row= tribble( ~filename,'data/save_1200_1200_10_20_.rds')
 
+row= tribble( ~filename,'data/save_1200_1200_10_20_.rds')
+
 #********************************************************************************
-#analyse_staypoint_base_information
+#analyse_staypoint_base_information_detail
+# just get summary information for each actual staypoint, return one line per staypoint, summarised
 #********************************************************************************
 analyse_staypoint_base_information_detail <- function( row ) {
+
 
   readRDS(row$filename)  %>%
     filter( n_staypoint > 0 )  %>%
@@ -19,7 +23,8 @@ analyse_staypoint_base_information_detail <- function( row ) {
 
 }
 #********************************************************************************
-#analyse_staypoint_base_information
+#analyse_staypoint_base_information_summary
+# summarise ALL staypoints for this user and night
 #********************************************************************************
 analyse_staypoint_base_information_summary <- function( row ) {
 
@@ -37,12 +42,14 @@ analyse_staypoint_base_information_summary <- function( row ) {
 
 #********************************************************************************
 #analyse_staypoint_set_geography_detail
+# see if this staypoint intersects any of the geography staypoints
 #********************************************************************************
 analyse_staypoint_set_geography_detail <- function( row ) {
   min_overlap_distance = 20 / 1000 # 20 m
 
 
   analyse_staypoint_base_information_detail( row ) %>%
+    mutate(dist=0) %>% 
     geo_inner_join(df_4sq_locations_filtered, max_dist = min_overlap_distance, distance_col='dist') %>% 
     mutate( dist = round( dist * 1000, 0)) %>%
     group_by( userid, night, n_staypoint ) %>% 
@@ -54,17 +61,23 @@ analyse_staypoint_set_geography_detail <- function( row ) {
 
 
 #********************************************************************************
-#analyse_staypoint_set_geography 
+#analyse_staypoint_set_geography
+# see if this stay
 #********************************************************************************
 analyse_staypoint_set_geography_summary <- function( row ) {
-  min_overlap_distance = 20 / 1000 # 20 m
 
+  cat( row$filename )
+  cat("\n")
+
+#= glue( "data/save_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_max_speed_filter}_df.rds")
+  row= tribble( ~filename,'data//save_1200_60_5_10_df.rds')
 
   analyse_staypoint_set_geography_detail( row ) %>% 
     { . } -> df_intersect_geo_cleaned
 
   df_intersect_geo_cleaned %>%
     count( type, sort=TRUE) %>%
+    bind_rows( tribble( ~type, ~n, 'junk', 0)) %>%
     spread(type, n) %>%
     bind_cols( row ) %>%
     bind_cols (enframe( nrow(df_intersect_geo_cleaned), value='nhits')) %>%
@@ -95,7 +108,7 @@ analyse_staypoint_set_time_detail <- function( row ) {
     group_by( userid, night, n_staypoint ) %>% 
     arrange(  duration, which) %>%  # take the smallest duration staypoint
     do( head(., 1)) %>%
-      ungroup() 
+    ungroup() 
 
 }
 
@@ -160,78 +173,4 @@ analyse_staypoint_set_time_and_geography_detail <- function( row ) {
     { . } -> df_intersect_both
 
 }
-
-
-
-test = function() {
-
-
-
-  df_intersect_both %>%
-    count( userid,night, sort=TRUE ) %>%
-    head(2) %>% 
-    tail(1) %>%
-    { . } -> limit
-
-  df_intersect_both %>%
-    inner_join( limit ) %>% View
-
-  readRDS(row$filename)  %>%
-    inner_join( limit ) %>% View
-
-
-
-  library(sp)
-  library(sf)
-  library(tmap)
-
-  readRDS(row$filename)  %>%
-    inner_join( limit ) %>% 
-    st_as_sf( coords = c("longitude", "latitude"), crs = 4326, agr = "constant") -> df
-
-  data(World)
-
-  df %>%
-    tm_shape( ) +
-    tm_point()  
-
-  df %>%
-    filter( speed < 2 ) %>%
-    mutate( n_staypoint = as.factor( n_staypoint )) %>%
-    tm_shape()  + 
-    tm_symbols(col = "red", shape = "n_staypoint", scale = .5) 
-
-
-
-  df %>%
-    ggplot( aes( latitude )) +
-    geom_histogram( )
-
-  readRDS(row$filename)  %>%
-    inner_join( limit ) %>% 
-    { . } -> a
-
-
-  a %>%
-    ungroup() %>%
-    arrange( desc( latitude)) %>% 
-    select( latitude ) %>%
-    head(1) %>% 
-    { . } -> b
-
-
-  a %>% View
-  a %>% inner_join( b) %>% View
-
-
-  a %>%
-    ggplot( aes( longitude )) +
-    geom_histogram( )
-
-  a %>%
-    ggplot( aes( latitude )) +
-    geom_histogram( )
-
-}
-
 

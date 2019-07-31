@@ -1,5 +1,61 @@
 ---
+title:           
+author:          Dennis Wollersheim 
+date:            30.07.2019
+linkcolor:       cyan
+citecolor:       grey
+output:
+  pdf_document:
+    highlight:   zenburn
+---
+
+
 ```{r}
+#remotes::install_github("ropensci/osmdata")
+#packageVersion("osmdata")
+library(tidyverse)
+library(osmdata)
+
+x <- opq(bbox = c(-0.27, 51.47, -0.20, 51.50)) %>% # Chiswick Eyot in London, U.K.
+  add_osm_feature(key = 'name', value = "Thames", value_exact = FALSE) %>%
+    osmdata_sf()
+x
+
+library(tmap)
+tm_shape( x$osm_points ) + tm_dots()
+tm_shape( x$osm_lines ) + tm_lines()
+tm_shape( x$osm_polygons ) + tm_polygons()
+
+```
+
+
+# algorithm
+
+  - get a night + userid, and a staypoint list
+  - get the places that they visitied, and 
+
+
+
+```{r test_tmap}
+data(World, metro)
+
+tmap_mode('view')
+
+tm_basemap( 'Stamen.TonerLite' )
+
+
+tm_basemap(leaflet::providers$Stamen.TonerLite) +
+  tm_shape(metro, bbox = "Zurich") + tm_dots(col = "red", group = "Metropolitan areas") 
+
+tm_basemap(leaflet::providers$Stamen.TonerLite) +
+  tm_shape(metro, bbox = "Lausanne") + tm_dots(col = "red", group = "Metropolitan areas") 
+
+
+```
+
+
+```{r test_other}
+
 
 needs(rworldmap)
 newmap <- getMap(resolution = "low")
@@ -64,11 +120,11 @@ b %>%
   geom_line()
 
 
-
 library(tmap)
 data("NLD_prov")
 
-tmap_mode('view')
+
+
 
 tm_shape(NLD_prov) + tm_polygons('population') + tm_layout(basemaps = c('OpenStreetMap'))
 
@@ -93,3 +149,78 @@ tm_shape(boston) +
   tm_raster(alpha = 0.7, title = '# of students')
 
 ```
+
+
+
+```{r test_osmdata}
+library(tidyverse)
+library(osmdata)
+
+lausanne <- opq ("lausanne zh") %>%
+  osmdata_sf()
+
+available_tags('highway')
+
+q <- getbb("Madrid")%>%
+  opq()%>%
+  add_osm_feature("amenity", "cinema")
+
+str(q) #query structure
+
+mad_map <- get_map(getbb("lausanne"),maptype = "toner-background")
+
+zh_map <- get_map(getbb("zurich"),maptype = "toner-background")
+
+ggmap(zh_map)
+
+ggmap(mad_map)+
+  geom_sf(data=pubs$osm_points,
+          inherit.aes =FALSE,
+          colour="#238443",
+          fill="#004529",
+          alpha=.5,
+          size=4,
+          shape=21)+
+labs(x="",y="")
+
+
+
+#bounding box for the Iberian Peninsula
+m <- matrix(c(-10,5,30,46),ncol=2,byrow=TRUE)
+row.names(m) <- c("x","y")
+names(m) <- c("min","max")
+
+#building the query
+q <- m %>% 
+  opq (timeout=25*100) %>%
+  add_osm_feature("name","Mercadona")%>%
+  add_osm_feature("shop","supermarket")
+
+#query
+mercadona <- osmdata_sf(q)
+
+#final map
+ggplot(mercadona$osm_points)+
+  geom_sf(colour="#08519c",
+          fill="#08306b",
+          alpha=.5,
+          size=1,
+          shape=21) +
+ coord_sf(datum=NA) +
+theme_void() 
+
+ devtools::install_github("dkahle/ggmap")
+
+library(ggmap)
+
+#source('lib/registerGoogleAPI.R')
+ggmap(mercadona)
+
+get_map
+
+
+(map <- get_map("zurich, zh"))
+(map <- get_map(source = "osm"))
+ggmap(map)
+```
+

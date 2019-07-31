@@ -46,11 +46,13 @@ get_df_best_location <- function( df_location ) {
 get_df_location <- function( ) {
 
   my_db_read( 'select * from location') %>% 
-    as.tibble() %>% 
+    as_tibble() %>% 
+    mutate( from='active') %>%
     { . } ->  df_location
 
   my_db_read( 'select * from passivelocation') %>% 
-    as.tibble() %>% 
+    as_tibble() %>% 
+    mutate( from='passive') %>%
     { . } ->  df_passive_location
 
   df_location %>% 
@@ -90,11 +92,13 @@ get_df_all_ts <- function( df_all ) {
   inner_join( ts, tz, by = c("id", "which")    ) %>% 
     filter( timestamp != '') %>%
     group_by( timezone ) %>%
-    mutate( ts = ymd_hms( timestamp, tz=min( timezone))) %>% 
+    mutate( ts = ymd_hms( timestamp, tz=min( timezone))) %>%   # TODO: maybe igmore timezone?
     mutate( timestamp= seconds( ts )) %>% 
     inner_join( select( df_all, id, userid, night), by='id') %>%
     { . } -> df_all_ts
 
    df_all_ts
 }
+
+
 
