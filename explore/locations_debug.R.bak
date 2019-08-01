@@ -20,7 +20,7 @@ df_best_location = get_df_best_location( df_location )
 
 df_location %>%
   group_by( userid, night, from ) %>%
-  summarise( max=median( timestamp)) %>%
+  summarise( max=median( time_stamp)) %>%
   spread( from, max) %>%
   mutate( val=round( active-passive, -3 ) ) %>%
   ungroup() %>%
@@ -34,7 +34,7 @@ df_location %>%
 df_location %>%
   inner_join( df_location %>% distinct( userid ) %>% head( 16 ) %>% tail(1) ) %>%
     mutate( x=cut( accuracy, 6)) %>%
-    arrange( timestamp ) %>%
+    arrange( time_stamp ) %>%
     ggplot( aes( latitude, longitude, group=from, color=from )) +
     geom_line() +
     geom_point( aes(size=x)) +

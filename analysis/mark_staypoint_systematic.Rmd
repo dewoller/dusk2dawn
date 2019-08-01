@@ -19,7 +19,7 @@ The staypoint determination algorithm uses 4 variables;
  - min_staypoint_time  - minimum time, in minutes, that must stay within max_staypoint_distance
  * max_jump_time - maximum time, in minutes, between readings
  * max_staypoint_distance - maximum distance for readings to be counted as a single staypoint
- * max_speed_filter - noise reduction parameter, eliminating points that would take over this speed to get there (in kmh)
+ * sigma - smoothing parameter.  Smaller is more smooth
 
 
 ```{r results='hide', message=FALSE, warning=FALSE}
@@ -41,7 +41,7 @@ df_best_location = get_df_best_location( df_location )
 
 ```
 
-```{r process_one_set}
+```{r process_one_set, eval=TRUE}
 
 
 #debug( do_one_search)
@@ -51,13 +51,14 @@ do_one_search = function( .df ) {
   dput(.df)
   cat("\n")
 
-  fname  = glue( "data/save_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_max_speed_filter}_df.rds")
+  fname  = glue( "data/save_v1_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_sigma}_df.rds")
 
-  df_best_location %>%  
-    filter( speed <=.df$i_max_speed_filter  ) %>%
+  df_location %>%  
     group_by( userid, night ) %>%
+    arrange( timestamp ) %>%
+    group_modify( ~prune_gps_outliers(.x, sigma = sigma)) %>%
     group_modify( ~findStayPoint(.x,  .df$i_max_jump_time, .df$i_min_staypoint_time, .df$i_max_staypoint_distance)) %>%
-    select( local_time, time_stamp, n_staypoint, duration, distance, everything()) %>% 
+    select( local_time, timestamp, n_staypoint, duration, distance, everything()) %>% 
     { . } -> df
 
     saveRDS(df,  file=fname)
@@ -74,33 +75,34 @@ do_one_search = function( .df ) {
 
 ```{r test_with_subset,eval=FALSE }
 
-df_best_location %>% 
+df_location %>% 
   #filter(userid=='f181ac9f-f678-40ce-89ea-7d5c807e3b68' & night == '2014-10-18') %>%
   filter( userid=='05f35693-7fec-4372-af78-7bd904c187e0' & night=='2014-10-10'  ) %>% 
-  arrange( userid, night, time_stamp ) %>%
+  arrange( userid, night, timestamp ) %>%
   { . } -> b
 
 
 min_staypoint_time=10*60
 max_jump_time=20*60
 max_staypoint_distance=200
-max_speed_filter=30*1000/3600
+sigma=.5
 
 list(
 i_min_staypoint_time=min_staypoint_time,
 i_max_jump_time=max_jump_time,
 i_max_staypoint_distance=max_staypoint_distance,
-i_max_speed_filter=max_speed_filter
+i_sigma=sigma
      ) %>% as.tibble() %>% 
      { . } -> df
 
 do_one_search( df )
 
-  df_best_location %>%  
-    filter( speed <=max_speed_filter  ) %>%
+  df_location %>%  
     group_by( userid, night ) %>%
+    arrange( timestamp ) %>%
+    group_modify( ~prune_gps_outliers(.x, sigma = sigma)) %>%
     group_modify( ~findStayPoint(.x,  max_jump_time, min_staypoint_time, max_staypoint_distance)) %>%
-    select( local_time, time_stamp, n_staypoint, duration, distance, everything()) %>% 
+    select( local_time, timestamp, n_staypoint, duration, distance, everything()) %>% 
     { . } -> b1_m
 
 b1_m %>% count( n_staypoint )
@@ -122,11 +124,11 @@ df_best_location %>%
 
 ```{r good_path_visualisation,eval=FALSE }
 
-max_speed_filter=30*1000/3600
+sigma=30*1000/3600
 b %>% 
 select( interval, dist, speed, accuracy, everything())  %>% 
-  filter( speed <=max_speed_filter  ) %>%
-ggplot(aes( latitude, longitude, color=time_stamp, size=speed)) + 
+  filter( speed <=sigma  ) %>%
+ggplot(aes( latitude, longitude, color=timestamp, size=speed)) + 
 geom_point( ) + 
 geom_path()
 
@@ -135,15 +137,15 @@ geom_path()
 # generate a range of staypoint estimates, for a range of parameters
 
 
-```{r generate_staypoints, eval=FALSE }
+```{r generate_staypoints, eval=TRUE }
 
-min_staypoint_time_range=c(5,10,20,30)*60
-max_jump_time_range=c(1,2,5)*60
-max_staypoint_distance_range= c(5,10,20,40,80,160)
-max_speed_filter_range=c(2,5,10, 20)
+min_staypoint_time_range=c(5,10, 15)*60
+max_jump_time_range=c(2,5)*60
+max_staypoint_distance_range= c(5,10,20)
+sigma_range=c(.25, .5, 1)
 
-expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, max_speed_filter_range ) %>% 
-  setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_max_speed_filter )) %>%
+expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, sigma_range ) %>% 
+  setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_sigma )) %>%
   as.tibble() %>% 
   { . } -> grid_search 
   

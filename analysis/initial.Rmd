@@ -27,13 +27,8 @@ read.csv('data/EveningMasterFullAnonym.csv') %>%
 # 
 
 ```{r read_data }
-my_db_read( 'select * from location') %>% 
-  as.tibble() %>% 
-  { . } ->  df_location
-
-my_db_read( 'select * from passivelocation') %>% 
-  as.tibble() %>% 
-  { . } ->  df_passive_location
+df_location = get_location()
+df_passive_location = get_passive_location()
 
 ```
 

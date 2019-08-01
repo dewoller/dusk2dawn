@@ -100,11 +100,11 @@ calculate_distance_roll = rollify( calculate_distance, window=2)
 # findStayPoint 
 ################################################################################
 
-findStayPoint = function (df, max_jump_time, min_staypoint_time, max_staypoint_distance) {
+findStayPoint = function (df, max_jump_time = 900, min_staypoint_time = 180, max_staypoint_distance  = 20) {
 
   # current staypoint proposal
   # 0 not in, 1:n which staypoint
-  n_staypoint =  1          
+  n_staypoint =  1
 
   df$duration = -1
   df$last_duration = -1
@@ -129,8 +129,8 @@ findStayPoint = function (df, max_jump_time, min_staypoint_time, max_staypoint_d
     }
 
     # track the durations
-    last_duration = df[ sp_end, ]$time_stamp - df[ sp_end-1, ]$time_stamp
-    entire_duration = df[ sp_end, ]$time_stamp - df[ sp_start, ]$time_stamp
+    last_duration = df[ sp_end, ]$timestamp - df[ sp_end-1, ]$timestamp
+    entire_duration = df[ sp_end, ]$timestamp - df[ sp_start, ]$timestamp
     df[ sp_end,]$duration = entire_duration
     df[ sp_end,]$last_duration = last_duration
 
@@ -174,11 +174,15 @@ findStayPoint = function (df, max_jump_time, min_staypoint_time, max_staypoint_d
       next
     }
 
-    # we are within staypoint distance of centroid( sp_start:sp_end )
+    # we are still within staypoint distance of centroid( sp_start:sp_end )
     if ((entire_duration >= min_staypoint_time ) ) {
 
       # we have been in staypoint sufficient time
+      # mark this point as being in the staypoint
       df[ sp_start:sp_end,]$n_staypoint = n_staypoint
+
+      # make note of the last time we were in the actual staypoint
+      ts_last_in = df[sp_end, ]$timestamp
       in_staypoint = TRUE
     }
     sp_end = sp_end + 1
@@ -242,6 +246,103 @@ carrange_.party_df <- function (.data, ..., .dots = list())
 {
   multidplyr:::shard_call(.data, quote(dplyr::arrange), ..., .dots = .dots, 
                           groups = .data$groups[-length(.data$groups)])
+}
+
+
+################################################################################
+# eliminate_sigma 
+################################################################################
+eliminate_sigma = function( original, upper, lower, sigma = 3) {
+  set = c( upper, lower)
+  if( original - mean( set ) > sd( set ) * sigma) {
+    mean(set)
+  } else {
+    original
+  }
+
+}
+
+
+################################################################################
+# prune_gps_outliers
+################################################################################
+prune_gps_outliers <- function( df, sigma = 1, width=5 )  {
+  # returns df with outlier lat and long pruned
+  #print( df %>% distinct(userid, night  ))
+
+  rv = df
+  if (nrow( rv ) > width * 2 + 1) {
+    for (i in (width+1):(nrow(rv)-width-1)) {
+      rv[i,]$latitude = eliminate_sigma( rv[i,]$latitude, 
+                                        rv[ (i-width-1):(i-1), ]$latitude,  
+                                        rv[ (i+1):(i+1+width), ]$latitude, 
+                                        sigma )
+      rv[i,]$longitude = eliminate_sigma( rv[i,]$longitude, 
+                                        rv[ (i-width-1):(i-1), ]$longitude,  
+                                        rv[ (i+1):(i+1+width), ]$longitude, 
+                                        sigma )
+    }
+  }
+
+  rv
+}
+
+
+
+
+
+
+################################################################################
+# kalman_filter_lat_lon 
+################################################################################
+kalman_filter_lat_lon = function( df, variance=1.5 ) {
+  # doesn't seeem to work too well!
+
+  #initializing variables
+  count <- nrow(df) # amount of data points in the df
+  z <- cbind(df$longitude,df$latitude) #measurements
+
+  #Allocate space:
+  xhat <- matrix(rep(0,2*count),ncol =2) #a posteri estimate at each step
+  P <- array(0,dim=c(2,2,count))  #a posteri error estimate
+  xhatminus <- matrix(rep(0,2*count),ncol =2) #a priori estimate
+  Pminus <- array(0,dim=c(2,2,count)) #a priori error estimate
+  K <- array(0,dim=c(2,2,count)) #gain
+
+  #Initializing matrices
+  A <-diag(2)
+  H<-diag(2)
+  R<-function(k) diag(2)* df$accuracy[k]^2#estimate of measurement variance
+  Q<-function(k) diag(2)* as.numeric(df$timestamp[k])^variance# the process variance
+
+  #initialise guesses:
+  xhat[1,] <- z[1,]
+  P[,,1] <- diag(2)
+
+
+  for (k in 2:count){
+    #time update
+    #project state ahead
+    xhatminus[k,] <- A %*% xhat[k-1,] #+ B %*% u[k-1]
+
+    #project error covariance ahead
+    Pminus[,,k] <- A %*% P[,,k-1] %*%  t(A) + (Q(k))
+
+    #measurement update
+    # kalman gain
+    K[,,k] <- Pminus[,,k] %*% t(H)/ (H %*% Pminus[,,k] %*% t(H) + R(k))
+
+    #what if NaaN?
+    K[,,k][which(is.nan(K[,,k]))]<-0
+
+    # update estimate with measurement
+    xhat[k,] <-  xhatminus[k,] + K[,,k] %*% (z[k,] - H %*% xhatminus[k,])
+    #update error covariance
+    P[,,k] = (diag(2) - K[,,k]%*% H) %*% Pminus[,,k]
+  }
+  df$longitude = xhat[,1]
+  df$latitude = xhat[,2]
+  df
 }
 
 

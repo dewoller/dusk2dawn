@@ -41,27 +41,6 @@ get_df_best_location <- function( df_location ) {
 
 }
 
-
-
-get_df_location <- function( ) {
-
-  my_db_read( 'select * from location') %>% 
-    as_tibble() %>% 
-    mutate( from='active') %>%
-    { . } ->  df_location
-
-  my_db_read( 'select * from passivelocation') %>% 
-    as_tibble() %>% 
-    mutate( from='passive') %>%
-    { . } ->  df_passive_location
-
-  df_location %>% 
-    bind_rows( df_passive_location ) 
-
-}
-
-
-
 # get survey data
 get_df_all <- function( ) {
 
