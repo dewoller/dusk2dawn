@@ -106,7 +106,7 @@ df_rds %>%
 #    summarise( latitude=mean(latitude), longitude=mean(longitude)) %>%
 st_as_sf( coords = c("longitude", "latitude"), crs = 4326, agr = "constant") -> df
 df %>%
-  #  mutate( ts = as.numeric( cut(time_stamp, 8))) %>%
+  #  mutate( ts = as.numeric( cut(timestamp, 8))) %>%
   #    filter( n_staypoint>0 ) %>%
   mutate( n_staypoint = as.factor( n_staypoint )) %>%
   mutate( size=ifelse( n_staypoint==0, .01, 1 )) %>%

@@ -37,7 +37,7 @@ library(lubridate)
 df_location = get_df_location()
 
 # load in the best guess location information
-df_best_location = get_df_best_location( df_location )
+#df_best_location = get_df_best_location( df_location )
 
 ```
 
@@ -110,18 +110,6 @@ b1_m %>% count( n_staypoint )
 
 ```
 
-
-
-```{r explore_subset, eval=FALSE}
-
-df_best_location %>% distinct( userid, night )
-
-df_best_location %>% 
-  filter( is.na( interval ))
-
-```
-
-
 ```{r good_path_visualisation,eval=FALSE }
 
 sigma=30*1000/3600
@@ -173,7 +161,7 @@ grid_search %>%
   cluster_library("glue") %>%
   cluster_library("geosphere") %>%
   cluster_library("tidyverse") %>%
-  cluster_copy( df_best_location ) %>%
+  cluster_copy( df_location ) %>%
   cluster_copy( distanceBetween) %>%
   cluster_copy( findStayPoint) %>%
   cluster_copy( do_one_search) %>%

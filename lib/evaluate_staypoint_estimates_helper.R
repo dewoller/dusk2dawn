@@ -18,7 +18,7 @@ analyse_staypoint_base_information_detail <- function( row ) {
               longitude  = mean( longitude),
               min_latitude = min( latitude), min_longitude  = min( longitude),
               max_latitude = max( latitude), max_longitude  = max( longitude), 
-              start=min(time_stamp), end=max(time_stamp), duration=end-start ) %>% 
+              start=min(timestamp), end=max(timestamp), duration=end-start ) %>% 
     ungroup() 
 
 }

@@ -119,21 +119,21 @@ options(scipen=999)
 b %>% 
   arrange( userid, night, local_time ) %>% 
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = round( distance / elapsed_time, 0)) %>% 
   filter( lead(velocity)<20) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time) %>%
   select(distance, elapsed_time, velocity, everything()) %>% View
 
   filter( lead(velocity)<20) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time) %>%
   filter( lead(velocity)<20) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time) %>%
   filter( lead(velocity)<20) %>%
   #gpsbabel( 'simplify,crosstrack,error=0.0001k') %>%
@@ -142,52 +142,52 @@ b %>%
 
 b %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time, 
          longitude= ifelse( velocity > 20, lag( longitude), longitude),
          latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time, 
          longitude= ifelse( velocity > 20, lag( longitude), longitude),
          latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time, 
          longitude= ifelse( velocity > 20, lag( longitude), longitude),
          latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time, 
          longitude= ifelse( velocity > 20, lag( longitude), longitude),
          latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time, 
          longitude= ifelse( velocity > 20, lag( longitude), longitude),
          latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time, 
          longitude= ifelse( velocity > 20, lag( longitude), longitude),
          latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time, 
          longitude= ifelse( velocity > 20, lag( longitude), longitude),
          latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time, 
          longitude= ifelse( velocity > 20, lag( longitude), longitude),
          latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time, 
          longitude= ifelse( velocity > 20, lag( longitude), longitude),
          latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
   mutate( distance = calculate_distance_roll( latitude, longitude ),
-         elapsed_time = time_stamp - lag( time_stamp),
+         elapsed_time = timestamp - lag( timestamp),
          velocity = distance / elapsed_time, 
          longitude= ifelse( velocity > 20, lag( longitude), longitude),
          latitude= ifelse( velocity > 20, lag( latitude), latitude)) %>%
@@ -210,7 +210,7 @@ df_best_location %>%
 
 df_staypoints %>%
   summarise( n_staypoint = max(n_staypoint ),
-            ts = (max( time_stamp) - min(time_stamp)) / 60,
+            ts = (max( timestamp) - min(timestamp)) / 60,
             n=n()
             ) %>%
   filter( ts > 60 & n>10) %>%

@@ -11,7 +11,7 @@ get_df_best_location <- function( df_location ) {
 
 
   df_location %>%
-  arrange( userid, night, time_stamp ) %>%
+  arrange( userid, night, timestamp ) %>%
   partition(userid, night, cluster = cluster) %>%   
   cluster_library("tidyverse") %>%
   cluster_library("sp") %>%
@@ -24,7 +24,7 @@ get_df_best_location <- function( df_location ) {
   filter( accuracy == min(accuracy)) %>%
   #
   # take the mean location for accuracy ties
-  group_by( userid, night, local_time, time_stamp, accuracy ) %>%
+  group_by( userid, night, local_time, timestamp, accuracy ) %>%
   summarise( longitude=mean(longitude), latitude=mean(latitude) ) %>%
   collect() %>%
   group_by( userid, night) %>%
@@ -33,7 +33,7 @@ get_df_best_location <- function( df_location ) {
   filter( n() > 1 ) %>%  
   #
   # find distance, speed between successive gps locationa on a night
-  mutate( interval = difference( time_stamp, 1 ), 
+  mutate( interval = difference( timestamp, 1 ), 
       dist = calc_interval_distance(longitude, latitude),
       speed = dist/interval * 1000) %>%  # in m/sec
   select( interval, dist, speed, accuracy, everything())  %>% 

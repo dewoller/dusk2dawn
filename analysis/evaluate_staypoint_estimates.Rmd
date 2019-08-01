@@ -43,11 +43,6 @@ library(lubridate)
 # load in the individual locations information
 df_location = get_df_location()
 
-# load in the best guess location information
-df_best_location = get_df_best_location( df_location )
-
-
-
 # get survey data
 df_all = get_df_all()
 
@@ -61,44 +56,6 @@ df_all_ts = get_df_all_ts( df_all )
  - Vicinity is 20 m 
  - Doesn't work, too much noise
 
-
-```{r find_homes, eval=FALSE}
-# old defunct code
-
-df_best_location %>%
-  filter( accuracy <30) %>%
-  group_by( userid, night) %>%
-  do( head(., 2 )) %>%
-  summarise( latitude = median( latitude), longitude = mean( longitude) ) %>%
-  filter( n()>1) %>% 
-  ungroup() %>%
-  { . } -> df_home_centroids
-
-
-df_home_centroids %>%
-  group_by( userid ) %>%
-  summarise( latitude = median( latitude), longitude = mean( longitude) ) %>% 
-  ungroup() %>%
-  { . } -> df_estimated_home
-
-
-#debug( calculate_distance)
-
-df_home_centroids %>%
-  inner_join( df_estimated_home, by='userid') %>%
-  mutate( distance = geo_dist_pairs( longitude.x,latitude.x, longitude.y[1], latitude.y[1] )) %>% 
-  { . } -> a
-
-
-a %>% 
-  filter( distance < 1) 
-
-
-a %>%
-  ggplot( ) + geom_histogram( aes( distance, color=userid))
-
-
-```
 
 # Bar Locations - calculate and clean input
 

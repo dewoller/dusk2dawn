@@ -167,7 +167,7 @@ timezone, time_stamp , and localtime all consistent (if we take DST into account
 ```{r explore_location_timezones}
 
 df_location %>%
-  mutate( lt = local_time %>% as.character() %>% ymd_hms( tz = "UTC") %>% seconds() - time_stamp- timezone) %>% 
+  mutate( lt = local_time %>% as.character() %>% ymd_hms( tz = "UTC") %>% seconds() - timestamp- timezone) %>% 
   count( lt )
 
 
