@@ -48,12 +48,18 @@ df_location = get_df_location()
 #debug( do_one_search)
 #undebug( do_one_search)
 
+get_geohashed_filename = function( precision, n ) {
+
+  glue( "data_fast/df_location_geohashed_precision_{precision}_n_{n}.rds")
+
+}
+
+
 get_pruned_filename = function( sigma ) {
 
   glue( "data_fast/df_location_pruned_sigma_{sigma}.rds")
 
 }
-
 do_one_prune(1)
 
 do_one_prune = function( .sigma ) {
@@ -68,6 +74,30 @@ do_one_prune = function( .sigma ) {
     group_modify( ~prune_gps_outliers(.x, sigma = .sigma)) %>% 
     saveRDS(file=fname)
   ParallelLogger::logInfo(paste('Finished prune_gps', fname))
+  NULL
+}
+
+
+#prune_gps_geohash<- function( df, gh_precision = 7, minpoints=3 )  {
+#options(error = traceback)
+
+#get_geohashed_filename( 1,2)
+
+#do_one_geohash( 10,3 )
+
+do_one_geohash = function( .df ) {
+  #browser()
+
+  fname  = get_geohashed_filename( precision = .df$i_precision, n=.df$i_minpoints )
+
+  ParallelLogger::logInfo(paste('Starting One geohash ', fname))
+
+  df_location %>%
+    group_by( userid, night ) %>%
+    arrange( timestamp ) %>% 
+    group_modify( ~prune_gps_geohash(.x, gh_precision = .df$i_precision, minpoints = .df$i_minpoints)) %>% 
+    saveRDS(file=fname)
+  ParallelLogger::logInfo(paste('Finished geohash_gps', fname))
   NULL
 }
 
@@ -151,11 +181,18 @@ min_staypoint_time_range=c(5,10, 15)*60
 max_jump_time_range=c(2,5)*60
 max_staypoint_distance_range= c(5,10,20)
 sigma_range=c(.25, .5, 1, 2, 100)
+gh_precision_range=7:9
+gh_minpoints_range=0:2*6+3
+
 expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, sigma_range ) %>% 
   setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_sigma )) %>%
   as_tibble() %>% 
   { . } -> grid_search 
-  
+
+expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, gh_precision_range, gh_minpoints_range ) %>% 
+  setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_precision, i_minpoints )) %>%
+  as_tibble() %>% 
+  { . } -> grid_search 
 
 library(multidplyr)
 library(parallel)
@@ -170,6 +207,27 @@ createLogger(name = "PARALLEL",
                                                  fileName = logFileName))) %>%
 registerLogger()
 
+
+# create pruned location sets
+cluster <- makeCluster(4)
+clusterExport(cluster,  qc(df_location, prune_gps_geohash, get_geohashed_filename))
+clusterEvalQ(cluster, {
+               library(glue)
+               library(geohash)
+               library(tidyverse)
+               NULL
+             })
+
+grid_search  %>% 
+  distinct( i_precision, i_minpoints ) %>%
+  mutate( row = row_number()) %>%
+  nest( -row ) %>% 
+  { . } -> gs
+
+dummy <- clusterApply(cluster, head(gs$data,2 ), do_one_geohash)
+stopCluster(cluster)
+
+#
 
 # create pruned location sets
 cluster <- makeCluster(5)
@@ -209,74 +267,4 @@ dummy <- clusterApply(cluster, gs$data , do_one_search)
 
 
 stopCluster(cluster)
-
-# #
-# grid_search %>%
-#   mutate( row_num=row_number()) %>%
-#   partition(row_num, cluster = cluster) %>%
-#   cluster_library("glue") %>%
-#   cluster_library("geosphere") %>%
-#   cluster_library("tidyverse") %>%
-#   cluster_library("ParallelLogger") %>%
-#   #  cluster_copy( df_location ) %>%
-#   cluster_copy( distanceBetween) %>%
-#   cluster_copy( findStayPoint) %>%
-#   cluster_copy( do_one_search) %>%
-#   cluster_copy( distance2centroid ) %>%
-#   cluster_copy( prune_gps_outliers ) %>%
-#   cluster_copy(  eliminate_sigma ) %>%
-#   do( do_one_search( .) ) %>%
-#   collect() %>% 
-#   { . } -> grid_output
-# #
-#
-# cl <- detectCores()
-# cluster <- create_cluster(cores = cl)
-#
-# grid_search %>%
-#   mutate( row_num=row_number()) %>%
-#   partition(row_num, cluster = cluster) %>%
-#   cluster_library("ParallelLogger") %>%
-#   cluster_library("glue") %>%
-# #  cluster_copy( df_location ) %>%
-#   cluster_copy( fun) %>%
-#   do( fun( ) ) %>%
-#   collect() %>% 
-#   { . } -> grid_output
-#
-# stopCluster(cluster)
-#
-
-
-# clearLoggers() # Clean up the loggers from the previous example
-# addDefaultFileLogger(logFileName)
-# cluster <- makeCluster(3)
-#
-# fun <- function(x) {
-#   ParallelLogger::logInfo("The value of x is ", x)
-#   # Do something
-#   if (x == 6)
-#     ParallelLogger::logDebug("X equals 6")
-#   return(NULL)
-# }
-# dummy <- clusterApply(cluster, 1:10, fun, progressBar = FALSE)
-#
-# fun <- function(x) {
-#   ParallelLogger::logTrace("Hello world")
-#   return (x^2)
-# }
-#
-# cluster <- makeCluster(numberOfThreads = 3)
-# result <- clusterApply(cluster, 1:10, fun)
-# stopCluster(cluster)
-#
-# # Create a file logger:
-# addDefaultFileLogger("log.txt")
-# logTrace("Hello world")
-#
-```
-
-
-
-
 
