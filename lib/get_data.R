@@ -1,5 +1,5 @@
-safe_load("RPostgreSQL")
-safe_load("keyring")
+needs("RPostgreSQL")
+needs("keyring")
 my_db_name = 'dusk2dawn'
 # -------------------------------------------------
 my_db_write <- function ( df, table_name ) {

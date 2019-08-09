@@ -100,6 +100,7 @@ df_intersect_both %>%
   tail(1) %>%
   { . } -> limit
 #
+
 df_rds %>%
   inner_join( limit )
 #    group_by( n_staypoint) %>%
@@ -148,6 +149,7 @@ df_zurich$osm_polygons %>%
   count( value, sort=TRUE) %>% View
 
 df_zurich
+
 
 readRDS(row$filename)  %>%
   inner_join( limit ) %>% 
