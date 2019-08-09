@@ -34,6 +34,11 @@ source('lib/location_prep.R')
 library(tidyverse)
 library(lubridate)
 
+library(multidplyr)
+library(parallel)
+library(ParallelLogger) 
+logFileName = 'staypoint_estimation.log'
+
 # load in the individual locations information
 df_location = get_df_location()
 
@@ -122,6 +127,33 @@ do_one_search = function( .df ) {
       group_modify( ~findStayPoint(.x,  .df$i_max_jump_time, .df$i_min_staypoint_time, .df$i_max_staypoint_distance)) %>%
       select( local_time, timestamp, n_staypoint, duration, everything()) %>% 
       { . } -> df
+    saveRDS(df,  file=out_fname)
+  }
+  ParallelLogger::logInfo(paste('Ending One Search', out_fname))
+
+  NULL
+}
+
+
+
+do_one_search_geohash = function( .df ) {
+  rlimit_stack(10000000)
+
+  ParallelLogger::logInfo(paste('Starting One Search', .df))
+  ParallelLogger::logInfo(paste('str One Search', print(str(.df))))
+  in_fname  = get_geohashed_filename( precision = .df$i_precision, n=.df$i_minpoints )
+  ParallelLogger::logInfo(paste('Filename One Search', in_fname))
+
+  out_fname  = glue::glue( "data/save_v3_geohash_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_precision_{.df$i_precision}_minpoints_{.df$i_minpoints}.rds")
+
+  if(file.exists(out_fname)) {
+    ParallelLogger::logInfo(paste('One Search : file exists:', out_fname))
+  } else {
+    ParallelLogger::logInfo(paste('One Search : calculating:', out_fname))
+    readRDS( in_fname ) %>%
+      group_modify( ~findStayPoint(.x,  .df$i_max_jump_time, .df$i_min_staypoint_time, .df$i_max_staypoint_distance)) %>%
+      select( local_time, timestamp, n_staypoint, duration, everything()) %>% 
+      { . } -> df
       saveRDS(df,  file=out_fname)
   }
   ParallelLogger::logInfo(paste('Ending One Search', out_fname))
@@ -198,10 +230,6 @@ expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_
   as_tibble() %>% 
   { . } -> grid_search 
 
-library(multidplyr)
-library(parallel)
-library(ParallelLogger) 
-logFileName = 'staypoint_estimation.log'
 
 if( FALSE) {
   # create pruned location sets
@@ -295,5 +323,35 @@ debug(do_one_search)
 undebug(do_one_search)
 stopCluster(cluster)
 
+
+
+
+
+# process pruned locationsets
+clearLoggers() # Clean up the loggers from the previous example
+createLogger(name = "PARALLEL",
+             threshold = "INFO",
+             appenders = list(createFileAppender(layout = layoutParallel,
+                                                 fileName = logFileName))) %>%
+registerLogger()
+
+cluster <- makeCluster(2)
+
+clusterExport(cluster,  qc(distanceBetween, findStayPoint, distance2centroid, get_geohashed_filename))
+clusterEvalQ(cluster, {
+               library(glue)
+               library(geosphere)
+               library(tidyverse)
+               library(RAppArmor)
+               NULL
+             })
+grid_search  %>% 
+  mutate( row = row_number()) %>%
+  nest( -row ) %>% 
+  { . } -> gs
+dummy <- clusterApply(cluster, tail(gs$data,1) , do_one_search_geohash )
+
+options(error = recover)
+by_row( grid_search %>% tail(1), do_one_search_geohash)
 
 
