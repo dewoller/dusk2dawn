@@ -44,7 +44,7 @@ get_location = function( ) {
   my_db_read( 'select * from location') %>% 
     mutate( from='active') %>%
     dplyr::rename( timestamp = time_stamp) %>%
-    as.tibble() 
+    as_tibble() 
   }
 # -------------------------------------------------
 
@@ -52,7 +52,7 @@ get_passive_location = function( ) {
   my_db_read( 'select * from passivelocation') %>% 
     mutate( from='passive') %>%
     dplyr::rename( timestamp = time_stamp) %>%
-    as.tibble() 
+    as_tibble() 
 }
 
 # -------------------------------------------------
