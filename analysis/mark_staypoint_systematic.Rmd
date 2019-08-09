@@ -50,11 +50,9 @@ df_location = get_df_location()
 
 get_pruned_filename = function( sigma ) {
 
-  glue( "data_fast/df_location_pruned_sigma_{sigma}.rds")
+  glue::glue( "data_fast/df_location_pruned_sigma_{sigma}.rds")
 
 }
-
-do_one_prune(1)
 
 do_one_prune = function( .sigma ) {
 
@@ -74,7 +72,7 @@ do_one_prune = function( .sigma ) {
 
 
 do_one_search = function( .df ) {
-  rlimit_stack(16000000)
+  rlimit_stack(10000000)
 
   ParallelLogger::logInfo(paste('Starting One Search', .df))
   ParallelLogger::logInfo(paste('Starting One Search', .df$i_sigma))
@@ -82,17 +80,21 @@ do_one_search = function( .df ) {
   in_fname  = get_pruned_filename( .df$i_sigma )
   ParallelLogger::logInfo(paste('Filename One Search', in_fname))
 
-  out_fname  = glue( "data/save_v2_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_sigma}_df.rds")
+  out_fname  = glue::glue( "data/save_v2_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_sigma}_df.rds")
 
-  #
-   readRDS( in_fname ) %>%
-    group_modify( ~findStayPoint(.x,  .df$i_max_jump_time, .df$i_min_staypoint_time, .df$i_max_staypoint_distance)) %>%
-    select( local_time, timestamp, n_staypoint, duration, everything()) %>% 
-    { . } -> df
-     saveRDS(df,  file=out_fname)
-    ParallelLogger::logInfo(paste('Ending One Search', out_fname))
+  if(file.exists(out_fname)) {
+    ParallelLogger::logInfo(paste('One Search : file exists:', out_fname))
+  } else {
+    ParallelLogger::logInfo(paste('One Search : calculating:', out_fname))
+    readRDS( in_fname ) %>%
+      group_modify( ~findStayPoint(.x,  .df$i_max_jump_time, .df$i_min_staypoint_time, .df$i_max_staypoint_distance)) %>%
+      select( local_time, timestamp, n_staypoint, duration, everything()) %>% 
+      { . } -> df
+      saveRDS(df,  file=out_fname)
+  }
+  ParallelLogger::logInfo(paste('Ending One Search', out_fname))
 
-    NULL
+  NULL
 }
 
 
@@ -162,37 +164,22 @@ library(parallel)
 library(ParallelLogger) 
 logFileName = 'staypoint_estimation.log'
 
+if( FALSE) {
+  # create pruned location sets
+  cluster <- makeCluster(7)
+  clusterExport(cluster,  qc(df_location, distanceBetween, findStayPoint, distance2centroid, prune_gps_outliers, eliminate_sigma, get_pruned_filename))
+  clusterExport(cluster,  qc( prune_gps_outliers, eliminate_sigma, get_pruned_filename))
+  clusterEvalQ(cluster, {
+                library(glue)
+                library(geosphere)
+                library(tidyverse)
+                NULL
+      })
+  dummy <- clusterApply(cluster, sigma_range , do_one_prune)
+  stopCluster(cluster)
+}
 
-clearLoggers() # Clean up the loggers from the previous example
-createLogger(name = "PARALLEL",
-             threshold = "INFO",
-             appenders = list(createFileAppender(layout = layoutParallel,
-                                                 fileName = logFileName))) %>%
-registerLogger()
-
-
-# create pruned location sets
-cluster <- makeCluster(5)
-clusterExport(cluster,  qc(df_location, distanceBetween, findStayPoint, distance2centroid, prune_gps_outliers, eliminate_sigma, get_pruned_filename))
-clusterExport(cluster,  qc( prune_gps_outliers, eliminate_sigma, get_pruned_filename))
-clusterEvalQ(cluster, {
-               library(glue)
-               library(geosphere)
-               library(tidyverse)
-               NULL
-     })
-dummy <- clusterApply(cluster, sigma_range , do_one_prune)
-stopCluster(cluster)
-
-# process pruned locationsets
-clearLoggers() # Clean up the loggers from the previous example
-createLogger(name = "PARALLEL",
-             threshold = "INFO",
-             appenders = list(createFileAppender(layout = layoutParallel,
-                                                 fileName = logFileName))) %>%
-registerLogger()
-
-cluster <- makeCluster(12)
+cluster <- makeCluster(4)
 clusterExport(cluster,  qc(distanceBetween, findStayPoint, distance2centroid, get_pruned_filename))
 clusterEvalQ(cluster, {
                library(glue)
@@ -208,75 +195,14 @@ grid_search  %>%
 dummy <- clusterApply(cluster, gs$data , do_one_search)
 
 
+# single threaded
+needs( purrrlyr)
+by_row( grid_search, do_one_search)
+
+debug(do_one_search)
+undebug(do_one_search)
 stopCluster(cluster)
 
-# #
-# grid_search %>%
-#   mutate( row_num=row_number()) %>%
-#   partition(row_num, cluster = cluster) %>%
-#   cluster_library("glue") %>%
-#   cluster_library("geosphere") %>%
-#   cluster_library("tidyverse") %>%
-#   cluster_library("ParallelLogger") %>%
-#   #  cluster_copy( df_location ) %>%
-#   cluster_copy( distanceBetween) %>%
-#   cluster_copy( findStayPoint) %>%
-#   cluster_copy( do_one_search) %>%
-#   cluster_copy( distance2centroid ) %>%
-#   cluster_copy( prune_gps_outliers ) %>%
-#   cluster_copy(  eliminate_sigma ) %>%
-#   do( do_one_search( .) ) %>%
-#   collect() %>% 
-#   { . } -> grid_output
-# #
-#
-# cl <- detectCores()
-# cluster <- create_cluster(cores = cl)
-#
-# grid_search %>%
-#   mutate( row_num=row_number()) %>%
-#   partition(row_num, cluster = cluster) %>%
-#   cluster_library("ParallelLogger") %>%
-#   cluster_library("glue") %>%
-# #  cluster_copy( df_location ) %>%
-#   cluster_copy( fun) %>%
-#   do( fun( ) ) %>%
-#   collect() %>% 
-#   { . } -> grid_output
-#
-# stopCluster(cluster)
-#
 
 
-# clearLoggers() # Clean up the loggers from the previous example
-# addDefaultFileLogger(logFileName)
-# cluster <- makeCluster(3)
-#
-# fun <- function(x) {
-#   ParallelLogger::logInfo("The value of x is ", x)
-#   # Do something
-#   if (x == 6)
-#     ParallelLogger::logDebug("X equals 6")
-#   return(NULL)
-# }
-# dummy <- clusterApply(cluster, 1:10, fun, progressBar = FALSE)
-#
-# fun <- function(x) {
-#   ParallelLogger::logTrace("Hello world")
-#   return (x^2)
-# }
-#
-# cluster <- makeCluster(numberOfThreads = 3)
-# result <- clusterApply(cluster, 1:10, fun)
-# stopCluster(cluster)
-#
-# # Create a file logger:
-# addDefaultFileLogger("log.txt")
-# logTrace("Hello world")
-#
 ```
-
-
-
-
-
