@@ -2,6 +2,7 @@ library(geosphere)
 library(zoo)
 library(glue)
 library(tibbletime)
+library(geohash)
 
 ################################################################################
 # distance2centroid 
@@ -100,6 +101,102 @@ calculate_distance_roll = rollify( calculate_distance, window=2)
 # findStayPoint 
 ################################################################################
 
+findStayPoint_geohash = function (df, max_jump_time = 900, min_staypoint_time = 180, max_staypoint_distance  = 20) {
+
+# TODO 
+
+  # current staypoint proposal
+  # 0 not in, 1:n which staypoint
+  n_staypoint =  1
+
+  df$duration = -1
+  df$last_duration = -1
+  df$distance2centroid = -1
+  df$velocity = -1
+  df$start_sp_proposal_index = -1
+  df$n_staypoint = 0
+  df$reason=NA
+  in_staypoint=FALSE
+  nrow = nrow( df )
+  sp_start=1
+  sp_end=1
+
+  while ( sp_end <= nrow ) {
+
+    # track the start of the current staypoint proposal
+    df[ sp_end,]$start_sp_proposal_index = sp_start
+
+    if ( sp_end <= sp_start ) {
+      sp_end = sp_end + 1
+      next
+    }
+
+    # track the durations
+    last_duration = df[ sp_end, ]$timestamp - df[ sp_end-1, ]$timestamp
+    entire_duration = df[ sp_end, ]$timestamp - df[ sp_start, ]$timestamp
+    df[ sp_end,]$duration = entire_duration
+    df[ sp_end,]$last_duration = last_duration
+
+    #cat( paste( sp_start, sp_end, 'last_duration', last_duration , 'entire_duration',    entire_duration,in_staypoint,"\n"))
+
+    if ( last_duration >= max_jump_time )   {
+
+      # we have too much time between this point and the last point
+      sp_start = sp_end
+      if (in_staypoint ){
+        n_staypoint = n_staypoint + 1
+        in_staypoint = FALSE
+      } else {
+        # leave untagged points outside staypoint
+        df[ sp_end,]$reason = "Excessive Jump Time"
+      }
+      next
+    }
+
+    # is this point within current staypoint centroid
+    d = distance2centroid( dplyr::slice( df, sp_start:sp_end ))
+    df[ sp_end,]$distance2centroid = d
+    df[ sp_end,]$velocity = distanceBetween( dplyr::slice( df, (sp_end-1):sp_end )) / last_duration
+
+    if ( d > max_staypoint_distance ) {
+
+      # we have physically moved out of the previous staypoint zone, sp_start:sp_end
+      if ( in_staypoint ){
+
+        # this is a mark, keep the previous staypoint, sp_start afresh
+        n_staypoint = n_staypoint + 1
+        in_staypoint = FALSE
+        sp_start=sp_end
+        df[ sp_end,]$reason = "Too Far From Centroid, closing staypoint"
+      } else {
+        # we are STILL not in a staypoint
+        # keep looking, move the staypoint zone forward
+        df[ sp_start,]$reason = "Too Far From Centroid, moving start forward"
+        sp_start = sp_start + 1
+      }
+      next
+    }
+
+    # we are still within staypoint distance of centroid( sp_start:sp_end )
+    if ((entire_duration >= min_staypoint_time ) ) {
+
+      # we have been in staypoint sufficient time
+      # mark this point as being in the staypoint
+      df[ sp_start:sp_end,]$n_staypoint = n_staypoint
+
+      # make note of the last time we were in the actual staypoint
+      ts_last_in = df[sp_end, ]$timestamp
+      in_staypoint = TRUE
+    }
+    sp_end = sp_end + 1
+  }
+
+  df
+}
+################################################################################
+# findStayPoint 
+################################################################################
+
 findStayPoint = function (df, max_jump_time = 900, min_staypoint_time = 180, max_staypoint_distance  = 20) {
 
   # current staypoint proposal
@@ -151,9 +248,9 @@ findStayPoint = function (df, max_jump_time = 900, min_staypoint_time = 180, max
     }
 
     # is this point within current staypoint centroid
-    d = distance2centroid( slice( df, sp_start:sp_end ))
+    d = distance2centroid( dplyr::slice( df, sp_start:sp_end ))
     df[ sp_end,]$distance2centroid = d
-    df[ sp_end,]$velocity = distanceBetween( slice( df, (sp_end-1):sp_end )) / last_duration
+    df[ sp_end,]$velocity = distanceBetween( dplyr::slice( df, (sp_end-1):sp_end )) / last_duration
 
     if ( d > max_staypoint_distance ) {
 
@@ -278,13 +375,60 @@ prune_gps_outliers <- function( df, sigma = 1, width=5 )  {
                                         rv[ (i+1):(i+1+width), ]$latitude, 
                                         sigma )
       rv[i,]$longitude = eliminate_sigma( rv[i,]$longitude, 
-                                        rv[ (i-width-1):(i-1), ]$longitude,  
-                                        rv[ (i+1):(i+1+width), ]$longitude, 
-                                        sigma )
+                                         rv[ (i-width-1):(i-1), ]$longitude,  
+                                         rv[ (i+1):(i+1+width), ]$longitude, 
+                                         sigma )
     }
   }
 
   rv
+}
+
+
+
+prune_gps_geohash_test = function() {
+
+  df_location %>%
+  inner_join( df_location %>% head(1) %>% select( userid, night)) %>% 
+  { . } -> df
+
+minpoints = 3
+prune_gps_geohash( df, 7, minpoints)
+prune_gps_geohash( df, 8, minpoints)
+prune_gps_geohash( df, 9, minpoints)
+prune_gps_geohash( df, 10, minpoints)
+
+prune_gps_geohash( df, 7, 5)
+prune_gps_geohash( df, 8, 5)
+prune_gps_geohash( df, 9, 5)
+prune_gps_geohash( df, 10, 5)
+
+prune_gps_geohash( df, 7, 10)
+prune_gps_geohash( df, 8, 10)
+prune_gps_geohash( df, 9, 10)
+prune_gps_geohash( df, 10, 10)
+
+}
+
+################################################################################
+# prune_gps_outliers
+################################################################################
+prune_gps_geohash<- function( df, gh_precision = 7, minpoints=3 )  {
+  # returns df with outlier lat and long pruned according to geohash method
+  #print( df %>% distinct(userid, night  ))
+
+
+  df %>% 
+    mutate( gh = gh_encode( lats = latitude, lngs=longitude, precision=gh_precision)) %>% 
+    select( gh, everything()) %>%
+    { . } -> rv
+
+  rv %>%
+    count(gh) %>%
+    filter( n >= minpoints) %>% 
+    { . } -> df_valid_points
+  rv %>% inner_join( df_valid_points, by='gh')
+
 }
 
 

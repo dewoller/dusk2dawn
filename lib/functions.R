@@ -5,25 +5,25 @@ detach_all_packages()
 library(tsibble)
 #library(sp)
 
-safe_load( 'workflowr')
-#safe_load("seas")
-safe_load("magrittr")
-safe_load("stringr")
-safe_load("knitr")
-#safe_load("kableExtra")
-#safe_load("pander")
-safe_load("lubridate")
+needs( 'workflowr')
+#needs("seas")
+needs("magrittr")
+needs("stringr")
+needs("knitr")
+#needs("kableExtra")
+#needs("pander")
+needs("lubridate")
 
-safe_load("readstata13" )
-#safe_load("foreign" )
-safe_load("wrapr" )   # for the qc function
+needs("readstata13" )
+#needs("foreign" )
+needs("wrapr" )   # for the qc function
 
-#safe_load("ordinal" )
-safe_load("DataCache" )
-safe_load( 'fuzzyjoin')
-library('IRanges')
-safe_load("multidplyr")
-safe_load("tidyverse")
+#needs("ordinal" )
+needs("DataCache" )
+needs( 'fuzzyjoin')
+needs('IRanges')
+needs("multidplyr")
+needs("tidyverse")
 
 
 

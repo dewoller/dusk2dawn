@@ -12,7 +12,7 @@ The staypoint determination algorithm uses 4 variables;
  - min_staypoint_time  - minimum time, in minutes, that must stay within max_staypoint_distance
  * max_jump_time - maximum time, in minutes, between readings
  * max_staypoint_distance - maximum distance for readings to be counted as a single staypoint
- * max_speed_filter - noise reduction parameter, eliminating points that would take over this speed to get there (in kmh)
+ * sigma - noise reduction parameter, eliminating points that would take over this speed to get there (in kmh)
 
 ## Tests for good staypoint parameters
 
@@ -64,15 +64,15 @@ df_all_ts = get_df_all_ts( df_all )
 ```{r load_staypoint_file_list}
 
 
-list.files( path='data/', pattern='save.*rds', full.names=TRUE ) %>%
+list.files( path='data/', pattern='save_v1.*rds', full.names=TRUE ) %>%
   enframe(value = 'filename' ) %>%
   separate( col=filename, 
-           into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter)), 
+           into=c(NA, NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, sigma)), 
            sep='_', 
            extra='drop' ,
            remove=FALSE)  %>%
-  select( min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, everything() ) %>%
-  mutate_at(1:4, function(x) {sprintf('%06.1f', as.numeric(x) ) }) %>% 
+  select( min_staypoint_time, max_jump_time, max_staypoint_distance, sigma, everything() ) %>%
+  mutate_at(1:4, function(x) {sprintf('%07.2f', as.numeric(x) ) }) %>% 
   #head(2) %>%
   rowwise() %>%
   do( analyse_staypoint_base_information_summary(.) ) %>% 
@@ -182,7 +182,7 @@ df_geography_matches %>%
   geom_boxplot()
 
 df_geography_matches %>%
-  ggplot( aes(x=(max_speed_filter), y=nhits, fill=( max_speed_filter) )) +
+  ggplot( aes(x=(sigma), y=nhits, fill=( sigma) )) +
   geom_boxplot()
 
 df_geography_matches %>%
@@ -198,7 +198,7 @@ df_geography_matches %>%
   geom_boxplot()
 
 df_geography_matches %>%
-  ggplot( aes(x=(max_speed_filter), y=nhits/n_staypoint, fill=( max_speed_filter) )) +
+  ggplot( aes(x=(sigma), y=nhits/n_staypoint, fill=( sigma) )) +
   geom_boxplot()
 
 df_geography_matches %>%
@@ -239,10 +239,10 @@ list.files( path='data/', pattern='save.*rds', full.names=TRUE ) %>%
 
 df_survey_time_matches %>%
   separate( col=filename, 
-           into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, NA)), 
+           into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, sigma, NA)), 
            sep='_', 
            remove=FALSE)  %>%
-select( min_staypoint_time, max_jump_time, max_staypoint_distance, max_speed_filter, everything() ) %>%
+select( min_staypoint_time, max_jump_time, max_staypoint_distance, sigma, everything() ) %>%
 mutate_at(1:4, function(x) {sprintf('%06.1f', as.numeric(x) ) }) %>%
 { . } -> df_survey_time_matches
 
@@ -264,7 +264,7 @@ df_survey_time_matches %>%
   geom_boxplot()
 
 df_survey_time_matches %>%
-  ggplot( aes(x=(max_speed_filter), y=nsurvey_hits, fill=( max_speed_filter) )) +
+  ggplot( aes(x=(sigma), y=nsurvey_hits, fill=( sigma) )) +
   geom_boxplot()
 
 df_survey_time_matches %>%
@@ -280,7 +280,7 @@ df_survey_time_matches %>%
   geom_boxplot()
 
 df_survey_time_matches %>%
-  ggplot( aes(x=(max_speed_filter), y=nsurvey_hits/n_staypoint, fill=( max_speed_filter) )) +
+  ggplot( aes(x=(sigma), y=nsurvey_hits/n_staypoint, fill=( sigma) )) +
   geom_boxplot()
 
 df_survey_time_matches %>%
@@ -374,7 +374,7 @@ df_both_matches %>%
   geom_boxplot()
 
 df_both_matches %>%
-  ggplot( aes(x=(max_speed_filter), y=both_hits, fill=( max_speed_filter) )) +
+  ggplot( aes(x=(sigma), y=both_hits, fill=( sigma) )) +
   geom_boxplot()
 
 df_both_matches %>%
@@ -390,7 +390,7 @@ df_both_matches %>%
   geom_boxplot()
 
 df_both_matches %>%
-  ggplot( aes(x=(max_speed_filter), y=both_hits/n_staypoint, fill=( max_speed_filter) )) +
+  ggplot( aes(x=(sigma), y=both_hits/n_staypoint, fill=( sigma) )) +
   geom_boxplot()
 
 df_both_matches %>%
