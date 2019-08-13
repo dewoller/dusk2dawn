@@ -1,8 +1,7 @@
 
 library(tidyverse)
-row= tribble( ~filename,'data/save_1200_1200_10_20_.rds')
 
-row= tribble( ~filename,'data/save_1200_1200_10_20_.rds')
+row= tribble( ~filename,'data/save_v1_maxspeed_1200_1200_10_20_df.rds')
 
 #********************************************************************************
 #analyse_staypoint_base_information_detail
@@ -14,7 +13,7 @@ analyse_staypoint_base_information_detail <- function( row ) {
   readRDS(row$filename)  %>%
     filter( n_staypoint > 0 )  %>%
     group_by( userid, night, n_staypoint) %>%
-    summarise( latitude = mean( latitude), 
+    dplyr::summarise( latitude = mean( latitude), 
               longitude  = mean( longitude),
               min_latitude = min( latitude), min_longitude  = min( longitude),
               max_latitude = max( latitude), max_longitude  = max( longitude), 
@@ -27,6 +26,7 @@ analyse_staypoint_base_information_detail <- function( row ) {
 # summarise ALL staypoints for this user and night
 #********************************************************************************
 analyse_staypoint_base_information_summary <- function( row ) {
+  print(paste(row, collapse=','))
 
   analyse_staypoint_base_information_detail ( row ) %>%
     { . } -> a
@@ -70,7 +70,7 @@ analyse_staypoint_set_geography_summary <- function( row ) {
   cat("\n")
 
 #= glue( "data/save_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_max_speed_filter}_df.rds")
-  row= tribble( ~filename,'data//save_1200_60_5_10_df.rds')
+#  row= tribble( ~filename,'data//save_1200_60_5_10_df.rds')
 
   analyse_staypoint_set_geography_detail( row ) %>% 
     { . } -> df_intersect_geo_cleaned
@@ -130,6 +130,7 @@ analyse_staypoint_set_time_summary <- function( row ) {
 
 }
 
+row= tribble( ~filename,'data//save_v3_geohash_300_120_5_precision_7_minpoints_3_df.rds')
 #********************************************************************************
 # analyse_staypoint_set_time_and_geography_summary 
 #********************************************************************************
@@ -148,11 +149,20 @@ analyse_staypoint_set_time_and_geography_summary <- function( row ) {
     { . } -> df_intersect_both
 
   df_intersect_both %>%
-    count( is.na( start.x), is.na( latitude.x)) %>%
-    mutate( hit_count = qc( both_hits, survey_only_hits, geo_only_hits)) %>%
-    select( n, hit_count ) %>%
-    spread( hit_count, n ) %>%
-    bind_cols( row )
+    count( is.na( start.x), is.na( latitude.x)) %>% 
+    { . } -> a
+
+  if (nrow(a)==3) {
+    a %>%
+      mutate( hit_count = qc( both_hits, survey_only_hits, geo_only_hits)) %>%
+      select( n, hit_count ) %>%
+      spread( hit_count, n ) %>%
+      bind_cols( row )
+  } else {
+    row %>%
+      bind_cols( tribble( ~both_hits, ~survey_only_hits, ~geo_only_hits, NA ,NA ,NA )) 
+  }
+
 }
 
 
@@ -173,4 +183,49 @@ analyse_staypoint_set_time_and_geography_detail <- function( row ) {
     { . } -> df_intersect_both
 
 }
+
+#********************************************************************************
+# get_staypoint_filenames
+#********************************************************************************
+get_staypoint_filenames = function() {
+
+list.files( path='data/', pattern='save_v[123].*rds', full.names=TRUE ) %>%
+  enframe(value = 'filename' ) %>%
+  select(-name) %>%
+  #  head(1) %>%
+  separate( col=filename, 
+           into=c(NA, NA, qc(type, min_staypoint_time, max_jump_time, max_staypoint_distance, rest)), 
+           sep='_', 
+           convert=TRUE, 
+           extra='merge',
+           remove=FALSE)  %>%
+  mutate( rest = str_replace( rest, '_df.rds', '') ) 
+
+}
+ 
+
+#********************************************************************************
+#consolidate_staypoints
+#********************************************************************************
+consolidate_staypoints <- function( row ) {
+
+  readRDS(row$filename)  %>%
+    filter( n_staypoint > 0 ) %>%
+    select( timestamp, userid, night, longitude, latitude) %>%
+    crossing(row)
+
+}
+#
+
+
+#********************************************************************************
+#get_all_staypoints
+#********************************************************************************
+get_all_staypoints = function( filenames)  {
+  filenames %>%
+  rowwise() %>%
+  do( consolidate_staypoints(.) ) 
+
+}
+
 

@@ -134,7 +134,7 @@ do_one_search = function( .df ) {
   in_fname  = get_pruned_filename( .df$i_sigma )
   ParallelLogger::logInfo(paste('Filename One Search', in_fname))
 
-  out_fname  = glue::glue( "data/save_v2_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_sigma}_df.rds")
+  out_fname  = glue::glue( "data/save_v2_pruned_{.df$i_min_staypoint_time}_{.df$i_max_jump_time}_{.df$i_max_staypoint_distance}_{.df$i_sigma}_df.rds")
 
   if(file.exists(out_fname)) {
     ParallelLogger::logInfo(paste('One Search : file exists:', out_fname))
