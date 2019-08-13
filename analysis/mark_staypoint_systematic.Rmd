@@ -37,13 +37,30 @@ library(lubridate)
 library(multidplyr)
 library(parallel)
 library(ParallelLogger) 
-logFileName = 'staypoint_estimation.log'
 
 # load in the individual locations information
 df_location = get_df_location()
 
-# load in the best guess location information
-#df_best_location = get_df_best_location( df_location )
+
+logFileName = 'staypoint_estimation.log'
+min_staypoint_time_range=c(5,10, 15)*60
+max_jump_time_range=c(2,5)*60
+max_staypoint_distance_range= c(5,10,20)
+sigma_range=c(.25, .5, 1, 2, 100)
+gh_precision_range=7:9
+gh_minpoints_range=0:2*6+3
+
+expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, sigma_range ) %>% 
+  setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_sigma )) %>%
+  as_tibble() %>% 
+  { . } -> grid_search 
+
+expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, gh_precision_range, gh_minpoints_range ) %>% 
+  setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_precision, i_minpoints )) %>%
+  as_tibble() %>% 
+  { . } -> grid_search 
+
+
 
 ```
 
@@ -65,7 +82,7 @@ get_pruned_filename = function( sigma ) {
   glue::glue( "data_fast/df_location_pruned_sigma_{sigma}.rds")
 
 }
-do_one_prune(1)
+#do_one_prune(1)
 
 do_one_prune = function( .sigma ) {
 
@@ -213,24 +230,6 @@ if( FALSE) {
 
 ```{r generate_staypoints, eval=TRUE }
 
-min_staypoint_time_range=c(5,10, 15)*60
-max_jump_time_range=c(2,5)*60
-max_staypoint_distance_range= c(5,10,20)
-sigma_range=c(.25, .5, 1, 2, 100)
-gh_precision_range=7:9
-gh_minpoints_range=0:2*6+3
-
-expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, sigma_range ) %>% 
-  setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_sigma )) %>%
-  as_tibble() %>% 
-  { . } -> grid_search 
-
-expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, gh_precision_range, gh_minpoints_range ) %>% 
-  setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_precision, i_minpoints )) %>%
-  as_tibble() %>% 
-  { . } -> grid_search 
-
-
 if( FALSE) {
   # create pruned location sets
   cluster <- makeCluster(7)
@@ -326,30 +325,37 @@ stopCluster(cluster)
 
 
 
+while(TRUE) {
+  tryCatch( {
+    # process pruned locationsets
 
-# process pruned locationsets
-clearLoggers() # Clean up the loggers from the previous example
-createLogger(name = "PARALLEL",
-             threshold = "INFO",
-             appenders = list(createFileAppender(layout = layoutParallel,
-                                                 fileName = logFileName))) %>%
-registerLogger()
+    clearLoggers() # Clean up the loggers from the previous example
+    createLogger(name = "PARALLEL",
+                threshold = "INFO",
+                appenders = list(createFileAppender(layout = layoutParallel,
+                                                    fileName = logFileName))) %>%
+    registerLogger()
 
-cluster <- makeCluster(2)
+    cluster <- parallel::makeForkCluster(12)
 
-clusterExport(cluster,  qc(distanceBetween, findStayPoint, distance2centroid, get_geohashed_filename))
-clusterEvalQ(cluster, {
-               library(glue)
-               library(geosphere)
-               library(tidyverse)
-               library(RAppArmor)
-               NULL
-             })
-grid_search  %>% 
-  mutate( row = row_number()) %>%
-  nest( -row ) %>% 
-  { . } -> gs
-dummy <- clusterApply(cluster, tail(gs$data,1) , do_one_search_geohash )
+    clusterExport(cluster,  qc(distanceBetween, findStayPoint, distance2centroid, get_geohashed_filename))
+    clusterEvalQ(cluster, {
+                  library(glue)
+                  library(geosphere)
+                  library(tidyverse)
+                  library(RAppArmor)
+                  NULL
+                })
+
+    grid_search  %>% 
+      mutate( row = row_number()) %>%
+      nest( -row ) %>% 
+      { . } -> gs
+    dummy <- parallel::clusterApply(cluster, gs$data , do_one_search_geohash )
+
+  })
+}
+
 
 options(error = recover)
 by_row( grid_search %>% tail(1), do_one_search_geohash)
