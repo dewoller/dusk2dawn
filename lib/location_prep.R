@@ -57,13 +57,13 @@ get_df_all_ts <- function( df_all ) {
 
   df_all %>% 
     select( id, ends_with('timestamp'))  %>% 
-    gather( which, timestamp , -id ) %>%
+    tidyr::gather( which, timestamp , -id ) %>%
     mutate( which = str_replace( which, "_.*","")) %>%
     { . } -> ts
 
   df_all %>% 
     select( id, ends_with('timezone_id'))  %>% 
-    gather( which, timezone , -id ) %>%
+    tidyr::gather( which, timezone , -id ) %>%
     mutate( which = str_replace( which, "_.*","")) %>%
     { . } -> tz
 

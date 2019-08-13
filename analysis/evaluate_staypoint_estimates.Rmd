@@ -62,18 +62,10 @@ df_all_ts = get_df_all_ts( df_all )
 
 
 ```{r load_staypoint_file_list}
+options(error=recover)
 
-
-list.files( path='data/', pattern='save_v1.*rds', full.names=TRUE ) %>%
-  enframe(value = 'filename' ) %>%
-  separate( col=filename, 
-           into=c(NA, NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, sigma)), 
-           sep='_', 
-           extra='drop' ,
-           remove=FALSE)  %>%
-  select( min_staypoint_time, max_jump_time, max_staypoint_distance, sigma, everything() ) %>%
-  mutate_at(1:4, function(x) {sprintf('%07.2f', as.numeric(x) ) }) %>% 
-  #head(2) %>%
+get_staypoint_filenames() %>%
+ #head(2) %>%
   rowwise() %>%
   do( analyse_staypoint_base_information_summary(.) ) %>% 
   { . } -> df_files
@@ -157,8 +149,7 @@ For each proposed stay point, is there a bar location that is within 20M of the 
 
 ```{r evaluate_staypoints_geography}
 
-list.files( path='data/', pattern='save.*rds', full.names=TRUE ) %>%
-  enframe(value = 'filename' ) %>%
+df_files %>%
 #  filter(startsWith(filename, 'data//save_1800' )) %>%
   rowwise() %>%
   do( analyse_staypoint_set_geography_summary(.) ) %>% 
@@ -231,20 +222,11 @@ df_all_ts  %>%
   { . } -> df_all_ts_nested
 
 
-list.files( path='data/', pattern='save.*rds', full.names=TRUE ) %>%
-  enframe(value = 'filename' ) %>%
+df_files %>%
   rowwise () %>%
   do( analyse_staypoint_set_time_summary(.)) %>%
   { . } -> df_survey_time_matches
 
-df_survey_time_matches %>%
-  separate( col=filename, 
-           into=c(NA, qc(min_staypoint_time, max_jump_time, max_staypoint_distance, sigma, NA)), 
-           sep='_', 
-           remove=FALSE)  %>%
-select( min_staypoint_time, max_jump_time, max_staypoint_distance, sigma, everything() ) %>%
-mutate_at(1:4, function(x) {sprintf('%06.1f', as.numeric(x) ) }) %>%
-{ . } -> df_survey_time_matches
 
 
 ```
@@ -350,14 +332,16 @@ select( id, name, lat1, lon1, lat2, lon2 )
 ```{r analyse_both, eval=TRUE}
 
 
-
 #debug(analyse_staypoint_set_time_and_geography)
+
 df_files %>%
   rowwise () %>%
   do( analyse_staypoint_set_time_and_geography_summary(.)) %>%
   { . } -> df_both_matches
 
+bind_rows(df_both_matches_v3 , df_both_matches) -> df_both_matches
 
+saveRDS(df_both_matches, 'data/df_both_matches.rds')
 ```
 
 ```{r graph_both, eval=TRUE}
@@ -389,9 +373,6 @@ df_both_matches %>%
   ggplot( aes(x=(max_staypoint_distance), y=both_hits/n_staypoint, fill=( max_staypoint_distance) )) +
   geom_boxplot()
 
-df_both_matches %>%
-  ggplot( aes(x=(sigma), y=both_hits/n_staypoint, fill=( sigma) )) +
-  geom_boxplot()
 
 df_both_matches %>%
  ggplot( aes(x=(min_staypoint_time), y=both_hits/n_staypoint, fill=( min_staypoint_time) )) +
