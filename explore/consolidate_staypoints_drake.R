@@ -39,7 +39,7 @@ vis_drake_graph(config)
 readd(df_all_stayppoints)
 
 
-make(drakeplan, jobs=4)
+make(drakeplan)
 
 predict_runtime
 

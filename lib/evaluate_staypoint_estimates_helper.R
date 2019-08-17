@@ -211,7 +211,9 @@ consolidate_staypoints <- function( row ) {
 
   readRDS(row$filename)  %>%
     filter( n_staypoint > 0 ) %>%
-    select( timestamp, userid, night, longitude, latitude) %>%
+    group_by( userid, night, n_staypoint) %>%
+    summarise( longitude = mean(longitude), latitude = mean(latitude)) %>%
+    ungroup %>%
     crossing(row)
 
 }
@@ -223,8 +225,30 @@ consolidate_staypoints <- function( row ) {
 #********************************************************************************
 get_all_staypoints = function( filenames)  {
   filenames %>%
-  rowwise() %>%
-  do( consolidate_staypoints(.) ) 
+    rowwise() %>%
+    do( consolidate_staypoints(.) ) 
+
+}
+
+
+#********************************************************************************
+#get_all_staypoints
+#********************************************************************************
+get_all_staypoints_multiprocessor = function( filenames)  {
+  library(multidplyr)
+
+  create_cluster(11) %>%
+	cluster_assign_value('consolidate_staypoints', consolidate_staypoints) %>%
+	cluster_library( "tidyverse" ) %>%
+	{.} -> cluster
+
+  filenames %>%
+    rowwise() %>%
+    partition(filename, cluster=cluster) %>%
+
+    do( consolidate_staypoints(.) )  %>%
+    collect()
+
 
 }
 
