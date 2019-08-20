@@ -48,59 +48,14 @@ row= tribble( ~filename,'data/save_1200_60_10_10_df.rds')
 
 
 
-test = function() {
 
-  library(sp)
-  library(sf)
-  library(tmap)
-  library(osmdata)
-
-  tmap_mode("plot")
-
-  df_lausanne <- opq ("lausanne") %>%
-    add_osm_feature(key = "amenity", 
-                    value= qw("cafe bar pub restaurant bbq theatre mightclub fast_food social_facility bbq")
-                    ) %>%
-  osmdata_sf()
-
-df_zurich <- opq ("zurich") %>%
-  add_osm_feature(key = "amenity", 
-                  value= qw("cafe bar pub restaurant bbq theatre mightclub fast_food social_facility bbq")
-                  ) %>%
-osmdata_sf()
-
-df_osm_amenities = c( df_lausanne, df_zurich)
-
-df_lausanne <- opq ("lausanne") %>%
-  add_osm_feature(key = "leisure", 
-                  value= qw("park picnic_table playground")
-                  ) %>%
-osmdata_sf()
-
-df_zurich <- opq ("zurich") %>%
-  add_osm_feature(key = "leisure", 
-                  value= qw("park picnic_table playground")
-                  ) %>%
-osmdata_sf()
-
-df_osm_leisure = c( df_lausanne, df_zurich)
-
-readRDS(row$filename) %>%
-  { . } -> df_rds
-
-
-df_4sq_locations_filtered %>%
-  st_as_sf( coords = c("longitude", "latitude"), crs = 4326, agr = "constant") %>%
-  {.} -> df_bars
-
-
-df_intersect_both %>%
-  count( userid,night, sort=TRUE ) %>%
-  head(15) %>% 
-  tail(1) %>%
-  { . } -> limit
+test == function() {
 #
+  df_osm_amenity  = get_df_osm_locations_amenity()
+  df_osm_leisure  = get_df_osm_locations_leisure()
 
+library(tmap)
+tmap_mode("plot")
 df_rds %>%
   inner_join( limit )
 #    group_by( n_staypoint) %>%

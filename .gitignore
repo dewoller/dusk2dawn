@@ -15,4 +15,5 @@ data_fast
 lib/registerGoogleAPI.R
 *.log
 .drake  
+.drake*
 

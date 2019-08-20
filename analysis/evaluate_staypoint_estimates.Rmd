@@ -81,57 +81,7 @@ df_files %>% arrange( desc( n_staypoint))
 
 ```{r clean_4square_locations, eval=TRUE}
 
-
-read_csv( 'data/foursquare_locations_data_ls.csv') %>%
-  bind_rows( read_csv( 'data/foursquare_locations_data_zh.csv')) %>% 
-  { . } -> df_4sq_locations
-
-
-source('lib/bad_categories.R')
-source('lib/restaurant_categories.R')
-df_type = tribble(
-                  ~primaryCategory, ~type,
-                  'Subway', 'transport',
-                  'Train', 'transport',
-                  'Train Station', 'transport',
-                  'Light Rail', 'transport',
-                  'Platform', 'transport',
-                  'Parking', 'transport',
-                  'Field', 'park',
-                  'Park', 'park',
-                  'Plaza', 'park',
-                  'Plaza / Square', 'park',
-                  'Comedy Club', 'theater',
-                  'Concert Hall', 'theater',
-				  'Music Venue', 'theater',
-				  'Movie Theater', 'theater',
-                  'Cineplex', 'theater',
-                  'Theater', 'theater')
-
-alcohol_venue_types = c("Bar", "Nightclub", "Lounge", "Pub", "Wine Bar", "Gay Bar",
-  "Nightlife", "Sports Bar", "Jazz Club", "Brewery", "Karaoke",
-  "Liquor Store", "Rock Club", "Festival", "Whisky Bar")
-
-df_4sq_locations %>%
-  count( primaryCategory, sort=TRUE) 
-
-
-df_4sq_locations %>%
-  filter( !primaryCategory %in% bad_categories ) %>%
-  mutate( primaryCategory = ifelse( primaryCategory %in% restaurant_categories, 'food', primaryCategory)) %>%
-  left_join( df_type, by='primaryCategory') %>%
-  mutate( type=ifelse( is.na(type), primaryCategory, type)) %>%
-  mutate( type=ifelse( type %in% alcohol_venue_types, 'alcohol', type)) %>%
-  group_by( shortUrl,  primaryCategory, type ) %>%
-  summarise( name=min(name), 
-			  checkinsCount = max( checkinsCount),
-			  latitude=mean(latitude), 
-			  longitude=mean(longitude) 
-) %>%
-  ungroup() %>%
-  {.} -> df_4sq_locations_filtered
-
-
+df_4sq_locations_filtered = get_df_4sq_locations_filtered() 
 
 df_4sq_locations_filtered %>%
   count( type, sort=TRUE ) 
@@ -150,7 +100,6 @@ For each proposed stay point, is there a bar location that is within 20M of the 
 ```{r evaluate_staypoints_geography}
 
 df_files %>%
-#  filter(startsWith(filename, 'data//save_1800' )) %>%
   rowwise() %>%
   do( analyse_staypoint_set_geography_summary(.) ) %>% 
   { . } -> df_geography_matches
@@ -338,8 +287,6 @@ df_files %>%
   rowwise () %>%
   do( analyse_staypoint_set_time_and_geography_summary(.)) %>%
   { . } -> df_both_matches
-
-bind_rows(df_both_matches_v3 , df_both_matches) -> df_both_matches
 
 saveRDS(df_both_matches, 'data/df_both_matches.rds')
 ```

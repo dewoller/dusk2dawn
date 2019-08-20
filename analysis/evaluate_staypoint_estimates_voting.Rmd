@@ -1,0 +1,25 @@
+---
+title:           "Voting approach to evaluating staypoings"
+author:          Dennis Wollersheim 
+date:            17.08.2019
+linkcolor:       cyan
+citecolor:       grey
+output:
+  pdf_document:
+    highlight:   zenburn
+---
+
+\tableofcontents
+
+```{r initial}
+needs(drake)
+needs(tidyverse)
+
+readd( df_all_staypoints_multi) %>%
+
+
+
+
+
+
+```
