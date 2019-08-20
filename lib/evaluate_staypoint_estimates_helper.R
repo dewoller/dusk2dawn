@@ -1,4 +1,4 @@
-
+library(tidyverse)
 
 row= tribble( ~filename,'data/save_v1_maxspeed_1200_1200_10_20_df.rds')
 
@@ -435,3 +435,109 @@ get_df_target_locations_combined = function( df_osm_amenity, df_4sq_locations_fi
 
 }
 
+
+
+
+
+
+#********************************************************************************
+#  get_df_sp_round_location
+#********************************************************************************
+get_df_sp_round_location = function(df_all_staypoints_multi, rounding_factor = 1000000.0   ) {
+
+  df_all_staypoints_multi %>%
+    ungroup() %>%
+    mutate( latitude = round( latitude*rounding_factor, 0) / rounding_factor) %>%
+    mutate( longitude = round( longitude*rounding_factor, 0) / rounding_factor) 
+
+}
+
+
+
+#********************************************************************************
+#  get_df_sp_joined_geography 
+#********************************************************************************
+get_df_sp_joined_geography = function( df_all_staypoints_rounded,  df_target_locations_combined, overlap_distance_needed = 20 / 1000 ) {
+
+  # find best target location address for each distinct staypoint 
+  df_all_staypoints_rounded %>% 
+    distinct( latitude, longitude )  %>%
+    geo_inner_join(df_target_locations_combined , 
+                   max_dist = overlap_distance_needed, 
+                   distance_col='dist', 
+                   by=c('longitude', 'latitude')) %>% 
+    mutate( distance_to_bar = round( dist * 1000, 0)) %>% 
+    select( -latitude.y, -longitude.y ) %>%
+    rename( latitude = latitude.x, longitude = longitude.x) %>%
+    group_by( latitude, longitude ) %>% 
+    arrange( dist ) %>%  # find the best example for each lat/lon pair
+    do( head(., 1)) %>%
+    ungroup() %>% 
+    { . } -> df_addresses_found
+
+    df_addresses_found %>%
+      right_join( df_all_staypoints_rounded, by=c('latitude','longitude'))
+}
+
+
+
+#********************************************************************************
+#  get_df_revgeo_addresses 
+#********************************************************************************
+get_df_revgeo_addresses = function(  df_sp_has_bar ) {
+
+  df_sp_has_bar %>%
+    filter( is.na( distance_to_bar )) %>%
+    distinct( latitude, longitude) %>%
+    head(250) %>%
+    mutate( address = map2( longitude, latitude, revgeo, provider =  'bing', API= bing_maps_api_key, output = 'frame')) %>% 
+    #mutate( address = map2( longitude, latitude, revgeo, provider =  'photon', output = 'frame')) %>% 
+    unnest( address) %>%
+    { . } -> df_rev_address_lookup
+  df_rev_address_lookup
+}
+
+
+
+
+
+#********************************************************************************
+#  get_df_survey_nested
+#********************************************************************************
+
+get_df_survey_nested = function( df_all_ts ) {
+  df_all_ts  %>%
+    mutate( userid = as.character( userid)) %>%
+    group_by( userid, night ) %>%
+    mutate( timestamp_start=timestamp, timestamp_end=timestamp) %>%
+    select( timestamp_start, timestamp_end, which, userid, night) %>%
+    nest( .key='surveys') %>% 
+    { . } -> df_all_ts_nested
+  df_all_ts_nested
+}
+
+
+#********************************************************************************
+#  get_matching_survey 
+#********************************************************************************
+get_matching_survey = function( df_all_staypoints_multi,  df_all_ts_nested ) {
+  maximum_seconds_distant = 5*60
+  df_all_staypoints_multi  %>%
+    ungroup() %>%
+    select( timestamp_start, timestamp_end, userid, night, n_staypoint) %>%
+    group_by( userid, night ) %>%
+    nest( .key='staypoints') %>%
+    inner_join( df_all_ts_nested, by=c('userid', 'night')) %>% 
+    group_by( userid, night ) %>%
+    do( joined = interval_inner_join( data.frame(.$surveys), 
+                                     data.frame(.$staypoints), 
+                                     by=c('timestamp_start','timestamp_end'),
+                                     maxgap=maximum_seconds_distant ))  %>%
+    ungroup() %>%
+    unnest() %>% 
+    group_by( userid, night, n_staypoint) %>%
+    mutate( minutes_since_arrival = round(( timestamp_start.x - min( timestamp_start.y))/60,2)) %>%
+    arrange( timestamp_start.x) %>%
+    summarise( which = paste(which, minutes_since_arrival, collapse=',')) %>%
+    ungroup() 
+}

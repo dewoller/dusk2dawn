@@ -9,10 +9,12 @@ analysis/*png
 analysis/*html
 analysis/*_cache
 analysis/site_libs
+explore/keys.R
 data
 data_fast
 *.rds
 lib/registerGoogleAPI.R
+lib/keys.R
 *.log
 .drake  
 .drake*
