@@ -29,7 +29,7 @@ knit_hooks$set(inline=function(x) prettyNum(round(x,2), big.mark=","))
 
 #
 no_cores <- detectCores() - 1
-cluster <- create_cluster(no_cores)
+cluster <- makePSOCKcluster(no_cores)
 #
 df_benzo_nested %>%
   inner_join( df_opioid_nested ) %>% 

@@ -252,10 +252,9 @@ get_all_staypoints = function( filenames)  {
 #get_all_staypoints
 #********************************************************************************
 get_all_staypoints_multiprocessor = function( filenames)  {
-  library(multidplyr)
 
-  create_cluster(11) %>%
-	cluster_assign_value('consolidate_staypoints', consolidate_staypoints) %>%
+  makePSOCKcluster(1) %>%
+	cluster_assign(consolidate_staypoints= consolidate_staypoints) %>%
 	cluster_library( "tidyverse" ) %>%
 	{.} -> cluster
 
@@ -414,36 +413,33 @@ get_df_target_locations_combined = function( df_osm_amenity, df_4sq_locations_fi
     sfc_as_cols (geometry, names=c('longitude', 'latitude') ) %>%
     as_tibble() %>%
     select( name, latitude, longitude) %>%
-    mutate( geohash_8 = gh_encode(latitude, longitude, precision=8L )) %>% 
+#    mutate( geohash_key = gh_encode(latitude, longitude, precision=8L )) %>% 
     mutate( location_type='osm') %>%
     { . } -> df_osm_amenity_simple
 
 
   (df_4sq_locations_filtered ) %>%
     select( name, latitude, longitude) %>%
-    mutate( geohash_8 = gh_encode(latitude, longitude, precision=8L )) %>% 
+#    mutate( geohash_key = gh_encode(latitude, longitude, precision=8L )) %>% 
     mutate( location_type='4sq') %>%
     { . } -> df_4sq_locations_simple 
 
 
   df_4sq_locations_simple  %>%
     bind_rows( df_osm_amenity_simple) %>% 
-    arrange( geohash_8) %>%
+#    arrange( geohash_key) %>%
     { . } -> df_target_locations_combined
 
   df_target_locations_combined
 
 }
 
-
-
-
-
-
 #********************************************************************************
 #  get_df_sp_round_location
 #********************************************************************************
 get_df_sp_round_location = function(df_all_staypoints_multi, rounding_factor = 1000000.0   ) {
+
+
 
   df_all_staypoints_multi %>%
     ungroup() %>%
@@ -452,15 +448,56 @@ get_df_sp_round_location = function(df_all_staypoints_multi, rounding_factor = 1
 
 }
 
+#********************************************************************************
+#  get_df_sp_joined_geography
+#********************************************************************************
+#df_all_staypoints_multi = readd(df_all_staypoints_multi )
+#df_target_locations_combined = readd(df_target_locations_combined)
+#overlap_distance_needed = 20 
+
+#debug(get_df_sp_joined_geography)
+
+#get_df_sp_joined_geography( df_all_staypoints_multi,  df_target_locations_combined)
+ 
+get_df_sp_joined_geography= function( df_all_staypoints_multi,  
+                                     df_target_locations_combined, 
+                                     overlap_distance_needed = 20 ) {
+
+  geohash_precision = 7
+
+  df_target_locations_combined  %>%
+        mutate( geohash_key = gh_encode(latitude, longitude, precision=geohash_precision )) %>% 
+        { . } -> df_target_locations_combined
+
+  df_all_staypoints_multi %>% 
+    head(100) %>%
+    mutate( geohash_key = gh_encode(latitude, longitude, precision=geohash_precision )) %>% 
+    inner_join(df_target_locations_combined , by='geohash_key') %>% 
+    mutate( distance_to_bar = distHaversine(cbind(longitude.x, latitude.x), cbind(longitude.y, latitude.y)) ) %>% 
+    dplyr::select(distance_to_bar, everything()) %>%
+    dplyr::select( -latitude.y, -longitude.y ) %>%
+    dplyr::rename( longitude = longitude.x, latitude = latitude.x ) %>%
+    filter( distance_to_bar < overlap_distance_needed ) %>%
+    group_by( userid, night, n_staypoint) %>% 
+    arrange( distance_to_bar ) %>%  # find the best example for each lat/lon pair
+    do( head(., 1)) %>%
+    ungroup() %>% 
+    { . } -> df_addresses_found
+
+  df_addresses_found
+}
 
 
 #********************************************************************************
 #  get_df_sp_joined_geography 
+#df_all_staypoints_multi = readd(df_sp_rounded_location)
+#df_target_locations_combined = readd(df_target_locations_combined)
+#overlap_distance_needed = 20 / 1000 
 #********************************************************************************
-get_df_sp_joined_geography = function( df_all_staypoints_rounded,  df_target_locations_combined, overlap_distance_needed = 20 / 1000 ) {
+get_df_sp_joined_geography_old = function( df_all_staypoints_multi,  df_target_locations_combined, overlap_distance_needed = 20 / 1000 ) {
 
   # find best target location address for each distinct staypoint 
-  df_all_staypoints_rounded %>% 
+  df_all_staypoints_multi %>% 
     distinct( latitude, longitude )  %>%
     geo_inner_join(df_target_locations_combined , 
                    max_dist = overlap_distance_needed, 
@@ -476,7 +513,7 @@ get_df_sp_joined_geography = function( df_all_staypoints_rounded,  df_target_loc
     { . } -> df_addresses_found
 
     df_addresses_found %>%
-      right_join( df_all_staypoints_rounded, by=c('latitude','longitude'))
+      right_join( df_all_staypoints_multi, by=c('latitude','longitude'))
 }
 
 

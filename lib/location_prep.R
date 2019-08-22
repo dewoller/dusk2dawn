@@ -7,7 +7,7 @@ source('lib/gps_functions.R')
 get_df_best_location <- function( df_location ) {
 
   cl <- detectCores()
-  cluster <- create_cluster(cores = cl)
+  cluster <- makePSOCKcluster(cores = cl)
 
 
   df_location %>%
@@ -45,8 +45,8 @@ get_df_best_location <- function( df_location ) {
 get_df_all <- function( ) {
 
   read.csv('data/EveningMasterFullAnonym.csv') %>% 
-    as.tibble %>% 
-    rename( userid=user ) %>%
+    as_tibble %>% 
+    dplyr::rename( userid=user ) %>%
     mutate( night =  ymd(sprintf('2014%04.0f', day ))) %>% 
     mutate( id = row_number())
 }

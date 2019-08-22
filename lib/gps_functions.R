@@ -1,8 +1,4 @@
-library(geosphere)
-library(zoo)
-library(glue)
 library(tibbletime)
-library(geohash)
 
 ################################################################################
 # distance2centroid 
