@@ -35,14 +35,13 @@ load_library = function() {
 
 
 
-load_function()
-load_library()
 
 drakeplan <- drake_plan( 
+  max_expand=3, 
   # load in the individual locations information
   df_location = get_df_location(),
 #
-    df_filenames =   get_staypoint_filenames(),
+  df_filenames =   get_staypoint_filenames(),
 #
   df_all_staypoints_multi =   get_all_staypoints_multiprocessor ( df_filenames),
 #
@@ -70,8 +69,11 @@ drakeplan <- drake_plan(
 #  df_geocoded_addresses = get_df_revgeo_addresses( df_sp_joined_geography %>% head(250) )
 )
 
+load_library()
+load_function()
 make(drakeplan)
 
+drake_plan(max_expand = SMALL_NUMBER)
 #options(error = recover) # setting the error option
 #options(error = dump.frames) # setting the error option
 

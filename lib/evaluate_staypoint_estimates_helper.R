@@ -224,6 +224,8 @@ list.files( path='data/', pattern='save_v[123].*rds', full.names=TRUE ) %>%
 #********************************************************************************
 consolidate_staypoints <- function( row ) {
 
+  row = as_tibble(row)
+
   readRDS(row$filename)  %>%
     filter( n_staypoint > 0 ) %>%
     group_by( userid, night, n_staypoint) %>%
@@ -243,7 +245,7 @@ consolidate_staypoints <- function( row ) {
 get_all_staypoints = function( filenames)  {
   filenames %>%
     rowwise() %>%
-    do( consolidate_staypoints(.) ) 
+    do( consolidate_staypoints(.) )
 
 }
 
@@ -252,18 +254,20 @@ get_all_staypoints = function( filenames)  {
 #get_all_staypoints
 #********************************************************************************
 get_all_staypoints_multiprocessor = function( filenames)  {
+  library(multidplyr)
 
-  makePSOCKcluster(1) %>%
-	cluster_assign(consolidate_staypoints= consolidate_staypoints) %>%
+detectCores() %>%
+  new_cluster() %>%
+	cluster_copy('consolidate_staypoints') %>%
 	cluster_library( "tidyverse" ) %>%
 	{.} -> cluster
 
   filenames %>%
     rowwise() %>%
-    partition(filename, cluster=cluster) %>%
-
+    partition(cluster=cluster) %>%
     do( consolidate_staypoints(.) )  %>%
-    collect()
+    collect() %>%
+    unnest()
 
 
 }
