@@ -30,3 +30,10 @@ a %>%
 
 
 undebug(consolidate_staypoints)
+
+
+
+df_sp_joined_geography = get_df_sp_joined_geography( df_all_staypoints_multi , df_target_locations_combined)
+
+df_sp_joined_geography  %>%
+  distinct(userid)

@@ -66,14 +66,13 @@ drakeplan <- drake_plan(
 #  a=head( df_all_staypoints_multi, 100),
   df_sp_joined_geography = get_df_sp_joined_geography( df_all_staypoints_multi , df_target_locations_combined)
   # TODO
-#  df_geocoded_addresses = get_df_revgeo_addresses( df_sp_joined_geography %>% head(250) )
+  df_geocoded_addresses = get_df_revgeo_addresses( df_sp_joined_geography %>% head(250) )
 )
 
 load_library()
 load_function()
 make(drakeplan)
 
-drake_plan(max_expand = SMALL_NUMBER)
 #options(error = recover) # setting the error option
 #options(error = dump.frames) # setting the error option
 
