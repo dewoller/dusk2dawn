@@ -30,13 +30,12 @@ load_library = function() {
   library(zoo)
   library(glue)
   library(tibbletime)
-
 }
 
 
 
 
-drakeplan <- drake_plan( 
+drakeplan <- drake::drake_plan( 
   max_expand=3, 
   # load in the individual locations information
   df_location = get_df_location(),
