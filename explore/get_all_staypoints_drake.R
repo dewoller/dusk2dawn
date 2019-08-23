@@ -14,7 +14,7 @@ load_library = function() {
   library(lubridate)
   library(drake)
 #  library(sp)
-#  library(sf)
+  library(sf)
   library(osmdata)
   library(revgeo)
   library(tsibble)
@@ -63,7 +63,7 @@ drakeplan <- drake::drake_plan(
   df_matching_survey = get_matching_survey ( df_all_staypoints_multi,  df_survey_nested ),
   #
 #  a=head( df_all_staypoints_multi, 100),
-  df_sp_joined_geography = get_df_sp_joined_geography( df_all_staypoints_multi , df_target_locations_combined)
+  df_sp_joined_geography = get_df_sp_joined_geography( df_all_staypoints_multi , df_target_locations_combined),
   # TODO
   df_geocoded_addresses = get_df_revgeo_addresses( df_sp_joined_geography %>% head(250) )
 )
