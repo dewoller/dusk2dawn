@@ -517,10 +517,10 @@ show_staypoints_geography
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntreebf6576b99848e49c063ed3cf65f5f01b9d46ab47targetblankbf6576ba"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/dewoller/dusk2dawn/tree/bf6576b99848e49c063ed3cf65f5f01b9d46ab47" target="_blank">bf6576b</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree5af9b9d286c14cca4d823c0dc80d3666434d992ctargetblank5af9b9da"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/dewoller/dusk2dawn/tree/5af9b9d286c14cca4d823c0dc80d3666434d992c" target="_blank">5af9b9d</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntreebf6576b99848e49c063ed3cf65f5f01b9d46ab47targetblankbf6576ba" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree5af9b9d286c14cca4d823c0dc80d3666434d992ctargetblank5af9b9da" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -540,13 +540,8 @@ Ignored files:
     Ignored:    lib/keys.R
     Ignored:    staypoint_estimation.log
 
-Untracked files:
-    Untracked:  docs/figure/evaluate_staypoint_estimates.Rmd/
-
 Unstaged changes:
     Modified:   analysis/evaluate_staypoint_estimates.Rmd
-    Modified:   explore/get_all_staypoints_drake.R
-    Modified:   lib/evaluate_staypoint_estimates_helper.R
 
 </code></pre>
 <p>
@@ -585,6 +580,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/5af9b9d286c14cca4d823c0dc80d3666434d992c/analysis/evaluate_staypoint_estimates.Rmd" target="_blank">5af9b9d</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-02
+</td>
+<td>
+first Rmd changes
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/dewoller/dusk2dawn/5af9b9d286c14cca4d823c0dc80d3666434d992c/docs/evaluate_staypoint_estimates.html" target="_blank">5af9b9d</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-02
+</td>
+<td>
+first Rmd changes
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -723,35 +752,360 @@ df_geography_matches  %&gt;%
   geom_point() + 
   facet_grid( min_staypoint_time ~ max_staypoint_distance)</code></pre>
 <p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-show_staypoints_geography-1">
+Past versions of show_staypoints_geography-1.png
+</button>
+</p>
+<div id="fig-show_staypoints_geography-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/5af9b9d286c14cca4d823c0dc80d3666434d992c/docs/figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-1.png" target="_blank">5af9b9d</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_geography_matches %&gt;%
   ggplot( aes(x=(max_jump_time), y=surveys_total, fill=as.character(max_jump_time) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-show_staypoints_geography-2">
+Past versions of show_staypoints_geography-2.png
+</button>
+</p>
+<div id="fig-show_staypoints_geography-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/5af9b9d286c14cca4d823c0dc80d3666434d992c/docs/figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-2.png" target="_blank">5af9b9d</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_geography_matches %&gt;%
   ggplot( aes(x=(max_staypoint_distance), y=surveys_total, fill=as.character( max_staypoint_distance) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-show_staypoints_geography-3">
+Past versions of show_staypoints_geography-3.png
+</button>
+</p>
+<div id="fig-show_staypoints_geography-3" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/5af9b9d286c14cca4d823c0dc80d3666434d992c/docs/figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-3.png" target="_blank">5af9b9d</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_geography_matches %&gt;%
   ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-show_staypoints_geography-4">
+Past versions of show_staypoints_geography-4.png
+</button>
+</p>
+<div id="fig-show_staypoints_geography-4" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/5af9b9d286c14cca4d823c0dc80d3666434d992c/docs/figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-4.png" target="_blank">5af9b9d</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_geography_matches %&gt;%
   ggplot( aes(x=(max_jump_time), y=surveys_total/sp_total, fill=as.character(max_jump_time) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-5.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-show_staypoints_geography-5">
+Past versions of show_staypoints_geography-5.png
+</button>
+</p>
+<div id="fig-show_staypoints_geography-5" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/5af9b9d286c14cca4d823c0dc80d3666434d992c/docs/figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-5.png" target="_blank">5af9b9d</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_geography_matches %&gt;%
   ggplot( aes(x=(max_staypoint_distance), y=surveys_total/sp_total, fill=as.character( max_staypoint_distance) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-6.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-show_staypoints_geography-6">
+Past versions of show_staypoints_geography-6.png
+</button>
+</p>
+<div id="fig-show_staypoints_geography-6" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/5af9b9d286c14cca4d823c0dc80d3666434d992c/docs/figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-6.png" target="_blank">5af9b9d</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_geography_matches %&gt;%
   ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
   geom_boxplot()</code></pre>
 <p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-7.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-show_staypoints_geography-7">
+Past versions of show_staypoints_geography-7.png
+</button>
+</p>
+<div id="fig-show_staypoints_geography-7" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/5af9b9d286c14cca4d823c0dc80d3666434d992c/docs/figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-7.png" target="_blank">5af9b9d</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code>df_geography_matches %&gt;%
   ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
   geom_boxplot() + 
   facet_wrap( .~max_staypoint_distance)</code></pre>
 <p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-8.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-show_staypoints_geography-8">
+Past versions of show_staypoints_geography-8.png
+</button>
+</p>
+<div id="fig-show_staypoints_geography-8" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/5af9b9d286c14cca4d823c0dc80d3666434d992c/docs/figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-8.png" target="_blank">5af9b9d</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-02
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<pre class="r"><code>df_geography_matches %&gt;%
+  ggplot( aes(x=(max_jump_time), y=surveys_total, fill=as.character(max_jump_time) )) +
+  geom_boxplot() + facet_wrap(~type)</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-9.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_geography_matches %&gt;%
+  ggplot( aes(x=(max_staypoint_distance), y=surveys_total, fill=as.character( max_staypoint_distance) )) +
+  geom_boxplot() + facet_wrap(~type)</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-10.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_geography_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
+  geom_boxplot()</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-11.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_geography_matches %&gt;%
+  ggplot( aes(x=(max_jump_time), y=surveys_total/sp_total, fill=as.character(max_jump_time) )) +
+  geom_boxplot() + facet_wrap(~type)</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-12.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_geography_matches %&gt;%
+  ggplot( aes(x=(max_staypoint_distance), y=surveys_total/sp_total, fill=as.character( max_staypoint_distance) )) +
+  geom_boxplot() + facet_wrap(~type)</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-13.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_geography_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
+  geom_boxplot() + facet_wrap(~type)</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-14.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>df_geography_matches %&gt;%
+  ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
+  geom_boxplot() + 
+  facet_grid( type~max_staypoint_distance)</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates.Rmd/show_staypoints_geography-15.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">

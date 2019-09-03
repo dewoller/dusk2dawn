@@ -98,11 +98,11 @@ df_geography_matches %>%
 
 df_geography_matches %>%
   ggplot( aes(x=(max_jump_time), y=surveys_total, fill=as.character(max_jump_time) )) +
-  geom_boxplot() + geom_wrap(~type)
+  geom_boxplot() + facet_wrap(~type)
 
 df_geography_matches %>%
   ggplot( aes(x=(max_staypoint_distance), y=surveys_total, fill=as.character( max_staypoint_distance) )) +
-  geom_boxplot() + geom_wrap(~type)
+  geom_boxplot() + facet_wrap(~type)
 
 df_geography_matches %>%
   ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
@@ -110,15 +110,15 @@ df_geography_matches %>%
 
 df_geography_matches %>%
   ggplot( aes(x=(max_jump_time), y=surveys_total/sp_total, fill=as.character(max_jump_time) )) +
-  geom_boxplot() + geom_wrap(~type)
+  geom_boxplot() + facet_wrap(~type)
 
 df_geography_matches %>%
   ggplot( aes(x=(max_staypoint_distance), y=surveys_total/sp_total, fill=as.character( max_staypoint_distance) )) +
-  geom_boxplot() + geom_wrap(~type)
+  geom_boxplot() + facet_wrap(~type)
 
 df_geography_matches %>%
   ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
-  geom_boxplot() + geom_wrap(~type)
+  geom_boxplot() + facet_wrap(~type)
 
 df_geography_matches %>%
   ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
