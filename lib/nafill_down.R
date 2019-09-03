@@ -63,7 +63,6 @@ tidy.step_nafill_down <- function(x, ...) {
 
 
 test.step_nafill_down <- function() {
-  library(recipes)
 
   recipe(Ozone ~ ., data = airquality) %>%
     step_nafill_down(Solar.R) %>%

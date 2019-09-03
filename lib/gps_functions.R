@@ -1,4 +1,3 @@
-library(tibbletime)
 
 ################################################################################
 # distance2centroid 
@@ -91,7 +90,7 @@ calculate_distance = function( .x, .y ) {
   )
 }
 
-calculate_distance_roll = rollify( calculate_distance, window=2)
+calculate_distance_roll = tibbletime::rollify( calculate_distance, window=2)
 
 ################################################################################
 # findStayPoint 

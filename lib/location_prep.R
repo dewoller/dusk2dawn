@@ -1,9 +1,4 @@
 
-library(multidplyr)
-library(parallel)
-source('lib/gps_functions.R')
-
-
 get_df_best_location <- function( df_location ) {
 
   cl <- detectCores()

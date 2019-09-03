@@ -1,9 +1,7 @@
-library(tmap)
 
 
-library(tidyverse)
-row= tribble( ~filename,'data/save_1200_1200_10_20_.rds')
-source('lib/evaluate_staypoint_estimates_helper.R')
+#row= tribble( ~filename,'data/save_1200_1200_10_20_.rds')
+#source('lib/evaluate_staypoint_estimates_helper.R')
 analyse_staypoint_set_time_and_geography_detail( row )
 
 a <- analyse_staypoint_base_information_detail (row) 

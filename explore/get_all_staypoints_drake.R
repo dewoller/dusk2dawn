@@ -36,7 +36,6 @@ load_library = function() {
 
 
 drakeplan <- drake::drake_plan( 
-  max_expand=3, 
   # load in the individual locations information
   df_location = get_df_location(),
 #
@@ -65,7 +64,13 @@ drakeplan <- drake::drake_plan(
 #  a=head( df_all_staypoints_multi, 100),
   df_sp_joined_geography = get_df_sp_joined_geography( df_all_staypoints_multi , df_target_locations_combined),
   # TODO
-  df_geocoded_addresses = get_df_revgeo_addresses( df_sp_joined_geography %>% head(250) )
+#
+  df_sp_no_bar =  get_df_sp_no_bar(df_all_staypoints_multi , df_sp_joined_geography  ) ,
+#
+  df_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ), 
+  df_summarise_staypoint_algorithms( df_all_staypoints_multi, df_matching_survey,df_sp_joined_geography,  df_sp_no_bar),
+  wflow_publish(knitr_in("analysis/.Rmd"), view = FALSE),
+  FALSE
 )
 
 load_library()
@@ -74,4 +79,3 @@ make(drakeplan)
 
 #options(error = recover) # setting the error option
 #options(error = dump.frames) # setting the error option
-

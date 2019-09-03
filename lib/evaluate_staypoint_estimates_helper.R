@@ -574,12 +574,13 @@ get_df_sp_joined_geography_old = function( df_all_staypoints_multi,  df_target_l
 #********************************************************************************
 #  get_df_revgeo_addresses 
 #********************************************************************************
-get_df_revgeo_addresses = function(  df_sp_has_bar ) {
+get_df_revgeo_addresses = function(  df_sp_no_bar) {
 
-  df_sp_has_bar %>%
-    filter( is.na( distance_to_bar )) %>%
+  df_sp_no_bar %>% 
+    mutate( 
+           latitude = round( latitude *10000 ) / 10000,
+           longitude = round( longitude *10000) / 10000)  %>%
     distinct( latitude, longitude) %>%
-    head(250) %>%
     mutate( address = map2( longitude, latitude, revgeo, provider =  'bing', API= bing_maps_api_key, output = 'frame')) %>% 
     #mutate( address = map2( longitude, latitude, revgeo, provider =  'photon', output = 'frame')) %>% 
     unnest( address) %>%
@@ -587,6 +588,19 @@ get_df_revgeo_addresses = function(  df_sp_has_bar ) {
   df_rev_address_lookup
 }
 
+
+
+
+#********************************************************************************
+#  get_df_sp_no_bar 
+#********************************************************************************
+get_df_sp_no_bar = function(   df_all_staypoints_multi , df_sp_joined_geography  ) {
+
+  df_all_staypoints_multi    %>%
+    anti_join( df_sp_joined_geography, by=qc( userid, night, n_staypoint, filename)) %>%
+    arrange( n_staypoint)
+
+}
 
 
 
@@ -614,20 +628,38 @@ get_matching_survey = function( df_all_staypoints_multi,  df_all_ts_nested ) {
   maximum_seconds_distant = 5*60
   df_all_staypoints_multi  %>%
     ungroup() %>%
-    select( timestamp_start, timestamp_end, userid, night, n_staypoint) %>%
-    group_by( userid, night ) %>%
+    select( timestamp_start, timestamp_end, userid, night, n_staypoint, filename) %>%
+    group_by( userid, night, filename ) %>%
     nest( .key='staypoints') %>%
     inner_join( df_all_ts_nested, by=c('userid', 'night')) %>% 
-    group_by( userid, night ) %>%
+    group_by( userid, night, filename ) %>%
     do( joined = interval_inner_join( data.frame(.$surveys), 
                                      data.frame(.$staypoints), 
                                      by=c('timestamp_start','timestamp_end'),
                                      maxgap=maximum_seconds_distant ))  %>%
     ungroup() %>%
     unnest() %>% 
-    group_by( userid, night, n_staypoint) %>%
+    group_by( userid, night, n_staypoint, filename) %>%
     mutate( minutes_since_arrival = round(( timestamp_start.x - min( timestamp_start.y))/60,2)) %>%
     arrange( timestamp_start.x) %>%
     summarise( which = paste(which, minutes_since_arrival, collapse=',')) %>%
     ungroup() 
+}
+
+
+
+#********************************************************************************
+#  df_summarise_staypoint_algorithms
+#********************************************************************************
+df_summarise_staypoint_algorithms = function( df_all_staypoints_multi, df_matching_survey,df_sp_joined_geography,  df_sp_no_bar) {
+
+  # want to get a summary of how many hits, of each type, for each algorithm
+  # for each filename, calculate 
+  # number of hits, 
+  df_all_staypoints_multi %>% 
+    group_by( filename, userid, night) %>%
+    summarise( n = n(), mean_sp_night=mean(n), max_sp_night=max(n), sd_sp_night=sd(n)) %>% 
+    bind_cols( row ) 
+
+
 }
