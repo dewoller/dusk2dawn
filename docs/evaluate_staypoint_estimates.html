@@ -7,7 +7,6 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 
@@ -250,9 +249,48 @@ $(document).ready(function () {
 }
 </style>
 
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
 <!-- code folding -->
 
 
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
 
 <style type="text/css">
 
@@ -405,14 +443,14 @@ div.section {
 <strong>Last updated:</strong> 2019-09-03
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 5 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 2
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 5 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
 </p>
 <p>
 <strong>Knit directory:</strong> <code>initialAnalysis/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
 </p>
 <p>
 This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
-  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.4.0.9001). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.3.0). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
 </p>
 <hr>
 </div>
@@ -421,12 +459,12 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted changes </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
 <div class="panel-body">
-<p>The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
 </div>
 </div>
 </div>
@@ -450,7 +488,7 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 </div>
 <div id="strongSeedstrongcodesetseed20180727code" class="panel-collapse collapse">
 <div class="panel-body">
-<p>The command <code>set.seed(20180727)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+<p>The command <code>set.seed(20180727)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
 </div>
 </div>
 </div>
@@ -477,25 +515,7 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 The following chunks had caches available:
 <ul>
 <li>
-clean_4square_locations
-</li>
-<li>
-find_homes
-</li>
-<li>
 load_data
-</li>
-<li>
-load_data_cacheable
-</li>
-<li>
-load_staypoint_file_list
-</li>
-<li>
-session-info-chunk-inserted-by-workflowr
-</li>
-<li>
-show_staypoints_geography
 </li>
 </ul>
 <p>To ensure reproducibility of the results, delete the cache directory <code>evaluate_staypoint_estimates_cache</code> and re-run the analysis. To have workflowr automatically delete the cache directory prior to building the file, set <code>delete_cache = TRUE</code> when running <code>wflow_build()</code> or <code>wflow_publish()</code>.</p>
@@ -505,22 +525,10 @@ show_staypoints_geography
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree3363100c2fd7fe874b44ba527d4dfece1e1c3ba9targetblank3363100a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/dewoller/dusk2dawn/tree/3363100c2fd7fe874b44ba527d4dfece1e1c3ba9" target="_blank">3363100</a> </a>
 </p>
 </div>
-<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
-<div class="panel-body">
-<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
-</div>
-</div>
-</div>
-<div class="panel panel-default">
-<div class="panel-heading">
-<p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree5af9b9d286c14cca4d823c0dc80d3666434d992ctargetblank5af9b9da"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/dewoller/dusk2dawn/tree/5af9b9d286c14cca4d823c0dc80d3666434d992c" target="_blank">5af9b9d</a> </a>
-</p>
-</div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree5af9b9d286c14cca4d823c0dc80d3666434d992ctargetblank5af9b9da" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree3363100c2fd7fe874b44ba527d4dfece1e1c3ba9targetblank3363100a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -531,17 +539,20 @@ Ignored files:
     Ignored:    .drake_history/
     Ignored:    analysis/analyse_staypoint_estimates_cache/
     Ignored:    analysis/evaluate_staypoint_estimates_cache/
-    Ignored:    analysis/exploreStaypointBase_cache/
-    Ignored:    analysis/explore_locations_cache/
-    Ignored:    analysis/explore_staypoint_base_data_quality_check_cache/
+    Ignored:    analysis/mark_staypoint_cache/
     Ignored:    analysis/mark_staypoint_systematic_cache/
     Ignored:    data/
     Ignored:    data_fast
     Ignored:    lib/keys.R
+    Ignored:    sample.log
     Ignored:    staypoint_estimation.log
 
+Untracked files:
+    Untracked:  explore/get_all_staypoints_drake.R.tmp.R
+
 Unstaged changes:
-    Modified:   analysis/evaluate_staypoint_estimates.Rmd
+    Modified:   explore/get_all_staypoints_drake.R
+    Modified:   lib/evaluate_staypoint_estimates_helper.R
 
 </code></pre>
 <p>
@@ -585,13 +596,64 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/3363100c2fd7fe874b44ba527d4dfece1e1c3ba9/analysis/evaluate_staypoint_estimates.Rmd" target="_blank">3363100</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-03
+</td>
+<td>
+wflow_publish(knitr_in(“analysis/evaluate_staypoint_estimates.Rmd”), view = FALSE)
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/58d24c19bffa915b24edcae9779ea1b4fd799f81/analysis/evaluate_staypoint_estimates.Rmd" target="_blank">58d24c1</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-03
+</td>
+<td>
+first Rmd changes
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/dewoller/dusk2dawn/58d24c19bffa915b24edcae9779ea1b4fd799f81/docs/evaluate_staypoint_estimates.html" target="_blank">58d24c1</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2019-09-03
+</td>
+<td>
+first Rmd changes
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/dewoller/dusk2dawn/blob/5af9b9d286c14cca4d823c0dc80d3666434d992c/analysis/evaluate_staypoint_estimates.Rmd" target="_blank">5af9b9d</a>
 </td>
 <td>
 Dennis Wollersheim
 </td>
 <td>
-2019-09-02
+2019-09-03
 </td>
 <td>
 first Rmd changes
@@ -608,7 +670,7 @@ html
 Dennis Wollersheim
 </td>
 <td>
-2019-09-02
+2019-09-03
 </td>
 <td>
 first Rmd changes
@@ -625,7 +687,7 @@ Rmd
 Dennis Wollersheim
 </td>
 <td>
-2019-08-19
+2019-08-20
 </td>
 <td>
 get timestamp range for each staypoint
@@ -642,7 +704,7 @@ Rmd
 Dennis Wollersheim
 </td>
 <td>
-2019-08-13
+2019-08-14
 </td>
 <td>
 clustermq, drake
@@ -659,7 +721,7 @@ Rmd
 Dennis Wollersheim
 </td>
 <td>
-2019-08-08
+2019-08-09
 </td>
 <td>
 mostly working on Shiny
@@ -676,7 +738,7 @@ Rmd
 Dennis Wollersheim
 </td>
 <td>
-2019-07-31
+2019-08-01
 </td>
 <td>
 fixed remaining time_stamp renames, and eliminated refereences to df_best_location
@@ -693,7 +755,7 @@ Rmd
 Dennis Wollersheim
 </td>
 <td>
-2019-07-30
+2019-07-31
 </td>
 <td>
 move to alf
@@ -724,7 +786,8 @@ library( knitr )
 opts_chunk$set(cache=TRUE, autodep=TRUE, eval=TRUE)
 
 library(tidyverse)
-library(drake)</code></pre>
+library(drake)
+library(wrapr)</code></pre>
 <pre class="r"><code># load in the individual locations information
 
 loadd(df_all_staypoints_matched ) </code></pre>
@@ -782,7 +845,7 @@ Date
 Dennis Wollersheim
 </td>
 <td>
-2019-09-02
+2019-09-03
 </td>
 </tr>
 </tbody>
@@ -823,7 +886,7 @@ Date
 Dennis Wollersheim
 </td>
 <td>
-2019-09-02
+2019-09-03
 </td>
 </tr>
 </tbody>
@@ -864,7 +927,7 @@ Date
 Dennis Wollersheim
 </td>
 <td>
-2019-09-02
+2019-09-03
 </td>
 </tr>
 </tbody>
@@ -905,7 +968,7 @@ Date
 Dennis Wollersheim
 </td>
 <td>
-2019-09-02
+2019-09-03
 </td>
 </tr>
 </tbody>
@@ -946,7 +1009,7 @@ Date
 Dennis Wollersheim
 </td>
 <td>
-2019-09-02
+2019-09-03
 </td>
 </tr>
 </tbody>
@@ -987,7 +1050,7 @@ Date
 Dennis Wollersheim
 </td>
 <td>
-2019-09-02
+2019-09-03
 </td>
 </tr>
 </tbody>
@@ -1028,7 +1091,7 @@ Date
 Dennis Wollersheim
 </td>
 <td>
-2019-09-02
+2019-09-03
 </td>
 </tr>
 </tbody>
@@ -1070,7 +1133,7 @@ Date
 Dennis Wollersheim
 </td>
 <td>
-2019-09-02
+2019-09-03
 </td>
 </tr>
 </tbody>
@@ -1114,13 +1177,13 @@ Dennis Wollersheim
 </p>
 <div id="workflowr-sessioninfo" class="collapse">
 <pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>R version 3.6.1 (2019-07-05)
+<pre><code>R version 3.4.4 (2018-03-15)
 Platform: x86_64-pc-linux-gnu (64-bit)
-Running under: Ubuntu 18.04.3 LTS
+Running under: Ubuntu 16.04.6 LTS
 
 Matrix products: default
-BLAS:   /usr/lib/x86_64-linux-gnu/openblas/libblas.so.3
-LAPACK: /usr/lib/x86_64-linux-gnu/libopenblasp-r0.2.20.so
+BLAS: /usr/lib/libblas/libblas.so.3.6.0
+LAPACK: /usr/lib/lapack/liblapack.so.3.6.0
 
 locale:
  [1] LC_CTYPE=en_AU.UTF-8       LC_NUMERIC=C              
@@ -1131,37 +1194,29 @@ locale:
 [11] LC_MEASUREMENT=en_AU.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
-[1] stats4    parallel  stats     graphics  grDevices utils     datasets 
-[8] methods   base     
+[1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] tidyselect_0.2.5      sp_1.3-2              tibbletime_0.1.2     
- [4] glue_1.3.1            zoo_1.8-6             geosphere_1.5-7      
- [7] keyring_1.1.0         RPostgreSQL_0.6-2     DBI_1.0.0            
-[10] multidplyr_0.0.0.9000 IRanges_2.19.10       S4Vectors_0.23.18    
-[13] BiocGenerics_0.31.5   fuzzyjoin_0.1.5       DataCache_0.9.1      
-[16] wrapr_1.8.9           readstata13_0.9.2     lubridate_1.7.4      
-[19] magrittr_1.5          workflowr_1.4.0.9001  tsibble_0.8.3        
-[22] drake_7.5.2           forcats_0.4.0         stringr_1.4.0        
-[25] dplyr_0.8.3           purrr_0.3.2           readr_1.3.1          
-[28] tidyr_0.8.3           tibble_2.1.3          ggplot2_3.2.1        
-[31] tidyverse_1.2.1       knitr_1.24            nvimcom_0.9-82       
+ [1] tidyselect_0.2.5 wrapr_1.8.7      drake_7.5.2      forcats_0.4.0   
+ [5] stringr_1.4.0    dplyr_0.8.3      purrr_0.3.2      readr_1.3.1     
+ [9] tidyr_0.8.3      tibble_2.1.3     ggplot2_3.1.1    tidyverse_1.2.1 
+[13] knitr_1.23       nvimcom_0.9-82  
 
 loaded via a namespace (and not attached):
- [1] httr_1.4.1       jsonlite_1.6     modelr_0.1.5     assertthat_0.2.1
- [5] base64url_1.4    cellranger_1.1.0 yaml_2.2.0       pillar_1.4.2    
- [9] backports_1.1.4  lattice_0.20-38  digest_0.6.20    rvest_0.3.4     
-[13] colorspace_1.4-1 htmltools_0.3.6  plyr_1.8.4       pkgconfig_2.0.2 
-[17] broom_0.5.2      haven_2.1.1      scales_1.0.0     whisker_0.3-2   
-[21] git2r_0.26.1     txtq_0.1.4       generics_0.0.2   withr_2.1.2     
-[25] lazyeval_0.2.2   cli_1.1.0        crayon_1.3.4     readxl_1.3.1    
-[29] evaluate_0.14    storr_1.2.1      fs_1.3.1         nlme_3.1-141    
-[33] anytime_0.3.5    xml2_1.2.2       tools_3.6.1      hms_0.5.0       
-[37] munsell_0.5.0    compiler_3.6.1   rlang_0.4.0      grid_3.6.1      
-[41] rstudioapi_0.10  igraph_1.2.4.1   labeling_0.3     rmarkdown_1.14  
-[45] gtable_0.3.0     codetools_0.2-16 reshape2_1.4.3   R6_2.4.0        
-[49] zeallot_0.1.0    filelock_1.0.2   rprojroot_1.3-2  stringi_1.4.3   
-[53] Rcpp_1.0.2       vctrs_0.2.0      xfun_0.8        </code></pre>
+ [1] storr_1.2.1      xfun_0.7         reshape2_1.4.3   haven_2.1.0     
+ [5] lattice_0.20-38  colorspace_1.4-1 generics_0.0.2   htmltools_0.3.6 
+ [9] yaml_2.2.0       rlang_0.4.0      pillar_1.4.2     txtq_0.1.4      
+[13] glue_1.3.1       withr_2.1.2      modelr_0.1.4     readxl_1.3.1    
+[17] plyr_1.8.4       munsell_0.5.0    gtable_0.3.0     workflowr_1.3.0 
+[21] cellranger_1.1.0 rvest_0.3.4      codetools_0.2-16 evaluate_0.14   
+[25] labeling_0.3     broom_0.5.2      Rcpp_1.0.2       filelock_1.0.2  
+[29] scales_1.0.0     backports_1.1.4  jsonlite_1.6     fs_1.3.1        
+[33] hms_0.4.2        digest_0.6.20    stringi_1.4.3    grid_3.4.4      
+[37] rprojroot_1.3-2  cli_1.1.0        tools_3.4.4      magrittr_1.5    
+[41] base64url_1.4    lazyeval_0.2.2   crayon_1.3.4     whisker_0.3-2   
+[45] pkgconfig_2.0.2  xml2_1.2.0       lubridate_1.7.4  assertthat_0.2.1
+[49] rmarkdown_1.13   httr_1.4.0       rstudioapi_0.10  R6_2.4.0        
+[53] igraph_1.2.4.1   nlme_3.1-140     git2r_0.25.2     compiler_3.4.4  </code></pre>
 </div>
 </div>
 
@@ -1195,49 +1250,6 @@ $(document).ready(function () {
 });
 
 
-</script>
-
-<!-- tabsets -->
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
-<!-- code folding -->
-
-<script>
-$(document).ready(function ()  {
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2,h3",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
 </script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
