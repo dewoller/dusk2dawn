@@ -651,15 +651,13 @@ get_matching_survey = function( df_all_staypoints_multi,  df_all_ts_nested ) {
 #********************************************************************************
 #  df_summarise_staypoint_algorithms
 #********************************************************************************
-df_summarise_staypoint_algorithms = function( df_all_staypoints_multi, df_matching_survey,df_sp_joined_geography,  df_sp_no_bar) {
+df_summarise_staypoint_algorithms = function( df_all_staypoints_multi, df_matching_survey,df_sp_joined_geography ) {
 
   # want to get a summary of how many hits, of each type, for each algorithm
   # for each filename, calculate 
   # number of hits, 
   df_all_staypoints_multi %>% 
-    group_by( filename, userid, night) %>%
-    summarise( n = n(), mean_sp_night=mean(n), max_sp_night=max(n), sd_sp_night=sd(n)) %>% 
-    bind_cols( row ) 
-
+    left_join( df_matching_survey, by=qc( userid, night, filename, n_staypoint)) %>%
+    left_join( dplyr::select( df_sp_joined_geography, userid, night, filename, n_staypoint, distance_to_bar) , by=qc( userid, night, filename, n_staypoint)) 
 
 }
