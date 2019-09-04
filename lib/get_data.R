@@ -61,3 +61,14 @@ get_df_location = function( ) {
   bind_rows( get_location(), get_passive_location())
 }
 
+# -------------------------------------------------
+
+get_df_single_location = function( ) {
+
+  df = get_df_location()
+
+  df %>%
+    inner_join( head( df, 1 ) %>% select( userid, night), by=qc(userid, night))
+
+}
+
