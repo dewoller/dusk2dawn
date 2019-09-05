@@ -18,4 +18,5 @@ lib/keys.R
 *.log
 .drake  
 .drake*
+*tmp.R
 

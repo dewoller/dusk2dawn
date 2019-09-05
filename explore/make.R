@@ -1,4 +1,5 @@
 
+library(drake)
 load_function = function() {
   #source('lib/functions.R')
   source('lib/get_data.R')
@@ -123,9 +124,9 @@ drakeplan <- drake::drake_plan(
 load_library()
 load_function()
 
-drakeplan %>%
-  drake_config( ) %>%
-  vis_drake_graph( )
+#drakeplan %>%
+#  drake_config( ) %>%
+#  vis_drake_graph( )
 
 options(clustermq.scheduler = "multicore")
 make(drakeplan, parallelism="clustermq", jobs= parallel::detectCores())
