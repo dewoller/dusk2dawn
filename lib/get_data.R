@@ -1,5 +1,3 @@
-needs("RPostgreSQL")
-needs("keyring")
 my_db_name = 'dusk2dawn'
 # -------------------------------------------------
 my_db_write <- function ( df, table_name ) {
@@ -58,17 +56,19 @@ get_passive_location = function( ) {
 # -------------------------------------------------
 
 get_df_location = function( ) {
-  bind_rows( get_location(), get_passive_location())
+  readRDS('data/df_location.rds')
+  #bind_rows( get_location(), get_passive_location())
 }
 
 # -------------------------------------------------
 
 get_df_single_location = function( ) {
 
-  df = get_df_location()
+  readRDS('data/df_singlelocation.rds')
+#  df = get_df_location()
 
-  df %>%
-    inner_join( head( df, 1 ) %>% select( userid, night), by=qc(userid, night))
+#  df %>%
+#    inner_join( head( df, 1 ) %>% select( userid, night), by=qc(userid, night))
 
 }
 

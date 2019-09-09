@@ -27,15 +27,14 @@ df_location %>%
  { . } -> t
 
 
-df_location %>%
-  as_tibble() %>%
-  inner_join( max_sp ) %>%
+  df_location %>%
+    inner_join( a ) %>%
   filter( accuracy < 20) %>%
-  select( latitude, longitude, timestamp) %>% 
+  dplyr::select( latitude, longitude, timestamp) %>% 
   ggplot(aes(latitude,longitude))+
-  geom_point( a, mapping=aes(latitude, longitude))  +
+  geom_point( mapping=aes(latitude, longitude))  +
   stat_density2d(geom="polygon",aes(alpha = .1), fill="orangered",color="red4",linetype=2, n=100, h=.00005)+ 
-  geom_point( a, mapping=aes(latitude, longitude))  +
+  geom_point(  mapping=aes(latitude, longitude))  +
   theme_bw()+
   scale_x_continuous("X-coordinate")+
   scale_y_continuous("Y-coordinate")

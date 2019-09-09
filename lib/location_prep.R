@@ -1,17 +1,8 @@
 
 get_df_best_location <- function( df_location ) {
 
-  cl <- detectCores()
-  cluster <- makePSOCKcluster(cores = cl)
-
-
   df_location %>%
   arrange( userid, night, timestamp ) %>%
-  partition(userid, night, cluster = cluster) %>%   
-  cluster_library("tidyverse") %>%
-  cluster_library("sp") %>%
-  cluster_library("tsibble") %>%
-  cluster_copy( calc_interval_distance ) %>%
   #
   # clean gps noise, take the most accurate point for a timestamp
   filter( longitude > 0 &   longitude <10 & latitude > 40) %>%
@@ -21,7 +12,6 @@ get_df_best_location <- function( df_location ) {
   # take the mean location for accuracy ties
   group_by( userid, night, local_time, timestamp, accuracy ) %>%
   summarise( longitude=mean(longitude), latitude=mean(latitude) ) %>%
-  collect() %>%
   group_by( userid, night) %>%
   #
   # we want people who had at least 1 reading/night

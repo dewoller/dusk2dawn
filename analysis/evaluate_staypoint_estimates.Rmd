@@ -36,7 +36,7 @@ library(wrapr)
 
 # load in the individual locations information
 
-loadd(df_all_staypoints_matched ) 
+loadd(df_all_sp_match_survey ) 
 
 ```
 
@@ -45,7 +45,7 @@ loadd(df_all_staypoints_matched )
 
 ```{r show_staypoints_geography}
 
-df_all_staypoints_matched %>%
+df_all_sp_match_survey %>%
   group_by( filename) %>%
   summarise( sp_total = n(), surveys_total= sum(!is.na( which))) %>% 
   mutate( rate = surveys_total / sp_total) %>%
