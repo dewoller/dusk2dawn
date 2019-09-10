@@ -44,7 +44,7 @@ logFileName = 'staypoint_estimation.log'
 sp_min_staypoint_time_range=c(5,10, 15)*60
 sp_max_jump_time_range=c(2,5,10)*60
 sp_max_staypoint_distance_range= c(10,20,40)
-sigma_range=c(.5, 1, 2, 3, 100)
+sigma_range=c(.5, 1, 100)
 gh_precision_range=7:9
 gh_minpoints_range=0:2*6+3
 accuracy_range = c(100,50,30,20,10)
@@ -135,7 +135,8 @@ drakeplan <- drake::drake_plan(
 #
 # dq_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ), 
  df_all_sp_match_survey = target( 
-                      gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source), 
+                      my_combine( df_matching_survey_summarised) , 
+                      #gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source), 
                       transform = combine(df_matching_survey_summarised )),
   #
   #wflow_publish(knitr_in("analysis/evaluate_staypoint_estimates.Rmd"), view = FALSE),
@@ -153,9 +154,25 @@ if(onlims) {
   make(drakeplan, parallelism="future", jobs= 100, caching='worker', elapsed = Inf, retries = 3)
 } else {
   options(clustermq.scheduler = "multicore")
-  make(drakeplan, parallelism="clustermq", jobs= parallel::detectCores())
+  make(drakeplan, parallelism="clustermq", jobs= parallel::detectCores() ,  memory_strategy = "autoclean"  )
 }
 
 make(drakeplan)
+
+
+
+my_combine <- function(...) {
+  arg_symbols <- match.call(expand.dots = FALSE)$...
+  arg_names <- as.character(arg_symbols)
+  #browser()
+  out <- NULL
+  for (arg_name in arg_names) {
+    print( arg_name )
+    dataset <- readd(arg_name, character_only = TRUE) %>% mutate( source=arg_name )
+    out <- bind_rows(out, dataset)
+#    gc() # Run garbage collection.
+  }
+  out
+}
 
 

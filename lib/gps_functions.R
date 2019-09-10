@@ -249,6 +249,84 @@ prune_gps_outliers_one_night     <- function( df, sigma = 1, width=5 )  {
   rv
 }
 
+benchmark = function() {
+  # they both take a damn long time
+
+  df=get_df_location()
+
+  library(tictoc)
+  tic()
+  df %>% prune_gps_outliers_one_night()
+  toc()
+  ################################################################################
+
+  tic()
+  df %>% prune_gps_outliers_one_night.v2()
+  toc()
+
+}
+################################################################################
+# prune_location_outliers 
+################################################################################
+prune_gps_outliers_one_night.v2     <- function( df, .sigma = 1 )  {
+
+  df %>%
+    eliminate_sigma.v2( 'latitude', .sigma) %>%
+    eliminate_sigma.v2( 'longitude', .sigma) 
+
+}
+
+
+
+################################################################################
+# prune_location_outliers 
+################################################################################
+apply_function_to_nested= function( .l, .f, ... ) {
+  #browser()
+  .l %>%
+    as.matrix() %>%
+    .f(...) 
+}
+
+
+################################################################################
+# prune_location_outliers 
+################################################################################
+eliminate_sigma.v2 = function( df, variable, .sigma ) {
+
+  variable = rlang::sym( variable)
+
+  df %>%
+    mutate( 
+          .l1 = lead( UQ( variable ,1)), 
+          .g1=lag( UQ( variable,1)),
+          .l2 = lead( UQ( variable,2)), 
+          .g2=lag( UQ( variable,2)),
+          .l3 = lead( UQ( variable,3)), 
+          .g3=lag( UQ( variable,3)),
+          ) %>%
+  nest( .l1:.g3, .key= '.neighbourhood')  %>%
+  mutate( .mn = map_dbl(.neighbourhood, apply_function_to_nested, mean, na.rm=TRUE), 
+          .sd = map_dbl(.neighbourhood, apply_function_to_nested, sd, na.rm=TRUE) , 
+          .s1 =  !! variable , 
+          !!variable := ifelse(  .s1  - .mn <= .sd * .sigma,  (!!variable), .mn )) %>%
+  select( -.neighbourhood, -.mn, -.sd)
+
+}
+
+
+################################################################################
+# prune_location_outliers 
+################################################################################
+prune_gps_outliers.v2 = function( df_location, .sigma ) {
+
+  df_location %>%
+    group_by( userid, night ) %>%
+    arrange( timestamp ) %>% 
+    group_modify( ~prune_gps_outliers_one_night.v2 (.x, sigma = .sigma))
+}
+
+
 ################################################################################
 # prune_location_outliers 
 ################################################################################
