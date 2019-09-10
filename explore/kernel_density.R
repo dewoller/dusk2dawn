@@ -4,8 +4,20 @@ needs(meanShiftR)
 needs(LPCM)
 needs(MeanShift)
 
-loadd()
+loadd(df_location)
+drake_history() -> a
+drake_gc( verbose=2) 
 
+
+staypoints_distance_300_900_10_filtered_sigma_100
+-> a
+
+a %>% count(current)
+
+a %>% 
+  arrange( target )  %>%
+  filter( current ) %>%
+  select(target, runtime) %>%
 
 df_all_staypoints_multi  %>%
   group_by( filename ) %>%
