@@ -207,17 +207,12 @@ find_staypoint_distance = function( df_location,  max_jump_time, min_staypoint_t
 # replace with mean where target is > sd( upper + lower set ) * sigma
 ################################################################################
 eliminate_sigma = function( original, upper, lower, sigma = 3) {
-#  ParallelLogger::logDebug( 'eliminate_sigma' )
-#  ParallelLogger::logDebug( print(str(original)))
-#  ParallelLogger::logDebug( paste('upper', upper, collapse=',') )
-#  ParallelLogger::logDebug( paste('lower', lower, collapse=',') )
   set = c( upper, lower)
   if( original - mean( set ) > sd( set ) * sigma) {
     rv=mean(set)
   } else {
     rv=original
   }
-#  ParallelLogger::logDebug( "Finished eliminate sigma" )
   rv
 
 }
@@ -227,13 +222,9 @@ eliminate_sigma = function( original, upper, lower, sigma = 3) {
 ################################################################################
 prune_gps_outliers_one_night     <- function( df, sigma = 1, width=5 )  {
   # returns df with outlier lat and long pruned
-  #print( df %>% distinct(userid, night  ))
-#  ParallelLogger::logDebug( 'in prune gps_outlier')
   rv = df
   if (nrow( rv ) > width * 2 + 1) {
     for (i in (width+1):(nrow(rv)-width-1)) {
-      ParallelLogger::logDebug( 'in prune gps_outlier loop')
-      ParallelLogger::logDebug( nrow(rv) )
       rv = df
       rv[i,]$latitude = eliminate_sigma( rv[i,]$latitude, 
                                         rv[ (i-width-1):(i-1), ]$latitude,  
