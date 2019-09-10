@@ -14,7 +14,7 @@ load_library = function() {
 #
   library(needs)
  needs(RPostgreSQL)
-  needs(sf)
+#  needs(sf)
   needs(tidyverse)
   needs(lubridate)
   needs(drake)
@@ -69,21 +69,21 @@ drakeplan <- drake::drake_plan(
   filtered_accuracy = target(
                             prune_gps_accuracy (df_location, accuracy),
                             transform = map( accuracy = !!accuracy_range , .tag_out=filtered_data)
-  )
-  ,
-#
+  ) ,
   filtered_geohash = target(
                           prune_gps_geohash (df_location, precision, minpoints),
                           transform = cross( precision  = !!gh_precision_range,
                                               minpoints = !!gh_minpoints_range,
                                               .tag_out=filtered_data)
-  )
-  ,
-   filtered_sigma = target(
-                    prune_gps_outliers (df_location, .sigma = sigma),
+  ) ,
+  filtered_sigma = target(
+                          prune_gps_outliers (df_location, .sigma = sigma),
+                          transform = map( sigma = !!sigma_range, .tag_out=filtered_data)
+  ),
+    filtered_sigma.v2 = target(
+                    prune_gps_outliers.v2 (df_location, .sigma = sigma),
                     transform = map( sigma = !!sigma_range, .tag_out=filtered_data)
-  )
-  ,
+  ) ,
   staypoints_distance= target(
                             find_staypoint_distance( filtered_data,  max_jump_time, min_staypoint_time, max_staypoint_distance ),
                             transform=cross( filtered_data, 
@@ -144,6 +144,22 @@ trace=TRUE
 )
 
 
+
+my_combine <- function(...) {
+  arg_symbols <- match.call(expand.dots = FALSE)$...
+  arg_names <- as.character(arg_symbols)
+  #browser()
+  out <- NULL
+  for (arg_name in arg_names) {
+    print( arg_name )
+    dataset <- readd(arg_name, character_only = TRUE) %>% mutate( source=arg_name )
+    out <- bind_rows(out, dataset)
+    #    gc() # Run garbage collection.
+  }
+  out
+}
+
+
 drakeplan %>%
   drake_config( ) %>%
   vis_drake_graph( )
@@ -158,21 +174,5 @@ if(onlims) {
 }
 
 make(drakeplan)
-
-
-
-my_combine <- function(...) {
-  arg_symbols <- match.call(expand.dots = FALSE)$...
-  arg_names <- as.character(arg_symbols)
-  #browser()
-  out <- NULL
-  for (arg_name in arg_names) {
-    print( arg_name )
-    dataset <- readd(arg_name, character_only = TRUE) %>% mutate( source=arg_name )
-    out <- bind_rows(out, dataset)
-#    gc() # Run garbage collection.
-  }
-  out
-}
 
 

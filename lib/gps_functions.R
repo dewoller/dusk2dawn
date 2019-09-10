@@ -323,7 +323,7 @@ prune_gps_outliers.v2 = function( df_location, .sigma ) {
   df_location %>%
     group_by( userid, night ) %>%
     arrange( timestamp ) %>% 
-    group_modify( ~prune_gps_outliers_one_night.v2 (.x, sigma = .sigma))
+    group_modify( ~prune_gps_outliers_one_night.v2 (.x, .sigma = .sigma))
 }
 
 
