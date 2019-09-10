@@ -20,4 +20,6 @@ lib/keys.R
 .drake*
 *tmp.R
 .future
+*.swo
+*.swp
 
