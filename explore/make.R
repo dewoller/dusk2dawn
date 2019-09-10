@@ -1,6 +1,5 @@
 
 
-onlims=FALSE
 load_function = function() {
   #source('lib/functions.R')
   source('lib/get_data.R')
@@ -12,28 +11,26 @@ load_function = function() {
 
 load_library = function() {
 #
-  library(needs)
- needs(RPostgreSQL)
-#  needs(sf)
-  needs(tidyverse)
-  needs(lubridate)
-  needs(drake)
-#  needs(sp)
-  needs(osmdata)
-  needs(revgeo)
-  needs(tsibble)
-  needs(magrittr)
-  needs(stringr)
-  needs(knitr)
-  needs(wrapr )   # for the qc function
-  needs( fuzzyjoin)
-  needs(IRanges)
-  needs(multidplyr)
-  needs(geohash)
-  needs(geosphere)
-  needs(zoo)
-  needs(glue)
-  needs(tibbletime)
+ library(RPostgreSQL)
+#  library(sf)
+  library(tidyverse)
+  library(lubridate)
+  library(drake)
+  library(osmdata)
+  library(revgeo)
+  library(tsibble)
+  library(magrittr)
+  library(stringr)
+  library(knitr)
+  library(wrapr )   # for the qc function
+  library( fuzzyjoin)
+  library(IRanges)
+  library(multidplyr)
+  library(geohash)
+  library(geosphere)
+  library(zoo)
+  library(glue)
+  library(tibbletime)
 }
 
 load_library()
@@ -44,17 +41,14 @@ logFileName = 'staypoint_estimation.log'
 sp_min_staypoint_time_range=c(5,10, 15)*60
 sp_max_jump_time_range=c(2,5,10)*60
 sp_max_staypoint_distance_range= c(10,20,40)
-sigma_range=c(.5, 1, 100)
+sigma_range=c(.5, 1, 2, 3, 100)
 gh_precision_range=7:9
 gh_minpoints_range=0:2*6+3
 accuracy_range = c(100,50,30,20,10)
 
-#  if( onlims ) {
     max_expand_setting=99999999
-#  } else {
 #    df_location_initial = get_df_single_location() 
 #    max_expand_setting=2
-#  }
 
 df_location_initial = get_df_location()  
 
@@ -164,8 +158,8 @@ drakeplan %>%
   drake_config( ) %>%
   vis_drake_graph( )
 
-if(onlims) {
-  needs(future.batchtools)
+if(Sys.info()['nodename'] == 'lims') {
+  library(future.batchtools)
   future::plan(batchtools_slurm, template = "/home/group/wollersheimlab/slurm_batchtools.tmpl")
   make(drakeplan, parallelism="future", jobs= 100, caching='worker', elapsed = Inf, retries = 3)
 } else {
