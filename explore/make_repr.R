@@ -12,8 +12,17 @@ process1b = function(x) {
 }
 
 
+process1c = function(x) {
+  x
+}
+
+
 process2 = function(data, x) {
   c(data, x )
+}
+
+mycomb = function( ... ) {
+  print(...)
 }
 
 
@@ -22,26 +31,29 @@ process2 = function(data, x) {
 drakeplan <- drake::drake_plan(
   trace=TRUE,
 #
-  # load in the GPS individual locations information
-  #df_location = get_df_single_location() ,
   #
-  process1a = target(
-                            process1a (process1a_var),
-                            transform = map( process1a_var = c(1,2) )
+
+  filtered_accuracy = target(
+                     process1b ( df_location ),
+                     transform = map(process1b_var = c(3), .tag_out=filtered_data )
   )
   ,
-#
-  process1b = target(
-                          process1b ( process1b_var),
-                          transform = map(process1b_var = c(2,3) )
+   process1c = target(
+                          process1c ( filtered_accuracy ),
+                          transform = map(filtered_accuracy, .tag_out=filtered_data )
   )
-  ,
   ,
   process2 = target(
-                            process2( data, process2_var ),
-                            transform=cross( data=c(process1a, process1b), 
-                                             process2_var = c(4,5))
+                            process2( filtered_data, process2_var ),
+                            transform=cross( filtered_data,
+                                             process2_var = c(5))
   )
+,
+  df_matching_survey = target(
+                            mycomb( process2),
+                              transform = combine(process2 ))
+  ,
+ 
 )
 
 
@@ -49,9 +61,6 @@ drakeplan %>%
   drake_config( ) %>%
   vis_drake_graph( )
 
-make(drakeplan )
 
 
-loadd()
-#options(error = recover) # setting the error option
-#options(error = dump.frames) # setting the error option
+

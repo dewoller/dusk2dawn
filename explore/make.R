@@ -7,10 +7,12 @@ load_function = function() {
   source('lib/gps_functions.R')
   source('lib/evaluate_staypoint_estimates_helper.R')
   source('lib/keys.R')
+  source('lib/kernel_density_functions.R')
 }
 
 load_library = function() {
 #
+  library(raster)
  library(RPostgreSQL)
 #  library(sf)
   library(tidyverse)
@@ -45,15 +47,16 @@ sigma_range=c(.5, 1, 2, 3, 100)
 gh_precision_range=7:9
 gh_minpoints_range=0:2*6+3
 accuracy_range = c(100,50,30,20,10)
+interpolation_delay_range = c(120, 300, 600)
 
     max_expand_setting=99999999
 #    df_location_initial = get_df_single_location() 
-#    max_expand_setting=2
+#    max_expand_setting=1
 
 df_location_initial = get_df_location()  
 
 drakeplan <- drake::drake_plan(
-  max_expand = max_expand_setting,
+  #max_expand = max_expand_setting,
 #
   # load in the GPS individual locations information
   #df_location = get_df_single_location() ,
@@ -74,10 +77,15 @@ drakeplan <- drake::drake_plan(
                           prune_gps_outliers (df_location, .sigma = sigma),
                           transform = map( sigma = !!sigma_range, .tag_out=filtered_data)
   ),
-    filtered_sigma.v2 = target(
+  filtered_sigma.v2 = target(
                     prune_gps_outliers.v2 (df_location, .sigma = sigma),
                     transform = map( sigma = !!sigma_range, .tag_out=filtered_data)
   ) ,
+  interpolated_locations = target(
+                                   interpolate_locations (filtered_accuracy, max_delay=max_delay, period=30),
+                                  transform = cross( filtered_accuracy, max_delay = !!interpolation_delay_range, .tag_out=filtered_data)
+
+  ),
   staypoints_distance= target(
                             find_staypoint_distance( filtered_data,  max_jump_time, min_staypoint_time, max_staypoint_distance ),
                             transform=cross( filtered_data, 
@@ -154,19 +162,22 @@ my_combine <- function(...) {
 }
 
 
-drakeplan %>%
-  drake_config( ) %>%
-  vis_drake_graph( )
-
-if(Sys.info()['nodename'] == 'lims') {
+if(startsWith(Sys.info()['nodename'], 'lims')) {
   library(future.batchtools)
   future::plan(batchtools_slurm, template = "/home/group/wollersheimlab/slurm_batchtools.tmpl")
   make(drakeplan, parallelism="future", jobs= 100, caching='worker', elapsed = Inf, retries = 3)
 } else {
+
+  drakeplan %>%
+    drake_config( ) %>%
+    vis_drake_graph( )
+
+#  drake_plan_source(drakeplan)
+
   options(clustermq.scheduler = "multicore")
-  make(drakeplan, parallelism="clustermq", jobs= parallel::detectCores() ,  memory_strategy = "autoclean"  )
+#  make(drakeplan, parallelism="clustermq", jobs= parallel::detectCores() ,  memory_strategy = "autoclean"  )
 }
 
-make(drakeplan)
+#make(drakeplan)
 
 

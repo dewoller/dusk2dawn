@@ -1,168 +1,127 @@
-library(tidyverse)
-f_process1a = function( a ) { tribble( ~var, a)}
-f_process1b = function( a) { tribble( ~var, a)}
-f_process2 = function( a,b) { bind_rows( a, tribble( ~var, b))}
 
 
+load_function = function() {
+  #source('lib/functions.R')
+  source('lib/get_data.R')
+  source('lib/location_prep.R')
+  source('lib/gps_functions.R')
+  source('lib/evaluate_staypoint_estimates_helper.R')
+  source('lib/keys.R')
+  source('lib/kernel_density_functions.R')
+}
 
-library(drake)
+load_library = function() {
+#
+  library(raster)
+ library(RPostgreSQL)
+#  library(sf)
+  library(tidyverse)
+  library(lubridate)
+  library(drake)
+  library(osmdata)
+  library(revgeo)
+  library(tsibble)
+  library(magrittr)
+  library(stringr)
+  library(knitr)
+  library(wrapr )   # for the qc function
+  library( fuzzyjoin)
+  library(IRanges)
+  library(multidplyr)
+  library(geohash)
+  library(geosphere)
+  library(zoo)
+  library(glue)
+  library(tibbletime)
+}
 
-plan <- drake_plan(
-  process1a = target(
-    f_process1a(process1a_var),
-    transform = map(process1a_var = c(1, 2), .tag_out = process1)
+load_library()
+load_function()
+
+
+logFileName = 'staypoint_estimation.log'
+sp_min_staypoint_time_range=c(5)*60
+sp_max_jump_time_range=c(2)*60
+sp_max_staypoint_distance_range= c(10)
+sigma_range=c(.5, 1, 2, 3, 100)
+gh_precision_range=7:9
+gh_minpoints_range=0:2*6+3
+accuracy_range = c(100)
+interpolation_delay_range = c(120)
+
+    max_expand_setting=9999999
+#    df_location_initial = get_df_single_location() 
+#    max_expand_setting=2
+
+df_location_initial = get_df_location()  
+
+drakeplan <- drake::drake_plan(
+  max_expand = max_expand_setting,
+  df_location = df_location_initial,
+##
+  #
+  filtered_accuracy = target(
+                            prune_gps_accuracy (df_location, accuracy),
+                            transform = map( accuracy = !!accuracy_range , .tag_out=filtered_data)
+  ) ,
+  interpolated_locations = target(
+                                   interpolate_locations (filtered_accuracy, max_delay=max_delay, period=30),
+                                  transform = map( filtered_accuracy, max_delay = !!interpolation_delay_range, .tag_out=filtered_data)
+
   ),
-  process1b = target(
-    f_process1b(process1b_var),
-    transform = map(process1b_var = c(2, 3), .tag_out = process1)
-  ),
-  process2 = target(
-    f_process2(process1, process2_var),
-    transform = cross(process1, 
-                      process2_var = c(4, 5) )
-  ),
-  final = target(
-    bind_rows( process2, .id="target"), 
-    transform = combine (process2)
-  ),
-  trace = TRUE
-)
-plan
-#config <- drake_config(plan)
-#vis_drake_graph(config)
-make(plan)
-readd(final)
+  staypoints_distance= target(
+                            find_staypoint_distance( filtered_data,  max_jump_time, min_staypoint_time, max_staypoint_distance ),
+                            transform=cross( filtered_data, 
+                                            max_jump_time = !!sp_max_jump_time_range, 
+                                            min_staypoint_time = !!sp_min_staypoint_time_range,
+                                            max_staypoint_distance  = !!sp_max_staypoint_distance_range  )
+  )
+  ,
+  #
+  #####################################
+  # Evaluation data prep
+  #####################################
+  # get target locations, osm and 4sq
+  df_4sq_locations_filtered =  get_df_4sq_locations_filtered(), 
+  df_osm_amenity  = get_df_osm_locations_amenity() ,
+  df_osm_leisure  = get_df_osm_locations_leisure() ,
+  df_target_locations_combined =get_df_target_locations_combined  (df_osm_amenity, df_4sq_locations_filtered),
+  #
+  # get surveys
+  df_all = get_df_all(),
+  # get survey timestamps
+  df_all_ts = get_df_all_ts( df_all ),
+  #  # nest surveys
+  df_survey_nested  = get_df_survey_nested( df_all_ts),
 
-
-library(tidyverse)
-library(drake)
-f_process1a = function( a ) { tribble( ~var, a)}
-
-plan <- drake_plan(
-                   process1a = target(
-                                      f_process1a(process1a_var),
-                                      transform = map(process1a_var = c(1, 2))
-                                      ),
-                  final = target(
-                                  gdata::combine(process1a) ,
-                                  transform = combine (process1a)
-                                  ),
-                   trace = TRUE
-)
-plan
-#config <- drake_config(plan)
-#vis_drake_graph(config)
-make(plan)
-readd(final)
-
-reprex::reprex()
-
-models <- c("glm", "hierarchical")
-plan <- drake_plan(
-                   data = target(
-                                 get_data(x),
-                                 transform = map(x = c("simulated", "survey"))
-                                 ),
-                   analysis = target(
-                                     analyze_data(data, model),
-                                     transform = cross(data, model = !!models, .id = c(x, model))
-                                     ),
-                   summary = target(
-                                    summarize_analysis(analysis),
-                                    transform = map(analysis, .id = c(x, model))
-                                    ),
-                   results = target(
-                                    bind_rows(summary),
-                                    transform = combine(summary, .by = data)
-                   )
-                   , trace=TRUE
-)
-plan
-  print(drake_plan_source(plan))
-config <- drake_config(plan)
-vis_drake_graph(config)
-
-
-
-plan <- drake_plan(
-                   data = target(
-                                 sim_data(mean = x, sd = y),
-                                 transform = map(x = c(1, 2), y = c(3, 4), .tag_out=a)
-                                 ),
-                   larger = target(
-                                   bind_rows(a, .id = "id") %>%
-                                     arrange(sd) %>%
-                                     head(n = 400),
-                                   transform = combine(a)
-                   )
-                   , trace=TRUE
-)
-plan
-print(drake_plan_source(plan))
-config <- drake_config(plan)
-vis_drake_graph(config)
-
-
-drake_plan(
-           x = target(
-                      simulate_data(center, scale),
-                      transform = map(center = c(2, 1, 0), scale = c(3, 2, 1))
-           )
-)
-
-my_grid <- tibble(
-                  sim_function = c("rnrom", "rt", "rcauchy"),
-                  title = c("Normal", "Student t", "Cauchy")
-)
-my_grid$sim_function <- rlang::syms(my_grid$sim_function)
-
-drake_plan(
-           x = target(
-                      simulate_data(sim_function, title, center, scale),
-                      transform = map(
-                                      center = c(2, 1, 0),
-                                      scale = c(3, 2, 1),
-                                      .data = !!my_grid,
-                                      # In `.id`, you can select one or more grouping variables
-                                      # for pretty target names.
-                                      # Set to FALSE to use short numeric suffixes.
-                                      .id = sim_function # Try `.id = c(sim_function, center)` yourself.
-                      )
-           )
+  #####################################
+  # Evaluate 
+  #####################################
+  # get target timestamps
+  # get survey data
+  df_matching_survey = target( 
+                              get_matching_survey ( staypoints_distance,  df_survey_nested ),
+                              transform = map( staypoints_distance )),
+                               #
+, trace=TRUE
 )
 
 
 
-drake_plan(
-           x = target(
-                      simulate_data(sim_function, title, center, scale),
-                      transform = map(
-                                      center = c(2, 1, 0),
-                                      scale = c(3, 2, 1),
-                                      .data = !!my_grid,
-                                      # In `.id`, you can select one or more grouping variables
-                                      # for pretty target names.
-                                      # Set to FALSE to use short numeric suffixes.
-                                      .id = c(sim_function, center) # Try `.id = c(sim_function, center)` yourself.
-                      )
-           )
-)
+
+if(startsWith(Sys.info()['nodename'], 'lims')) {
+  library(future.batchtools)
+  future::plan(batchtools_slurm, template = "/home/group/wollersheimlab/slurm_batchtools.tmpl")
+  make(drakeplan, parallelism="future", jobs= 100, caching='worker', elapsed = Inf, retries = 3)
+} else {
+
+  drakeplan %>%
+    drake_config( ) %>%
+    vis_drake_graph( )
+
+#  drake_plan_source(drakeplan)
+
+}
 
 
-
-plan <- drake_plan(
-                   data = target(
-                                 c(mean = x, sd = y),
-                                 transform = map(x = c(1, 2), y = c(3, 4))
-                                 ),
-                   larger = target(
-                                   bind_rows(data, .id = "id") %>%
-                                     arrange(sd) %>%
-                                     head(n = 400),
-                                   transform = combine(data)
-                   )
-)
-
-make(plan)
-plan
 
