@@ -62,12 +62,12 @@ interpolate_locations = function( df,  max_delay = 120, period = 1, max_drop_tim
 
 find_significant_densities = function( ll, xmin = NA, xmax = NA, contigious_range=1) {
 
-  #  H = structure(c(1.23096435484775e-07, -4.58028260474003e-08, -4.58028260474003e-08,
-  #                1.94021167344124e-08), .Dim = c(2L, 2L))
+    H = structure(c(1.23096435484775e-07, -4.58028260474003e-08, -4.58028260474003e-08,
+                  1.94021167344124e-08), .Dim = c(2L, 2L))
 
   if (is.na( xmin )) {
-    #kfs.ll = kfs( ll, H=H )
-    kfs.ll = kdde( ll, deriv.order=0 )
+    kfs.ll = kfs( ll, H=H, gridsize = 300 )
+    #kfs.ll = kdde( ll, deriv.order=0 )
   } else {
     gridsize = c(
                  (max( ll$latitude ) - min( ll$latitude ))  * m_per_latitude / desired_grid, 

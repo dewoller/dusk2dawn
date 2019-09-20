@@ -273,11 +273,10 @@ df_single_location %>%
   filter( accuracy < 20) %>%
 
 d %>%
-  dplyr::select( latitude, longitude, timestamp) %>%
+  dplyr::select( latitude, longitude) %>%
   ggplot(aes(latitude,longitude))+
   geom_point( mapping=aes(latitude, longitude))  +
   stat_density2d(geom="polygon",aes(alpha = .1), fill="orangered",color="red4",linetype=2, n=100, h=.00005)+
-  geom_point(  mapping=aes(latitude, longitude))  +
   theme_bw()+
   scale_x_continuous("X-coordinate")+
   scale_y_continuous("Y-coordinate")
@@ -473,10 +472,44 @@ df_single_location_e  %>%
   dplyr::select( latitude,longitude) %>%
   { . } -> d
 
+# find significant features
+df_single_location
+
+d %>%
+  find_significant_densities( contigious_range=4) %>%
+  { . } -> d4
+
 
    d %>%
      find_significant_densities() %>%
   { . } -> b
+
+ks.ll = kde(d)
+
+
+df_single_location %>%
+  dplyr::select( userid, night, timestamp, latitude, longitude ) %>%
+  merge( y=d4 %>% dplyr::select( -original, -kfs),  all=TRUE ) %>%
+  as_tibble() %>%
+  filter(
+         latitude >= min_lat &
+         longitude >= min_lon &
+         latitude <= max_lat &
+         longitude <= max_lon  ) %>%
+  group_by( feature_group ) %>%
+  summarise( latitude = median(latitude ),
+  longitude = median( longitude),
+  n = n()) %>%
+  { . } -> e
+
+
+df_single_location %>%
+  dplyr::select( userid, night, timestamp, latitude, longitude ) %>%
+
+
+
+0.000180 * m_per_longitude
+
 
 ################################################################################
 # explore single significant section
@@ -484,14 +517,14 @@ df_single_location_e  %>%
 
 b %>%
   head(1) %>%
-  mutate( min_lat = min_lat - range_lat, 
-         max_lat = max_lat + range_lat, 
-         min_lon = min_lon - range_lon, 
+  mutate( min_lat = min_lat - range_lat,
+         max_lat = max_lat + range_lat,
+         min_lon = min_lon - range_lon,
          max_lon = max_lon + range_lon) %>%
   rowwise() %>%
-  mutate( results = find_significant_densities( 
+  mutate( results = find_significant_densities(
                         d %>% filter( latitude >= min_lat & latitude <= max_lat  &
-                                     longitude >= min_lon & longitude <= max_lon ), 
+                                     longitude >= min_lon & longitude <= max_lon ),
                         xmin=c(min_lat, min_lon),
                         xmax=c(max_lat, max_lon) ,
                         contigious_range=2
@@ -505,14 +538,14 @@ orig = e[1,]$results[[1]][1,]$original[[1]]
 e$range_lat * m_per_latitude
 e$range_lon * m_per_longitude
 
-x
+e
 
 df_single_location %>%
-  filter( latitude >= e[1,]$min_lat & latitude <= e[1,]$max_lat  & longitude >= e[1,]$min_lon & longitude <= e[1,]$max_lon ) %>% 
+  filter( latitude >= e[1,]$min_lat & latitude <= e[1,]$max_lat  & longitude >= e[1,]$min_lon & longitude <= e[1,]$max_lon ) %>%
   { . } -> df_single_chunk
 
 df_single_location_e %>%
-  filter( latitude >= e[1,]$min_lat & latitude <= e[1,]$max_lat  & longitude >= e[1,]$min_lon & longitude <= e[1,]$max_lon ) %>% 
+  filter( latitude >= e[1,]$min_lat & latitude <= e[1,]$max_lat  & longitude >= e[1,]$min_lon & longitude <= e[1,]$max_lon ) %>%
   { . } -> df_single_chunk_e
 
 df_single_chunk %>%
@@ -524,19 +557,30 @@ df_single_chunk %>%
   inner_join( df_single_location  , by=c( "userid", "night")) %>%
   mutate( diff = abs( survey_ts - timestamp)) %>%
   dplyr::select( diff, survey_ts, which, everything()) %>%
-  arrange( diff ) %>% 
+  arrange( diff ) %>%
   { . } -> f
 
 f %>%
   group_by( userid, night, survey_ts, diff, which  ) %>%
-  summarise( 
+  summarise(
             latitude = mean(latitude),
             longitude = mean(longitude),
   )  %>%
   group_by( userid, night, survey_ts,  which  ) %>%
-  filter( diff == min(diff)) %>% 
+  filter( diff == min(diff)) %>%
   { . } -> df_single_survey
 
 
 
+
+
+d %>%
+  dplyr::select( latitude, longitude) %>%
+  ggplot(aes(latitude,longitude))+
+  geom_point( mapping=aes(latitude, longitude), size=.01)  +
+#  stat_density2d(geom="polygon",aes(alpha = .1), fill="orangered",color="red4",linetype=2, n=100, h=.00005)+
+  theme_bw()+
+  scale_x_continuous("X-coordinate")+
+  scale_y_continuous("Y-coordinate")+
+  geom_point( aes( latitude, longitude), data=e, color="red")
 

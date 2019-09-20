@@ -275,3 +275,6 @@ pts[!is.na( over(pts, polys[1]) )]
 points(pts[!is.na( over(pts, polys[2]) )], col="blue", pch=20)
 
 contour(dens, levels=levels, labels=prob, add=T)
+
+
+  
