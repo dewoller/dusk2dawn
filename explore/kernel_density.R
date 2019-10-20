@@ -17,10 +17,7 @@ needs(MeanShift)
 #install.packages('ks')
 
 library(ks)
-
-#vignette(kde)
-
-
+library(IRanges)
 library(drake)
 library(tidyverse)
 library(janitor)

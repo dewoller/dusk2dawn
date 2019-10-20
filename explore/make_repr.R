@@ -38,10 +38,11 @@ drakeplan <- drake::drake_plan(
                      transform = map(process1b_var = c(3), .tag_out=filtered_data )
   )
   ,
-   process1c = target(
-                          process1c ( filtered_accuracy ),
-                          transform = map(filtered_accuracy, .tag_out=filtered_data )
-  )
+  interpolated_locations = target(
+                                  interpolate_locations (filtered_accuracy, max_delay=max_delay, period=30),
+                                  transform = map( filtered_accuracy, max_delay = !!interpolation_delay_range, .tag_out = filtered_data)
+
+                                  ),
   ,
   process2 = target(
                             process2( filtered_data, process2_var ),
