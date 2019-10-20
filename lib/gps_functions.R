@@ -196,7 +196,7 @@ find_staypoint_distance = function( df_location,  max_jump_time, min_staypoint_t
     group_by( userid, night) %>%
     arrange(timestamp) %>%
     group_modify( ~find_staypoint_distance_night(.x,  max_jump_time, min_staypoint_time, max_staypoint_distance)) %>%
-    select( local_time, timestamp, n_staypoint, duration, everything()) %>%
+    select( timestamp, n_staypoint, duration, everything()) %>%
     filter( n_staypoint > 0)
 
 }
