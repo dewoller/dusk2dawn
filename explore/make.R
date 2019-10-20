@@ -165,7 +165,7 @@ my_combine <- function(...) {
 if(startsWith(Sys.info()['nodename'], 'lims')) {
   library(future.batchtools)
   future::plan(batchtools_slurm, template = "/home/group/wollersheimlab/slurm_batchtools.tmpl")
-  make(drakeplan, parallelism="future", jobs= 100, caching='worker', elapsed = Inf, retries = 3)
+  make(drakeplan, parallelism="future", jobs= 100, caching='worker', elapsed = Inf, retries = 1)
 } else {
 
   drakeplan %>%
