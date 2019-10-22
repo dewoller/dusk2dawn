@@ -87,9 +87,16 @@ drakeplan <- drake::drake_plan(
 
   ),
   staypoints_distance= target(
-                            find_staypoint_distance( filtered_data,  max_jump_time, min_staypoint_time, max_staypoint_distance ),
+                              find_staypoint_distance( filtered_data,  max_jump_time, min_staypoint_time, max_staypoint_distance ),
+                              transform=cross( filtered_data, 
+                                              max_jump_time = !!sp_max_jump_time_range, 
+                                              min_staypoint_time = !!sp_min_staypoint_time_range,
+                                              max_staypoint_distance  = !!sp_max_staypoint_distance_range  )
+  )
+  ,
+  meanshift_mode = target(
+                            find_meanshift_mode ( filtered_data,  min_staypoint_time, max_staypoint_distance ),
                             transform=cross( filtered_data, 
-                                            max_jump_time = !!sp_max_jump_time_range, 
                                             min_staypoint_time = !!sp_min_staypoint_time_range,
                                             max_staypoint_distance  = !!sp_max_staypoint_distance_range  )
   )
@@ -116,20 +123,25 @@ drakeplan <- drake::drake_plan(
 #####################################
   # get target timestamps
   # get survey data
- df_matching_survey = target( 
-                             get_matching_survey ( staypoints_distance,  df_survey_nested ),
-                             transform = map( staypoints_distance )),
+  df_matching_survey = target( 
+                              get_matching_survey ( staypoints_distance,  df_survey_nested ),
+                              transform = map( staypoints_distance ), .tag_out = matching_survey),
+                               #
+ df_matching_survey_mode = target( 
+                             get_matching_survey ( meanshift_mode,  df_survey_nested ),
+                             transform = map( meanshift_mode ), .tag_out = matching_survey),
   #
 #  a=head( df_all_staypoints_multi, 100),
   
 # df_matching_geography = target( 
 #                             calculate_sp_match_geography( staypoints_distance, df_target_locations_combined),
-#                             transform = map( staypoints_distance )),
-                               #
+#                             transform = map( staypoints_distance )
+  ),
 #
-  df_matching_survey_summarised = target( 
-                                        summarise_matching_surveys( df_matching_survey),
-                                        transform = map( df_matching_survey)),
+#
+df_matching_survey_summarised = target( 
+                                       summarise_matching_surveys( matching_survey),
+                                       transform = map( matching_survey)),
 #
 #  df_matching_geography_summarised = target( 
 #                              summarise_matching_geography( df_matching_geography),
