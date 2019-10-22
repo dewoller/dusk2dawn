@@ -8,10 +8,6 @@ library(tidyverse)
 library(janitor)
 library( raster )
 
-library(ctmm)
-needs(meanShiftR)
-needs(LPCM)
-needs(MeanShift)
 
 #install.packages('KernSmooth')
 #install.packages('ks')

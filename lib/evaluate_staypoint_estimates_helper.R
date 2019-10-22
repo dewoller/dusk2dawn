@@ -660,7 +660,7 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
 #  get_matching_survey 
 #********************************************************************************
 summarise_matching_surveys= function( df_matching_survey ) {
-# for each dataset, we want number of staypoings
+# for each dataset, we want number of staypoints
 
    df_matching_survey %>%
      group_by( userid, night) %>%

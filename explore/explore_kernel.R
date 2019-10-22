@@ -276,5 +276,32 @@ points(pts[!is.na( over(pts, polys[2]) )], col="blue", pch=20)
 
 contour(dens, levels=levels, labels=prob, add=T)
 
+library(spatstat)
+library(spatialEco)
+library(raster)
+data(bei)
 
-  
+d <- density(bei)
+d <- raster(d)
+plot(d)
+
+
+d.90 <- raster.vol(d, p = 0.90)
+d.80 <- raster.vol(d, p = 0.80)
+d.70 <- raster.vol(d, p = 0.70)
+d.60 <- raster.vol(d, p = 0.60)
+d.50 <- raster.vol(d, p = 0.50)
+d.40 <- raster.vol(d, p = 0.40)
+d.30 <- raster.vol(d, p = 0.30)
+d.20 <- raster.vol(d, p = 0.20)
+d.10 <- raster.vol(d, p = 0.10)
+
+
+d.vol <- d.90 + d.80 + d.70 + d.60 + d.50 + d.40 + d.30 + d.20 + d.10
+
+par(mfrow=c(2,1))
+plot(d)
+plot(d.vol, col = colorRampPalette(c("blue", "red"))(9), legend = FALSE) 
+legend("topright", legend=c("10%", "20%", "30%", "40%", "50%", "60%", 
+                            "70%", "80%", "90%"), fill = rev(colorRampPalette(c("blue", "red"))(9)), 
+       bg = "white", cex = 0.70)

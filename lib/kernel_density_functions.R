@@ -1,7 +1,17 @@
 
+
+################################################################################
+#test_interpolate_points 
+################################################################################
+
 test_interpolate_points = function() {
   interpolate_points(0, 10, 1, 1,1, 10,10 )
 }
+
+
+################################################################################
+#interpolate_points 
+################################################################################
 
 interpolate_points = function( timestamp, interval, period, longitude, latitude, longitude_next, latitude_next ) {
   #browser()
@@ -19,6 +29,10 @@ interpolate_points = function( timestamp, interval, period, longitude, latitude,
 
 
 
+################################################################################
+#test_interpolate_night 
+################################################################################
+
 
 test_interpolate_night = function() {
   #def interpolate(self, data_fc, dummy_fc, max_delay, freq, max_drop_time = 1, max_distance, verbose=True):
@@ -31,6 +45,10 @@ test_interpolate_night = function() {
   interpolate_locations( df_location,  max_delay , period, max_drop_time, max_distance )  -> a
 
 }
+
+################################################################################
+#interpolate_locations 
+################################################################################
 
 interpolate_locations = function( df,  max_delay = 120, period = 1, max_drop_time = 1, max_distance = 100 ) {
   # browser()
@@ -54,6 +72,91 @@ interpolate_locations = function( df,  max_delay = 120, period = 1, max_drop_tim
     { . } -> df_new_points
 
   bind_rows( dplyr::select( df, userid, night, latitude, longitude, timestamp), df_new_points )
+}
+
+m_per_latitude = 111320
+m_per_longitude = 111319.488
+desired_grid = 10 #meters
+#
+
+################################################################################
+# m2ll 
+################################################################################
+m2ll = function( m, base_ll, m_per_factor )  {
+  m/m_per_factor + base_ll 
+}
+#
+#
+
+
+################################################################################
+# ll2m
+################################################################################
+ll2m = function( ll, base_ll , m_per_factor )  {
+  (ll - base_ll ) * m_per_factor 
+}
+#
+
+
+################################################################################
+# find_meanshift_mode
+################################################################################
+find_meanshift_mode = function( df_location, min_staypoint_time, max_staypoint_distance ) {
+
+  df_location %>%
+    mutate( 
+           m_lat = ll2m( latitude, min(latitude), m_per_latitude),
+           m_lon = ll2m( longitude, min(longitude), m_per_longitude)
+           ) %>%
+    group_by( userid, night) %>%
+    group_modify( ~find_meanshift_mode_single_night (.x, min_staypoint_time, max_staypoint_distance)) %>%
+    filter( n_staypoint > 0) %>% 
+    { . } -> df1
+
+}
+
+################################################################################
+#find_meanshift_mode_single_night
+################################################################################
+debug(find_meanshift_mode_single_night)
+min_staypoint_time = 600 
+max_staypoint_distance = 10 
+
+find_meanshift_mode_single_night = function( df_location, min_staypoint_time = 600 , max_staypoint_distance = 10   ) {
+
+
+df_location %>%
+    mutate(ts = timestamp - min(timestamp)) %>%
+    dplyr::select( m_lat, m_lon, ts ) %>%
+    as.matrix() %>%
+    meanShiftR::meanShift(queryData=., trainData= ., iterations=100, alpha=0 ) %>% 
+    { . } -> f_ts1
+
+df_location %>%
+    bind_cols( list(label=f_ts1$assignment[,1], e_lat = f_ts1$value[,1], e_lon = f_ts1$value[,2] )) %>%
+    group_by(label) %>%
+    mutate( mn_lat = mean( m_lat) ) %>%
+    mutate( mn_lon = mean( m_lon) ) %>%
+    ungroup() %>%
+    mutate( dist = pdist(.[ c('m_lon', 'm_lat')], .[ c('mn_lon', 'mn_lat')])) %>%
+    filter( dist < max_staypoint_distance ) %>%
+    mutate( label = as.factor(label) ) %>%
+    group_by(label) %>%
+    mutate( duration = max(timestamp)-min(timestamp) ) %>% 
+    filter( duration > min_staypoint_time ) %>%
+    ungroup() %>%
+    mutate( n_staypoint = as.numeric( label)) %>%
+    dplyr::select( -label )
+}
+
+
+################################################################################
+#pdist 
+################################################################################
+
+
+pdist = function( x, y ) {
+  unlist(((x[1] - y[1])^2 + (x[2]-y[2])^2 ) ^.5 )
 }
 
 ################################################################################
@@ -213,6 +316,7 @@ getHighDensitySections_2d_single = function(  df, target_size=10 ) {
 }
 
 ################################################################################
+target_size = 10; xmin=NA; xmax=NA
 
 getHighDensitySections_2d = function( df, target_size = 10, xmin=NA, xmax=NA ) {
 
@@ -345,6 +449,138 @@ getHighDensitySections_2d = function( df, target_size = 10, xmin=NA, xmax=NA ) {
           bind_rows(rv) %>% 
           { . } -> rv
       }
+    }
+    contour_idx = contour_idx + contour_step
+  }
+  message("finishing")
+  rv
+}
+
+################################################################################
+
+
+
+
+getHighDensity_test = function( df, target_size = 10, xmin=NA, xmax=NA ) {
+
+
+  df %>%
+    dplyr::select( m_lat, m_lon) %>% 
+     kde()  %>% 
+     { . } -> kde_ll 
+
+  grid_x = kde_ll$eval.points[[1]][2] - kde_ll$eval.points[[1]][1]
+  grid_y = kde_ll$eval.points[[2]][2] - kde_ll$eval.points[[2]][1]
+
+
+
+  # move probabilty line up until we get something where
+  # the estimated x is within our target_size range
+  # zoom into the densest regions
+
+  found = FALSE
+  contours = paste0( 1:99, '%')
+  contour_idx = 1
+  contour_step = 5
+  rv = data.frame()
+
+  while (!found & contour_idx <= length(contours)) {
+
+    message(paste("inside", contours[contour_idx]), contour_idx)
+
+    # clump the density estimates above the current probability level
+    ifelse( kde_ll$estimate >= kde_ll$cont[ contours[contour_idx ] ], 1, 0 ) %>%
+      raster() %>%
+      raster::clump(directions=8) %>%
+      { . } -> clumps
+
+    m = function(x ) {
+      (!is.na( x )  ) & (as.matrix(x) == 1) 
+    }
+
+    !is.na( as.matrix(clumps )) &  (as.matrix(clumps)==1)
+
+    clumps %>%
+      as.matrix() %>%
+      m(.) %>%
+      which( arr.ind=TRUE) %>%
+      str()
+
+    freq(clumps) %>%
+      as_tibble() %>%
+      dplyr::filter( !is.na( value)) %>%
+      nrow() %>% 
+      { . } -> nclump
+
+    # if we have no clumps (from the bottom up), this is a bust, return NA
+    # if we have 1 clump of sufficiently small size, yeah!!
+    # otherwise, traverse all the clumps, zoom into them
+
+    if (nclump == 0) {
+      message(paste('no clumps found at contour ',contour_idx, contours[contour_idx] ))
+      found=FALSE
+      next
+    }
+
+
+    message(paste("nclump", nclump))
+    #browser()
+
+    # if we have a single clump, that is small enough, return it
+    # otherwise, zoom out until clump is small enough and return it
+    # or zoom into each specific clump
+    if( nclump == 1) {
+
+      # find the size of the current area, abort if so small that it crashes
+      contourArea =  0
+      contourArea =  tryCatch(  {
+        contourSizes( kde_ll, cont  = 100-contour_idx, approx=TRUE )
+      }, 
+      error = function(cond) {return(NA)}
+      )
+      #message(paste("contourArea", contourArea))
+
+      if( is.na( contourArea)) { 
+        contour_idx = contour_idx + contour_step
+        next
+      }
+
+      if ( contourArea < target_size^2 ) {
+        message( paste('found single small clump, size=', contourArea, 'prob=', contour_idx ))
+        return(kde_ll)
+      }
+    } else {
+
+        # zoom into each clump
+        # for each clump, find the extents of the clump
+
+        clumps %>%
+          as.matrix() %>% 
+          { . } -> clumps_m
+
+        which( !is.na( clumps_m ), arr.ind=TRUE) %>%
+          as_tibble() %>%
+          bind_cols( clumps_m[ which( !is.na(clumps_m )) ] %>% enframe('id', 'group') ) %>% 
+          # find the grid location for this clump point
+          mutate(
+                 x = kde_ll$eval.points[[1]][.$row], 
+                 y = kde_ll$eval.points[[2]][.$col]
+                 ) %>%
+          group_by( group ) %>%
+          summarise(
+                    min_x = min(x) - grid_x, 
+                    max_x = max(x) + grid_x, 
+                    min_y = min(y) - grid_y, 
+                    max_y = max(y) + grid_y
+                    ) %>% 
+                    { . } -> chunk_extents
+
+
+      df %>%
+        filter( m_lat >= chunk_extents[1,]$min_x & m_lat <= chunk_extents[1,]$max_x ) %>%
+        filter( m_lon >= chunk_extents[1,]$min_y & m_lon <= chunk_extents[1,]$max_y ) %>% 
+        { . } -> df
+
     }
     contour_idx = contour_idx + contour_step
   }
