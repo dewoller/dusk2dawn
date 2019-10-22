@@ -305,3 +305,14 @@ plot(d.vol, col = colorRampPalette(c("blue", "red"))(9), legend = FALSE)
 legend("topright", legend=c("10%", "20%", "30%", "40%", "50%", "60%", 
                             "70%", "80%", "90%"), fill = rev(colorRampPalette(c("blue", "red"))(9)), 
        bg = "white", cex = 0.70)
+
+
+library(spdep)
+
+localG
+globalG.test
+
+
+library(sf)
+library(tidyverse)
+sac.tracts.sf <- st_read("/tmp/sacmetrotracts.shp")

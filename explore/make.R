@@ -1,4 +1,10 @@
 
+if (startsWith(Sys.info()['nodename'], 'lims')) { 
+  currentMachine = "lims"
+} else (
+  currentMachine = Sys.info()['nodename']
+)
+
 
 load_function = function() {
   #source('lib/functions.R')
@@ -49,17 +55,19 @@ gh_minpoints_range=0:2*6+3
 accuracy_range = c(100,50,30,20,10)
 interpolation_delay_range = c(120, 300, 600)
 
-    max_expand_setting=99999999
-#    df_location_initial = get_df_single_location() 
-#    max_expand_setting=1
+if (currentMachine == "dewlap") {
+  max_expand_setting=1
+  df_location_initial = get_df_single_location() 
 
-df_location_initial = get_df_location()  
+} else {
+  max_expand_setting=99999999
+  df_location_initial = get_df_location()  
+}
 
 drakeplan <- drake::drake_plan(
-  #max_expand = max_expand_setting,
+  max_expand = max_expand_setting,
 #
   # load in the GPS individual locations information
-  #df_location = get_df_single_location() ,
   df_location = df_location_initial,
 ##
   #
@@ -96,7 +104,7 @@ drakeplan <- drake::drake_plan(
   ,
   meanshift_mode = target(
                             find_meanshift_mode ( filtered_data,  min_staypoint_time, max_staypoint_distance ),
-                            transform=cross( filtered_data, 
+                            transform=cross( interpolated_locations, 
                                             min_staypoint_time = !!sp_min_staypoint_time_range,
                                             max_staypoint_distance  = !!sp_max_staypoint_distance_range  )
   )
@@ -136,7 +144,7 @@ drakeplan <- drake::drake_plan(
 # df_matching_geography = target( 
 #                             calculate_sp_match_geography( staypoints_distance, df_target_locations_combined),
 #                             transform = map( staypoints_distance )
-  ),
+  #),
 #
 #
 df_matching_survey_summarised = target( 
@@ -174,20 +182,24 @@ my_combine <- function(...) {
 }
 
 
-if(startsWith(Sys.info()['nodename'], 'lims')) {
+if (currentMachine == "lims") {
+
   library(future.batchtools)
   future::plan(batchtools_slurm, template = "/home/group/wollersheimlab/slurm_batchtools.tmpl")
   make(drakeplan, parallelism="future", jobs= 100, caching='worker', elapsed = Inf, retries = 1)
-} else {
+
+} else if (currentMachine == "dewlap") {
 
   drakeplan %>%
     drake_config( ) %>%
     vis_drake_graph( )
+  #  drake_plan_source(drakeplan)
 
-#  drake_plan_source(drakeplan)
+} else if( currentMachine == "hermoine") {
 
   options(clustermq.scheduler = "multicore")
-#  make(drakeplan, parallelism="clustermq", jobs= parallel::detectCores() ,  memory_strategy = "autoclean"  )
+  make(drakeplan, parallelism="clustermq", jobs= parallel::detectCores() ,  memory_strategy = "autoclean"  )
+
 }
 
 #make(drakeplan)
