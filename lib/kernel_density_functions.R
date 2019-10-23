@@ -101,7 +101,7 @@ ll2m = function( ll, base_ll , m_per_factor )  {
 ################################################################################
 # find_meanshift_mode
 ################################################################################
-find_meanshift_mode = function( df_location, min_staypoint_time, max_staypoint_distance ) {
+find_meanshift_mode = function( df_location, min_staypoint_time, max_staypoint_distance, iterations=100, hm=10,ht = 600 ) {
 
   df_location %>%
     mutate( 
@@ -109,24 +109,21 @@ find_meanshift_mode = function( df_location, min_staypoint_time, max_staypoint_d
            m_lon = ll2m( longitude, min(longitude), m_per_longitude)
            ) %>%
     group_by( userid, night) %>%
-    group_modify( ~find_meanshift_mode_single_night (.x, min_staypoint_time, max_staypoint_distance)) %>%
+    group_modify( ~find_meanshift_mode_single_night (.x, min_staypoint_time, max_staypoint_distance, iterations, hm,ht)) %>%
     filter( n_staypoint > 0) 
-
-
 }
-
 ################################################################################
 #find_meanshift_mode_single_night
 ################################################################################
 
-find_meanshift_mode_single_night = function( df_location, min_staypoint_time = 600 , max_staypoint_distance = 10   ) {
+find_meanshift_mode_single_night = function( df_location, min_staypoint_time = 600 , max_staypoint_distance = 10 , iterations, hm,ht  ) {
 
 
 df_location %>%
     mutate(ts = timestamp - min(timestamp)) %>%
     dplyr::select( m_lat, m_lon, ts ) %>%
     as.matrix() %>%
-    meanShiftR::meanShift(queryData=., trainData= ., iterations=100, alpha=0 ) %>% 
+    meanShiftR::meanShift(queryData=., trainData= ., iterations=iterations, bandwidth=c( hm, hm, ht)) %>% 
     { . } -> f_ts1
 
 df_location %>%

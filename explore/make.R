@@ -54,6 +54,9 @@ gh_precision_range=7:9
 gh_minpoints_range=0:2*6+3
 accuracy_range = c(100,50,30,20,10)
 interpolation_delay_range = c(120, 300, 600)
+iterations_range=c(10,100,1000)
+hm_range =  = c( 1, 10, 100)
+ht_range = (6, 60, 600 )
 
 if (currentMachine == "dewlap") {
   max_expand_setting=1
@@ -103,10 +106,13 @@ drakeplan <- drake::drake_plan(
   )
   ,
   meanshift_mode = target(
-                            find_meanshift_mode ( filtered_data,  min_staypoint_time, max_staypoint_distance ),
+                            find_meanshift_mode ( filtered_data,  min_staypoint_time, max_staypoint_distance, iterations, ht, hr ),
                             transform=cross( interpolated_locations, 
                                             min_staypoint_time = !!sp_min_staypoint_time_range,
-                                            max_staypoint_distance  = !!sp_max_staypoint_distance_range  )
+                                            max_staypoint_distance  = !!sp_max_staypoint_distance_range ,
+                                            iterations = !!iterations_range ,
+                                            hr = !!hr_range ,
+                                            ht = !!ht_range )
   )
   ,
 #
