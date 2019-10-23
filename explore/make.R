@@ -55,8 +55,8 @@ gh_minpoints_range=0:2*6+3
 accuracy_range = c(100,50,30,20,10)
 interpolation_delay_range = c(120, 300, 600)
 iterations_range=c(10,100,1000)
-hm_range =  = c( 1, 10, 100)
-ht_range = (6, 60, 600 )
+hm_range =  c( 1, 10, 100)
+ht_range = c(6, 60, 600 )
 
 if (currentMachine == "dewlap") {
   max_expand_setting=1
@@ -106,12 +106,12 @@ drakeplan <- drake::drake_plan(
   )
   ,
   meanshift_mode = target(
-                            find_meanshift_mode ( filtered_data,  min_staypoint_time, max_staypoint_distance, iterations, ht, hr ),
+                            find_meanshift_mode ( filtered_data,  min_staypoint_time, max_staypoint_distance, iterations, hm, ht ),
                             transform=cross( interpolated_locations, 
                                             min_staypoint_time = !!sp_min_staypoint_time_range,
                                             max_staypoint_distance  = !!sp_max_staypoint_distance_range ,
                                             iterations = !!iterations_range ,
-                                            hr = !!hr_range ,
+                                            hm = !!hm_range ,
                                             ht = !!ht_range )
   )
   ,
@@ -155,7 +155,7 @@ drakeplan <- drake::drake_plan(
 #
 df_matching_survey_summarised = target( 
                                        summarise_matching_surveys( matching_survey),
-                                       transform = map( matching_survey)),
+                                       transform = cross( matching_survey )),
 #
 #  df_matching_geography_summarised = target( 
 #                              summarise_matching_geography( df_matching_geography),
