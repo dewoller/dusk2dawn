@@ -185,7 +185,7 @@ my_combine <- function(...) {
 if (currentMachine == "lims") {
 
   library(future.batchtools)
-  future::plan(batchtools_slurm, template = "/home/group/wollersheimlab/slurm_batchtools.tmpl")
+  future::plan(batchtools_slurm, template = "slurm_batchtools.tmpl")
   make(drakeplan, parallelism="future", jobs= 100, caching='worker', elapsed = Inf, retries = 1)
 
 } else if (currentMachine == "dewlap") {
