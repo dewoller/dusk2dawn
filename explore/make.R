@@ -5,6 +5,8 @@ if (startsWith(Sys.info()['nodename'], 'lims')) {
   currentMachine = Sys.info()['nodename']
 )
 
+currentMachine = "hermoine"
+
 
 load_function = function() {
   #source('lib/functions.R')
@@ -20,7 +22,6 @@ load_library = function() {
 #
   library(raster)
  library(RPostgreSQL)
-#  library(sf)
   library(tidyverse)
   library(lubridate)
   library(drake)
@@ -39,6 +40,7 @@ load_library = function() {
   library(zoo)
   library(glue)
   library(tibbletime)
+#      library(sf)
 }
 
 load_library()
