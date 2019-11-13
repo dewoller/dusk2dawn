@@ -1,18 +1,12 @@
 loadd(meanshift_mode_300_10_10_100_6_interpolated_locations_300_filtered_accuracy_100)
 loadd(df_survey_nested )
-loadd(df_all_ts)
 
 df_survey_nested  = df_all_ts_nested
 
-get_matching_survey ( meanshift_mode_300_10_10_100_6_interpolated_locations_300_filtered_accuracy_100,  df_survey_nested )
 
-debug(get_matching_survey)
+df_staypoints  = readd(df_matching_survey_staypoints_distance_120_600_10_filtered_accuracy_20)
 
-meanshift_mode_300_10_10_100_6_interpolated_locations_300_filtered_accuracy_100
-
-df_staypoints  = meanshift_mode_300_10_10_100_6_interpolated_locations_300_filtered_accuracy_100
-
-get_matching_survey ( meanshift_mode,  df_survey_nested )
+get_matching_survey ( df_staypoints  ,  df_survey_nested )
 
 df_survey_nested = get_df_survey_nested ( df_all_ts ) 
 
@@ -59,16 +53,17 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
   if(nrow(df) != 0 ) {
 
     df %>%
-      unnest() %>%
       group_by( userid, night, n_staypoint ) %>%
       mutate( minutes_since_arrival = round(( timestamp_start.x - min( timestamp_start.y))/60,2)) %>%
       arrange( timestamp_start.x) %>%
       summarise( which_survey = paste(which, minutes_since_arrival, collapse=',')) %>%
       ungroup() %>% 
       { . } -> df
+
   }
+
   df %>%
-    inner_join( df_sp_total, by=qc(userid, night))
+    right_join( df_sp_total, by=qc(userid, night))
 
 }
 

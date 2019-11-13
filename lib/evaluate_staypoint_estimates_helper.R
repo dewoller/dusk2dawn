@@ -617,6 +617,10 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
   # match all staypoints up to surveys, return df with single line per userid, night and staypoint 
   # with MATCH FOUND, matches in /which_survey/
 
+  if (nrow( df_staypoints) == 0) {
+    return( tibble( ))
+  }
+
   maximum_seconds_distant = 5*60
   df_staypoints  %>%
     group_by( userid, night) %>% 
