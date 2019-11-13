@@ -204,6 +204,7 @@ if (currentMachine == "lims") {
   #  drake_plan_source(drakeplan)
 
 } else if( currentMachine == "hermoine") {
+  library(sf)
 
   options(clustermq.scheduler = "multicore")
   make(drakeplan, parallelism="clustermq", jobs= parallel::detectCores() ,  memory_strategy = "autoclean"  )

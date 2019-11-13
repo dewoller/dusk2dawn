@@ -597,14 +597,16 @@ get_df_sp_no_bar = function(   df_staypoints , df_sp_joined_geography  ) {
 #********************************************************************************
 
 get_df_survey_nested = function( df_all_ts ) {
+
   df_all_ts  %>%
     mutate( userid = as.character( userid)) %>%
     group_by( userid, night ) %>%
     mutate( timestamp_start=timestamp, timestamp_end=timestamp) %>%
     select( timestamp_start, timestamp_end, which, userid, night) %>%
-    nest( .key='surveys') %>% 
+    nest( surveys = c(starts_with('timestamp'), which )) %>% 
     { . } -> df_all_ts_nested
   df_all_ts_nested
+
 }
 
 
@@ -627,37 +629,36 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
               timestamp_start = min(timestamp), 
               timestamp_end = max(timestamp)) %>%
     group_by( userid, night ) %>%
-    nest( .key='staypoints') %>%
+    nest(  staypoints = c( n_staypoint, starts_with('timestamp'), ends_with('itude'))) %>%
     inner_join( df_survey_nested , by=c('userid', 'night')) %>% 
     group_by( userid, night ) %>%
-    do( joined = interval_inner_join( data.frame(.$surveys), 
-                                     data.frame(.$staypoints), 
-                                     by=c('timestamp_start','timestamp_end'),
+    do( joined = interval_inner_join( .$surveys[[1]], .$staypoints[[1]], by=c('timestamp_start','timestamp_end'),
                                      maxgap=maximum_seconds_distant ))  %>%
+    unnest( joined ) %>%
     ungroup() %>% 
     { . } -> df 
 
   if(nrow(df) != 0 ) {
 
     df %>%
-      unnest() %>%
       group_by( userid, night, n_staypoint ) %>%
       mutate( minutes_since_arrival = round(( timestamp_start.x - min( timestamp_start.y))/60,2)) %>%
       arrange( timestamp_start.x) %>%
       summarise( which_survey = paste(which, minutes_since_arrival, collapse=',')) %>%
       ungroup() %>% 
       { . } -> df
+
   }
+
   df %>%
-    inner_join( df_sp_total, by=qc(userid, night))
+    right_join( df_sp_total, by=qc(userid, night))
 
 }
 
 
 
-
 #********************************************************************************
-#  get_matching_survey 
+#  summarise_matching_surveys
 #********************************************************************************
 summarise_matching_surveys= function( df_matching_survey ) {
 # for each dataset, we want number of staypoints
