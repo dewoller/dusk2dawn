@@ -156,18 +156,30 @@ drakeplan <- drake::drake_plan(
 #
 #
 df_matching_survey_summarised = target( 
-                                       summarise_matching_surveys( matching_survey),
-                                       transform = cross( matching_survey )),
+                                   summarise_matching_surveys( matching_survey),
+                                      transform = cross( matching_survey )),
+#
+df_matching_survey_summarised_mode = target( 
+                                       summarise_matching_surveys( df_matching_survey_mode ),
+                                       transform = cross( df_matching_survey_mode )),
 #
 #  df_matching_geography_summarised = target( 
 #                              summarise_matching_geography( df_matching_geography),
 #                              transform = map( df_matching_geography)),
 #
 # dq_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ), 
- df_all_sp_match_survey = target( 
-                      my_combine( df_matching_survey_summarised) , 
+
+df_all_sp_match_survey = target( 
+                                my_combine( df_matching_survey_summarised) , 
+                                #gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source), 
+                                transform = combine(df_matching_survey_summarised )),
+
+ df_all_sp_match_survey_mode = target( 
+                      my_combine( df_matching_survey_summarised_mode) , 
                       #gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source), 
-                      transform = combine(df_matching_survey_summarised )),
+                      transform = combine(df_matching_survey_summarised_mode)),
+
+
   #
   #wflow_publish(knitr_in("analysis/evaluate_staypoint_estimates.Rmd"), view = FALSE),
 trace=TRUE
