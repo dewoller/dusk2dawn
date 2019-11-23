@@ -614,19 +614,23 @@ get_df_survey_nested = function( df_all_ts ) {
 #  get_matching_survey 
 #********************************************************************************
 get_matching_survey = function( df_staypoints,  df_survey_nested ) {
-  # match all staypoints up to surveys, return df with single line per userid, night and staypoint 
+  # match all staypoints up to surveys, 
+  # return df with single line per userid, night and staypoint 
   # with MATCH FOUND, matches in /which_survey/
 
   if (nrow( df_staypoints) == 0) {
     return( tibble( ))
   }
 
+  # keep track of ALL staypoints found so we don't lose any staypoints
+  # when we join them to the surveys in the next step
   maximum_seconds_distant = 5*60
   df_staypoints  %>%
     group_by( userid, night) %>% 
     summarise( sp_total = max( n_staypoint)) %>% 
     { . } -> df_sp_total
 
+  # which staypoints match survey timestamps
   df_staypoints  %>%
     group_by( userid, night, n_staypoint ) %>%
     summarise( longitude = mean(longitude), latitude = mean(latitude), 
@@ -665,13 +669,15 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
 #  summarise_matching_surveys
 #********************************************************************************
 summarise_matching_surveys= function( df_matching_survey ) {
-# for each dataset, we want number of staypoints
+# for each dataset, we want the total:
+# number of staypoints (sp_total), and the number of staypoints that matched surveys (survey_total)
 
    df_matching_survey %>%
-     group_by( userid, night) %>%
-    summarise( sp_total = max(sp_total), surveys_total=n()) %>%
+    group_by( userid, night) %>%
+    summarise( sp_total = max(sp_total), surveys_total=sum( is.na( n_staypoint ))) %>%
     ungroup() %>%
     summarise( sp_total=sum(sp_total), surveys_total = sum( surveys_total))
+
 }
 
 
