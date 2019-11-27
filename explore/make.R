@@ -49,8 +49,8 @@ load_function()
 
 logFileName = 'staypoint_estimation.log'
 sp_min_staypoint_time_range=c(5,10, 15)*60
-sp_max_jump_time_range=c(2,5,10)*60
-sp_max_staypoint_distance_range= c(10,20,40)
+sp_max_jump_time_range=c(2,5,10,240)*60
+sp_max_staypoint_distance_range= c(10,20,40,100)
 sigma_range=c(.5, 1, 2, 3, 100)
 gh_precision_range=7:9
 gh_minpoints_range=0:2*6+3
