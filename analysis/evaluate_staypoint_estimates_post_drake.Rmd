@@ -1,0 +1,204 @@
+---
+title: "Staypoint estimate analysis post Drake"
+output:
+  workflowr::wflow_html
+---
+
+
+# Determine which staypoint parameters work the best
+
+## staypoint parameters 
+The staypoint determination algorithm uses 4 variables;
+ - min_staypoint_time  - minimum time, in minutes, that must stay within max_staypoint_distance
+ * max_jump_time - maximum time, in minutes, between readings
+
+## Tests for good staypoint parameters
+
+ - See if they match the survey data timestamps - we assume that survey data timestamps correspond to staypoints
+ * see if they match drinking establishment locations
+ * see if they match home locations - todo later 4 
+
+```{r intro, results='hide', message=FALSE, warning=FALSE, cache=FALSE}
+options(warn=-1)
+library( knitr )
+opts_chunk$set(cache=TRUE, autodep=TRUE, eval=TRUE)
+
+library(tidyverse)
+library(drake)
+library(wrapr)
+library(skimr)
+library(treemap)
+
+
+
+```
+
+```{r load_data, eval=TRUE}
+
+
+# load in the individual locations information
+
+
+```
+
+
+# Reports - Staypoints evaluated according to geography
+
+```{r show_staypoints_geography}
+
+loadd(df_all_sp_match_survey ) 
+
+df_all_sp_match_survey %>%
+  group_by( source ) %>%
+  summarise( sp_total = n(), surveys_total= sum(!is.na( which))) %>% 
+  mutate( rate = surveys_total / sp_total) %>%
+  arrange( desc( rate )) %>% 
+  separate( col=source, 
+           into=c(NA, NA, qc(type, min_staypoint_time, max_jump_time, max_staypoint_distance, rest)), 
+           sep='_', 
+           convert=TRUE, 
+           extra='merge',
+           remove=FALSE)  %>% 
+           { . } -> df_geography_matches 
+
+df_geography_matches  %>%
+  filter( max_staypoint_distance < 40 ) %>%
+  filter( max_jump_time > 120 ) %>%
+  ggplot(  aes( sp_total, surveys_total, color=type )) +
+  geom_point() + 
+  facet_grid( min_staypoint_time ~ max_staypoint_distance)
+
+loadd(df_all_sp_match_survey_mode)
+
+df_all_sp_match_survey_mode %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, 'interpolated_', 'interpolated.')) %>%
+  mutate( source = str_replace( source, 'filtered_', 'filtered.')) %>%
+  mutate( source = str_replace( source, 'filtered_accuracy', 'filtered.accuracy')) %>% 
+  { . } -> df2
+
+
+df_all_sp_match_survey %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, '_', '.')) %>%
+  mutate( source = str_replace( source, 'interpolated_', 'interpolated.')) %>%
+  mutate( source = str_replace( source, 'filtered_', 'filtered.')) %>%
+  mutate( source = str_replace( source, 'filtered_accuracy', 'filtered.accuracy')) %>% 
+  { . } -> df1
+
+df1 %>%  
+  as.Node( pathName = 'source', pathDelimiter='_') %>% 
+  { . } -> tree
+
+
+df2 %>%  
+  as.Node( pathName = 'source', pathDelimiter='_') %>% 
+  { . } -> tree2
+
+
+df1 %>% 
+  separate( col=source, 
+            into=c( paste('sp', 10:17, sep='') ), 
+            sep='_', 
+            convert=TRUE, 
+            extra='merge',
+            remove=FALSE)  %>% 
+distinct( sp14) %>%
+
+
+  dplyr::rename( interpol=ms17, filter=ms15) %>%
+            { . } -> cols1
+
+
+df2 %>% 
+  separate( col=source, 
+           into=c( paste('ms', 10:19, sep='') ), 
+            sep='_', 
+            convert=TRUE, 
+            extra='merge',
+            remove=FALSE)  %>% 
+  dplyr::rename( interpol=ms17, filter=ms19) %>%
+  dplyr::select(-ms16, -ms18, -ms10) %>%
+  { . } -> cols2
+
+
+
+df_geography_matches %>%
+  ggplot( aes(x=(max_jump_time), y=surveys_total, fill=as.character(max_jump_time) )) +
+  geom_boxplot()
+
+df_geography_matches %>%
+  ggplot( aes(x=(max_staypoint_distance), y=surveys_total, fill=as.character( max_staypoint_distance) )) +
+  geom_boxplot()
+
+df_geography_matches %>%
+  ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
+  geom_boxplot()
+
+df_geography_matches %>%
+  ggplot( aes(x=(max_jump_time), y=surveys_total/sp_total, fill=as.character(max_jump_time) )) +
+  geom_boxplot()
+
+df_geography_matches %>%
+  ggplot( aes(x=(max_staypoint_distance), y=surveys_total/sp_total, fill=as.character( max_staypoint_distance) )) +
+  geom_boxplot()
+
+df_geography_matches %>%
+  ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
+  geom_boxplot()
+
+df_geography_matches %>%
+  ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
+  geom_boxplot() + 
+  facet_wrap( .~max_staypoint_distance)
+
+
+df_geography_matches %>%
+  ggplot( aes(x=(max_jump_time), y=surveys_total, fill=as.character(max_jump_time) )) +
+  geom_boxplot() + facet_wrap(~type)
+
+df_geography_matches %>%
+  ggplot( aes(x=(max_staypoint_distance), y=surveys_total, fill=as.character( max_staypoint_distance) )) +
+  geom_boxplot() + facet_wrap(~type)
+
+df_geography_matches %>%
+  ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
+  geom_boxplot()
+
+df_geography_matches %>%
+  ggplot( aes(x=(max_jump_time), y=surveys_total/sp_total, fill=as.character(max_jump_time) )) +
+  geom_boxplot() + facet_wrap(~type)
+
+df_geography_matches %>%
+  ggplot( aes(x=(max_staypoint_distance), y=surveys_total/sp_total, fill=as.character( max_staypoint_distance) )) +
+  geom_boxplot() + facet_wrap(~type)
+
+df_geography_matches %>%
+  ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
+  geom_boxplot() + facet_wrap(~type)
+
+df_geography_matches %>%
+  ggplot( aes(x=(min_staypoint_time), y=surveys_total/sp_total, fill=as.character( min_staypoint_time) )) +
+  geom_boxplot() + 
+  facet_grid( type~max_staypoint_distance)
+
+
+```
+
+
+

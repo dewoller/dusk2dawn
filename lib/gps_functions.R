@@ -93,6 +93,7 @@ calculate_distance_roll = tibbletime::rollify( calculate_distance, window=2)
 
 ################################################################################
 # findStayPoint 
+# all times are in seconds
 ################################################################################
 
 find_staypoint_distance_night = function (df, max_jump_time = 900, min_staypoint_time = 180, max_staypoint_distance  = 20) {
