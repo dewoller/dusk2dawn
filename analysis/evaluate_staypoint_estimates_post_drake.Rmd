@@ -16,7 +16,7 @@ The staypoint determination algorithm uses 4 variables;
 
  - See if they match the survey data timestamps - we assume that survey data timestamps correspond to staypoints
  * see if they match drinking establishment locations
- * see if they match home locations - todo later 4 
+ * see if they match home locations - todo later 
 
 ```{r intro, results='hide', message=FALSE, warning=FALSE, cache=FALSE}
 options(warn=-1)
@@ -28,6 +28,7 @@ library(drake)
 library(wrapr)
 library(skimr)
 library(treemap)
+library(data.tree)
 
 
 
@@ -35,8 +36,100 @@ library(treemap)
 
 ```{r load_data, eval=TRUE}
 
+source('lib/load_data_post_drake.R')
+# df_results
 
-# load in the individual locations information
+```
+
+# what exact surveys are matched
+## first, what is the distribution of survey types overall
+
+```{r }
+
+df_all_ts %>%
+  ungroup() %>%
+  count( which )
+
+```
+
+## second, distribution of surveys found by a single algorithm 
+
+
+```{r }
+
+
+readd(df_matching_survey_mode_meanshift_mode_300_10_10_1_6_interpolated_locations_120_filtered_accuracy_100) %>%
+  filter( !is.na(which_survey)) %>%
+  mutate( surveys = str_replace_all(which_survey, '[0-9. -]*','')) %>%
+  separate( surveys, paste0('a_', 0:9)) %>% 
+  select( userid, night, starts_with('a_' )) %>%
+  tidyr::gather( junk, survey, -userid, -night ) %>%
+  filter( !is.na( survey )) %>%
+  count( survey) 
+
+```
+
+# TODO - do some basic error checking on survey matching algorithm
+# Dataset description
+
+## matching staypoint determination algorithms
+  3 parameters
+
+##  noise filtering
+  1) accuracy
+  2) geohash
+  3) sigma v1 and v2
+
+## data augmentation
+  * filter accuracy, then interpolation
+
+## modeshift 
+ 5 parameters- 
+  * filter accuracy, then interpolation
+
+#  plan
+
+measure percentage capture of all surveys
+
+find best noise filtering
+compare filter accuracy and filtered augmented accuracy
+
+compare everything at once
+
+compare different  match parameter sets
+
+
+# compare algorithms
+
+```{r plan, eval=TRUE}
+
+
+df_results  %>%
+  ggplot( aes( algorithm, survey_rate)) +
+  geom_boxplot()
+
+
+df_results  %>%
+  ggplot( aes( algorithm, sp_total)) +
+  geom_boxplot()
+
+df_results  %>%
+  mutate( magnitude = cut( surveys_total, 6 )) %>%
+  select( algorithm, survey_rate, magnitude) %>%
+  ggplot( aes( algorithm, survey_rate)) +
+  geom_boxplot() +
+  facet_wrap( ~magnitude ) + 
+  ggtitle( "compare algorithms faceted by number of points retrieved")
+
+
+df_results  %>%
+  filter( !is.na( interpol)) %>%
+  ggplot( aes( interpol, survey_rate)) +
+  geom_boxplot() +
+  facet_wrap( ~algorithm ) + 
+  ggtitle( "compare algorithms faceted by number of points retrieved")
+
+
 
 
 ```
@@ -46,7 +139,6 @@ library(treemap)
 
 ```{r show_staypoints_geography}
 
-loadd(df_all_sp_match_survey ) 
 
 df_all_sp_match_survey %>%
   group_by( source ) %>%
@@ -67,75 +159,6 @@ df_geography_matches  %>%
   ggplot(  aes( sp_total, surveys_total, color=type )) +
   geom_point() + 
   facet_grid( min_staypoint_time ~ max_staypoint_distance)
-
-loadd(df_all_sp_match_survey_mode)
-
-df_all_sp_match_survey_mode %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, 'interpolated_', 'interpolated.')) %>%
-  mutate( source = str_replace( source, 'filtered_', 'filtered.')) %>%
-  mutate( source = str_replace( source, 'filtered_accuracy', 'filtered.accuracy')) %>% 
-  { . } -> df2
-
-
-df_all_sp_match_survey %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, 'interpolated_', 'interpolated.')) %>%
-  mutate( source = str_replace( source, 'filtered_', 'filtered.')) %>%
-  mutate( source = str_replace( source, 'filtered_accuracy', 'filtered.accuracy')) %>% 
-  { . } -> df1
-
-df1 %>%  
-  as.Node( pathName = 'source', pathDelimiter='_') %>% 
-  { . } -> tree
-
-
-df2 %>%  
-  as.Node( pathName = 'source', pathDelimiter='_') %>% 
-  { . } -> tree2
-
-
-df1 %>% 
-  separate( col=source, 
-            into=c( paste('sp', 10:17, sep='') ), 
-            sep='_', 
-            convert=TRUE, 
-            extra='merge',
-            remove=FALSE)  %>% 
-distinct( sp14) %>%
-
-
-  dplyr::rename( interpol=ms17, filter=ms15) %>%
-            { . } -> cols1
-
-
-df2 %>% 
-  separate( col=source, 
-           into=c( paste('ms', 10:19, sep='') ), 
-            sep='_', 
-            convert=TRUE, 
-            extra='merge',
-            remove=FALSE)  %>% 
-  dplyr::rename( interpol=ms17, filter=ms19) %>%
-  dplyr::select(-ms16, -ms18, -ms10) %>%
-  { . } -> cols2
-
 
 
 df_geography_matches %>%
