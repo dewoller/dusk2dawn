@@ -62,6 +62,7 @@ get_df_all_ts <- function( df_all ) {
     ungroup() %>%
     group_by( which, timestamp, userid, night ) %>%
     summarise( id = min(id)) %>%
+    ungroup() %>%
     { . } -> df_all_ts
 
    df_all_ts

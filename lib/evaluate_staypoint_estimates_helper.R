@@ -652,7 +652,7 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
       group_by( userid, night, n_staypoint ) %>%
       mutate( minutes_since_arrival = round(( timestamp_start.x - min( timestamp_start.y))/60,2)) %>%
       arrange( timestamp_start.x) %>%
-      summarise( which_survey = paste(which, minutes_since_arrival, collapse=',')) %>%
+      summarise( which_survey = paste('ID:', id, 'SURVEY:', which, 'MINUTES:', minutes_since_arrival, collapse=',')) %>%
       ungroup() %>% 
       { . } -> df
 
