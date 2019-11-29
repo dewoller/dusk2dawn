@@ -9,7 +9,7 @@ if (!"ncpus" %in% names(resources)) {
   resources$ncpus = 1
 }
 -%>
-#SBATCH --partition=manyjobs
+#SBATCH --partition=compute
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 
