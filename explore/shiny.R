@@ -1,3 +1,6 @@
+# post drake shiny
+# just display an existing usernight, 
+# discovered staypoints, along with survey locations and bars
 needs( 'fuzzyjoin')
 needs('IRanges')
 library(shiny)
@@ -10,6 +13,13 @@ library(wrapr)
 source('lib/get_data.R')
 source('lib/gps_functions.R')
 
+cached() %>%
+
+a %>%
+  enframe() %>%
+  select(value) %>%
+  dplyr::rename( dataset = value) %>%
+  filter( startsWith( dataset, 'staypoints_distance')) %>%
 
 
 dfm_osm_amenities= readRDS('data/shiny/df_osm_amenities.rds')
@@ -38,20 +48,6 @@ runApp(list(
                      sidebarPanel(
                             actionButton("goButton", "Go!"),
                             selectInput("person_night", label = "person", choices = df_people_nights$id),
-                            sliderInput('max_jump_time', 'max_jump_time (seconds)', 300 , 900, 300, step = 100) ,
-                            sliderInput('min_staypoint_time', 'min_staypoint_time (seconds)', 300 , 1800, 300, step = 300) ,
-                            sliderInput('max_staypoint_distance', 'max_staypoint_distance  (m)', 2 , 50, 50, step = 2) ,
-                            checkboxGroupInput("pruning_algo", label = h3("Pruning Algorith?"), 
-                                               choices = list(
-                                                              "outlier" =  "outlier" ,
-                                                              "geohash" ="geohash" 
-                                                              ),
-                                               selected='geohash'),
-                            sliderInput('sigma', 'outlier sigma (sd)', .5 , 3, 1, step = .5) ,
-                            sliderInput('outlier_width', 'outlier width', 3 , 15, 15, step = 1) ,
-                            sliderInput('geohash_precision', 'geohash precision', 5 , 10, 7, step = 1) ,
-                            sliderInput('geohash_n', 'geohash consec points', 2 , 20, 3, step = 1) ,
-
                             checkboxGroupInput("show_what", label = h3("Display?"), 
                                                choices = list(
                                                               "OSM leisure (grey)" =  "OSM leisure" ,
@@ -71,9 +67,6 @@ runApp(list(
         scale_big = 0.5
         scale_medium = 0.3
         scale_small = 0.05
-        observeEvent(input$browser,{
-                       browser()
-               })
 
         df_location_single = reactive({
           df_location %>%
