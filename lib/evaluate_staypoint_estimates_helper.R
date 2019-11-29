@@ -602,8 +602,8 @@ get_df_survey_nested = function( df_all_ts ) {
     mutate( userid = as.character( userid)) %>%
     group_by( userid, night ) %>%
     mutate( timestamp_start=timestamp, timestamp_end=timestamp) %>%
-    select( timestamp_start, timestamp_end, which, userid, night) %>%
-    nest( surveys = c(starts_with('timestamp'), which )) %>% 
+    dplyr::select( id, timestamp_start, timestamp_end, which, userid, night) %>%
+    nest( surveys = c(starts_with('timestamp'), which , id)) %>% 
     { . } -> df_all_ts_nested
   df_all_ts_nested
 
