@@ -32,8 +32,8 @@ get_df_all <- function( ) {
   read.csv('data/EveningMasterFullAnonym.csv') %>% 
     as_tibble %>% 
     dplyr::rename( userid=user ) %>%
-    mutate( night =  ymd(sprintf('2014%04.0f', day ))) %>% 
-    mutate( id = row_number())
+    mutate( night =  ymd(sprintf('2014%04.0f', day ))) 
+
 }
 
 
@@ -41,13 +41,13 @@ get_df_all <- function( ) {
 get_df_all_ts <- function( df_all ) {
 
   df_all %>% 
-    select( id, ends_with('timestamp'))  %>% 
+    dplyr::select( id, ends_with('timestamp'))  %>% 
     tidyr::gather( which, timestamp , -id ) %>%
     mutate( which = str_replace( which, "_.*","")) %>%
     { . } -> ts
 
   df_all %>% 
-    select( id, ends_with('timezone_id'))  %>% 
+    dplyr::select( id, ends_with('timezone_id'))  %>% 
     tidyr::gather( which, timezone , -id ) %>%
     mutate( which = str_replace( which, "_.*","")) %>%
     { . } -> tz
@@ -58,7 +58,10 @@ get_df_all_ts <- function( df_all ) {
     group_by( timezone ) %>%
     mutate( ts = ymd_hms( timestamp, tz=min( timezone))) %>%   # TODO: maybe igmore timezone?
     mutate( timestamp= seconds( ts )) %>% 
-    inner_join( select( df_all, id, userid, night), by='id') %>%
+    inner_join( dplyr::select( df_all, id, userid, night), by='id') %>%
+    ungroup() %>%
+    group_by( which, timestamp, userid, night ) %>%
+    summarise( id = min(id)) %>%
     { . } -> df_all_ts
 
    df_all_ts
