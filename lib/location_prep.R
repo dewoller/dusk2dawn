@@ -32,7 +32,8 @@ get_df_all <- function( ) {
   read.csv('data/EveningMasterFullAnonym.csv') %>% 
     as_tibble %>% 
     dplyr::rename( userid=user ) %>%
-    mutate( night =  ymd(sprintf('2014%04.0f', day ))) 
+    mutate( night =  ymd(sprintf('2014%04.0f', day )))  %>%
+    mutate_if( is.factor, as.character)
 
 }
 
@@ -40,29 +41,31 @@ get_df_all <- function( ) {
 # get timestamp information from survey data
 get_df_all_ts <- function( df_all ) {
 
-  df_all %>% 
-    dplyr::select( id, ends_with('timestamp'))  %>% 
-    tidyr::gather( which, timestamp , -id ) %>%
-    mutate( which = str_replace( which, "_.*","")) %>%
-    { . } -> ts
 
-  df_all %>% 
-    dplyr::select( id, ends_with('timezone_id'))  %>% 
-    tidyr::gather( which, timezone , -id ) %>%
-    mutate( which = str_replace( which, "_.*","")) %>%
-    { . } -> tz
+  #survey_type='pre'
+  get_one_survey_type = function( df_all, survey_type)   {
+    df_all %>%
+      dplyr::select( userid, night, starts_with( paste0( survey_type, '_'))) %>%
+      dplyr::select( userid, night, ends_with( '_timestamp'), ends_with('_timezone_id')) %>%
+      distinct()  %>%
+      dplyr::rename( timestamp=3, timezone=4) %>%
+      mutate(which=survey_type ) %>%
+      filter( timestamp != "")
+  }
 
-
-  inner_join( ts, tz, by = c("id", "which")    ) %>% 
-    filter( timestamp != '') %>%
-    group_by( timezone ) %>%
+  bind_rows(
+            get_one_survey_type( df_all, 'dq'),
+            get_one_survey_type( df_all, 'env'),
+            get_one_survey_type( df_all, 'forg'),
+            get_one_survey_type( df_all, 'video'),
+            get_one_survey_type( df_all, 'load'),
+            get_one_survey_type( df_all, 'pre'),
+            get_one_survey_type( df_all, 'tom')
+            ) %>%
+    group_by( timezone ) %>% # group together all the same timezones so  that calculation is faster
     mutate( ts = ymd_hms( timestamp, tz=min( timezone))) %>%   # TODO: maybe igmore timezone?
+    ungroup() %>%
     mutate( timestamp= seconds( ts )) %>% 
-    inner_join( dplyr::select( df_all, id, userid, night), by='id') %>%
-    ungroup() %>%
-    group_by( which, timestamp, userid, night ) %>%
-    summarise( id = min(id)) %>%
-    ungroup() %>%
     { . } -> df_all_ts
 
    df_all_ts
