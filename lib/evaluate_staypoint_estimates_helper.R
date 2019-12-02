@@ -602,8 +602,8 @@ get_df_survey_nested = function( df_all_ts ) {
     mutate( userid = as.character( userid)) %>%
     group_by( userid, night ) %>%
     mutate( timestamp_start=timestamp, timestamp_end=timestamp) %>%
-    dplyr::select( id, timestamp_start, timestamp_end, which, userid, night) %>%
-    nest( surveys = c(starts_with('timestamp'), which , id)) %>% 
+    dplyr::select( timestamp_start, timestamp_end, which, userid, night) %>%
+    nest( surveys = c(starts_with('timestamp'), which )) %>% 
     { . } -> df_all_ts_nested
   df_all_ts_nested
 
@@ -648,11 +648,12 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
 
   if(nrow(df) != 0 ) {
 
+    # .y dataset is the locations, .x is the surveys
     df %>%
       group_by( userid, night, n_staypoint ) %>%
       mutate( minutes_since_arrival = round(( timestamp_start.x - min( timestamp_start.y))/60,2)) %>%
       arrange( timestamp_start.x) %>%
-      summarise( which_survey = paste('ID:', id, 'SURVEY:', which, 'MINUTES:', minutes_since_arrival, collapse=',')) %>%
+      summarise( which_survey = paste('TS:', timestamp_start.x, ':SURVEY:', which, ':MINUTES:', minutes_since_arrival, collapse=',')) %>%
       ungroup() %>% 
       { . } -> df
 
