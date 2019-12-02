@@ -611,6 +611,16 @@ get_df_survey_nested = function( df_all_ts ) {
 
 
 #********************************************************************************
+#  get_n_staypoint 
+#********************************************************************************
+get_n_staypoint = function( df_staypoints ) {
+
+  df_staypoints  %>%
+    group_by( userid, night) %>% 
+    summarise( sp_total = max( n_staypoint)) %>% 
+}
+
+#********************************************************************************
 #  get_matching_survey 
 #********************************************************************************
 get_matching_survey = function( df_staypoints,  df_survey_nested ) {
@@ -625,10 +635,6 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
   # keep track of ALL staypoints found so we don't lose any staypoints
   # when we join them to the surveys in the next step
   maximum_seconds_distant = 5*60
-  df_staypoints  %>%
-    group_by( userid, night) %>% 
-    summarise( sp_total = max( n_staypoint)) %>% 
-    { . } -> df_sp_total
 
   # which staypoints match survey timestamps
   df_staypoints  %>%
@@ -647,23 +653,34 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
     { . } -> df 
 
   if(nrow(df) != 0 ) {
-
-    # .y dataset is the locations, .x is the surveys
-    df %>%
-      group_by( userid, night, n_staypoint ) %>%
-      mutate( minutes_since_arrival = round(( timestamp_start.x - min( timestamp_start.y))/60,2)) %>%
-      arrange( timestamp_start.x) %>%
-      summarise( which_survey = paste('TS:', timestamp_start.x, ':SURVEY:', which, ':MINUTES:', minutes_since_arrival, collapse=',')) %>%
-      ungroup() %>% 
-      { . } -> df
-
+    df %>% 
+      rename( 
+        timestamp_survey = timestamp_start.x,
+        timestamp_start_location =timestamp_start.y ) %>% 
+        { . } -> df
   }
 
-  df %>%
-    right_join( df_sp_total, by=qc(userid, night))
+  df 
 
 }
 
+
+
+#********************************************************************************
+#  get_matching_survey_per_staypoint
+#********************************************************************************
+get_matching_survey_per_staypoint= function( df_matching_survey ) {
+  # for each dataset, we want the total:
+  # number of staypoints (sp_total), and the number of staypoints that matched surveys (survey_total)
+
+  df matching_survey%>%
+    group_by( userid, night, n_staypoint ) %>%
+    mutate( minutes_since_arrival = round(( timestamp_survey - min( timestamp_start_location ))/60,2)) %>%
+    arrange( timestamp_survey) %>%
+    summarise( which_survey = paste('TS:', timestamp_survey, ':SURVEY:', which, ':MINUTES:', minutes_since_arrival, collapse=',')) %>%
+    ungroup() 
+
+}
 
 
 #********************************************************************************
@@ -673,7 +690,7 @@ summarise_matching_surveys= function( df_matching_survey ) {
 # for each dataset, we want the total:
 # number of staypoints (sp_total), and the number of staypoints that matched surveys (survey_total)
 
-   df_matching_survey %>%
+  df matching_survey%>%
     group_by( userid, night) %>%
     summarise( sp_total = max(sp_total), surveys_total=sum( is.na( n_staypoint ))) %>%
     ungroup() %>%

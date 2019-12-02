@@ -156,9 +156,13 @@ drakeplan <- drake::drake_plan(
   #),
 #
 #
+
+df_matching_survey_per_staypoint = target( 
+                                       get_matching_survey_per_staypoint( df_matching_survey),
+                                       transform = map( df_matching_survey )),
 df_matching_survey_summarised = target( 
-                                   summarise_matching_surveys( df_matching_survey),
-                                      transform = map( df_matching_survey )),
+                                   summarise_matching_surveys( df_matching_survey_per_staypoint),
+                                      transform = map( df_matching_survey_per_staypoint)),
 #
 #df_matching_survey_summarised_mode = target( 
 #                                       summarise_matching_surveys( df_matching_survey_mode ),
@@ -170,6 +174,10 @@ df_matching_survey_summarised = target(
 #
 # dq_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ), 
 
+df_all_matching_survey = target( 
+                              my_combine( df_matching_survey) , 
+                              #gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source), 
+                              transform = combine(df_matching_survey)),
 df_all_sp_match_survey = target( 
                                 my_combine( df_matching_survey_summarised) , 
                                 #gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source), 
