@@ -617,7 +617,11 @@ get_n_staypoint = function( df_staypoints ) {
 
   df_staypoints  %>%
     group_by( userid, night) %>% 
+<<<<<<< HEAD
     summarise( sp_total = max( n_staypoint))
+=======
+    summarise( sp_total = max( n_staypoint)) %>% 
+>>>>>>> 2754c3adbbda7e00a998a6d2899c33860e3cdc7e
 }
 
 #********************************************************************************
