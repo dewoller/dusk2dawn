@@ -655,7 +655,7 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
 
   if(nrow(df) != 0 ) {
     df %>% 
-      rename( 
+      dplyr::rename( 
         timestamp_survey = timestamp_start.x,
         timestamp_start_location =timestamp_start.y ) %>% 
         { . } -> df
