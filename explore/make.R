@@ -142,7 +142,7 @@ drakeplan <- drake::drake_plan(
   # get survey data
   df_matching_survey = target( 
                               get_matching_survey ( staypoints_distance,  df_survey_nested ),
-                              transform = map( staypoints_distance ), .tag_out = matching_survey),
+                              transform = map( staypoints_distance )),
                                #
 # df_matching_survey_mode = target( 
 #                             get_matching_survey ( meanshift_mode,  df_survey_nested ),
@@ -157,8 +157,8 @@ drakeplan <- drake::drake_plan(
 #
 #
 df_matching_survey_summarised = target( 
-                                   summarise_matching_surveys( matching_survey),
-                                      transform = cross( matching_survey )),
+                                   summarise_matching_surveys( df_matching_survey),
+                                      transform = map( df_matching_survey )),
 #
 #df_matching_survey_summarised_mode = target( 
 #                                       summarise_matching_surveys( df_matching_survey_mode ),
