@@ -130,20 +130,41 @@ drakeplan <- drake::drake_plan(
 #
   # get surveys
   df_all = get_df_all(),
+
   # get survey timestamps
   df_all_ts = get_df_all_ts( df_all ),
+
+  # get valid surveys;  eliminate pre, tom and load categories, and surveys without gps points
+ df_all_ts_valid = get_df_all_ts_valid( df_all_ts, df_location ),
+
 #  # nest surveys
-  df_survey_nested  = get_df_survey_nested( df_all_ts),
+  df_survey_nested  = get_df_survey_nested( df_all_ts_valid ),
  
 #####################################
 # Evaluate 
 #####################################
-  # get target timestamps
-  # get survey data
+
+ # count staypoints for every userid, night.  One dataset per algorithm
+ df_count_staypoints = target( 
+                              count_staypoints ( staypoints_distance),
+                              transform = map( staypoints_distance)),
+
+ # total staypoints for each algorithm
+ df_count_staypoints_per_algorithm  = target( 
+                            count_staypoints_per_algorithm ( df_count_staypoints ),
+                             transform = map( df_count_staypoints )),
+
+  df_all_staypoints_per_algorithm = target( 
+                                my_combine( df_count_staypoints_per_algorithm) , 
+                                transform = combine( df_count_staypoints_per_algorithm )),
+
+
+  # match survey data with staypoints
   df_matching_survey = target( 
                               get_matching_survey ( staypoints_distance,  df_survey_nested ),
                               transform = map( staypoints_distance )),
-                               #
+#
+
 # df_matching_survey_mode = target( 
 #                             get_matching_survey ( meanshift_mode,  df_survey_nested ),
 #                             transform = map( meanshift_mode ), .tag_out = matching_survey),
@@ -157,9 +178,12 @@ drakeplan <- drake::drake_plan(
 #
 #
 
+# consolidate surveys per staypoint
 df_matching_survey_per_staypoint = target( 
                                        get_matching_survey_per_staypoint( df_matching_survey),
                                        transform = map( df_matching_survey )),
+
+# 
 df_matching_survey_summarised = target( 
                                    summarise_matching_surveys( df_matching_survey_per_staypoint),
                                       transform = map( df_matching_survey_per_staypoint)),
@@ -173,15 +197,32 @@ df_matching_survey_summarised = target(
 #                              transform = map( df_matching_geography)),
 #
 # dq_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ), 
+#
 
+# Each survey, along with all the staypoint points that it matches
+# unused
 df_all_matching_survey = target( 
-                              my_combine( df_matching_survey) , 
-                              #gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source), 
-                              transform = combine(df_matching_survey)),
+                                my_combine( df_matching_survey) , 
+                                transform = combine(df_matching_survey)),
+
+# Each survey, along with the single staypoint points that it matches
+# unused
+df_all_matching_survey_per_staypoint = target( 
+                              my_combine( df_matching_survey_per_staypoint) , 
+                              transform = combine(df_matching_survey_per_staypoint)),
+
+# number of surveys for each staypoint, summarised
 df_all_sp_match_survey = target( 
                                 my_combine( df_matching_survey_summarised) , 
-                                #gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source), 
                                 transform = combine(df_matching_survey_summarised )),
+
+# combine the number of found surveys and the number of found staypoints
+df_all_sp_match_survey_combined = target( df_all_sp_match_survey   %>%
+                                         mutate( source = str_replace( source, '.*_staypoints_', 'staypoints_' )) %>%
+                                         inner_join( 
+                                                    df_all_staypoints_per_algorithm  %>%
+                                                      mutate( source = str_replace( source, '.*_staypoints_', 'staypoints_' )), by='source'
+                                                    )),
 
 # df_all_sp_match_survey_mode = target( 
 #                      my_combine( df_matching_survey_summarised_mode) , 

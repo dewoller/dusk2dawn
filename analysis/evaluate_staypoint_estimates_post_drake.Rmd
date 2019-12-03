@@ -40,22 +40,62 @@ source('lib/load_data_post_drake.R')
 # df_results
 
 ```
+# what are the results:
 
-# what exact surveys are matched
-## first, what is the distribution of survey types overall
+  - start with N surveys
+  - elminate duplicates
+  - eliminate surveys with no GPS locations
+  * match surveys with various staypoint algorithms
+  * decide whch staypoint algorithms provide the most parsimonious resultset
+  * match geographic locations with staypoint algorithms
+
+
+## all surveys
+ what is the distribution of survey types overall?
 
 ```{r }
 
 df_all_ts %>%
-  ungroup() %>%
   count( which )
+
+df_all_ts %>%
+  count( )
+```
+## what is the distribution of allowable survey types
+
+```{r }
+
+df_all_ts %>%
+  filter( which %in% c('dq','env','forg','video')) %>%
+  count( which )
+
+df_all_ts %>%
+  filter( which %in% c('dq','env','forg','video')) %>%
+  count( )
+
+```
+## Valid surveys: 
+what is the distribution of allowable survey types that have GPS locations
+
+```{r }
+loadd( df_all_ts_valid ) 
+
+df_all_ts_valid  %>%
+  count( which )
+
+df_all_ts_valid  %>%
+  count( )
 
 ```
 
+# what exact surveys are matched
 ## second, distribution of surveys found by a single algorithm 
 
-
 ```{r }
+
+readd(df_all_sp_match_survey_combined) %>%
+  ggplot( aes( sp_total)) +
+  geom_histogram()
 
 
 readd(df_matching_survey_mode_meanshift_mode_300_10_10_1_6_interpolated_locations_120_filtered_accuracy_100) %>%
