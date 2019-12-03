@@ -1,3 +1,6 @@
+#********************************************************************************
+# get_df_best_location 
+#********************************************************************************
 
 get_df_best_location <- function( df_location ) {
 
@@ -26,7 +29,11 @@ get_df_best_location <- function( df_location ) {
 
 }
 
+#********************************************************************************
+# get_df_all 
 # get survey data
+#********************************************************************************
+
 get_df_all <- function( ) {
 
   read.csv('data/EveningMasterFullAnonym.csv') %>% 
@@ -38,7 +45,10 @@ get_df_all <- function( ) {
 }
 
 
+#********************************************************************************
+# get_df_all_ts 
 # get timestamp information from survey data
+#********************************************************************************
 get_df_all_ts <- function( df_all ) {
 
 
@@ -69,6 +79,17 @@ get_df_all_ts <- function( df_all ) {
     { . } -> df_all_ts
 
    df_all_ts
+}
+
+#********************************************************************************
+# get_df_all_ts_valid
+# get valid surveys;  eliminate pre, tom and load categories, and surveys without gps points
+#********************************************************************************
+get_df_all_ts_valid <- function( df_all_ts, df_location ) {
+
+  df_all_ts %>% 
+    filter( which %in% c('dq','env','forg','video')) %>%
+    inner_join( df_location %>% distinct( userid, night), by=c('userid','night'))
 }
 
 

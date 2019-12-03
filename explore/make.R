@@ -132,8 +132,10 @@ drakeplan <- drake::drake_plan(
   df_all = get_df_all(),
   # get survey timestamps
   df_all_ts = get_df_all_ts( df_all ),
+  # get valid surveys;  eliminate pre, tom and load categories, and surveys without gps points
+ df_all_ts_valid = get_df_all_ts_valid( df_all_ts, df_location ),
 #  # nest surveys
-  df_survey_nested  = get_df_survey_nested( df_all_ts),
+  df_survey_nested  = get_df_survey_nested( df_all_ts_valid ),
  
 #####################################
 # Evaluate 
