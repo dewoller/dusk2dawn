@@ -54,12 +54,13 @@ source('lib/load_data_post_drake.R')
  what is the distribution of survey types overall?
 
 ```{r }
-
+loadd(df_all_ts )
 df_all_ts %>%
   count( which )
 
 df_all_ts %>%
   count( )
+
 ```
 ## what is the distribution of allowable survey types
 
@@ -78,6 +79,7 @@ df_all_ts %>%
 what is the distribution of allowable survey types that have GPS locations
 
 ```{r }
+
 loadd( df_all_ts_valid ) 
 
 df_all_ts_valid  %>%
@@ -93,9 +95,22 @@ df_all_ts_valid  %>%
 
 ```{r }
 
-readd(df_all_sp_match_survey_combined) %>%
-  ggplot( aes( sp_total)) +
-  geom_histogram()
+df_results%>%
+  ggplot( aes( sp_total, surveys_total, color=survey_rate)) +
+  geom_point()
+
+df_results%>%
+  ggplot( aes( sp_total, surveys_total, color=type)) +
+  geom_point()+
+  geom_text( aes( label=interpol))
+
+df_results %>%
+  count( filter_type)
+
+df_results %>%
+  filter( is.na(filter_type)) %>%
+  select(source)
+
 
 
 readd(df_matching_survey_mode_meanshift_mode_300_10_10_1_6_interpolated_locations_120_filtered_accuracy_100) %>%

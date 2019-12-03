@@ -12,7 +12,7 @@ library(data.tree)
 source('lib/load_data_post_drake.R')
 
 
-df_all_ts %>%
+df_all_ts_valid %>%
   ungroup() %>%
   count( which ) %>% 
   { . } -> df_all_ts_frequencies
@@ -32,13 +32,20 @@ df_all_ts %>%
 
 df_results %>% 
   top_n(1, surveys_total) %>%
-  pluck( 'base_file' )
+  pluck( 'base_file' ) %>%
+  readd( character_only=TRUE ) %>% 
+  { . } -> df_staypoints
 
-df_staypoints = readd( staypoints_distance_120_300_40_interpolated_locations_120_filtered_accuracy_100)
 
-loadd( df_matching_survey_summarised_df_matching_survey_staypoints_distance_120_300_40_interpolated_locations_120_filtered_accuracy_100)
 
-a = readd(df_matching_survey_staypoints_distance_120_300_40_interpolated_locations_120_filtered_accuracy_100)
+loadd( df_matching_survey_summarised_df_matching_survey_staypoints_distance_14400_300_20_interpolated_locations_120_filtered_accuracy_100)
+
+cached() %>% enframe() -> cache
+
+debug(cached)
+cached()
+
+readd(df_matching_survey_per_staypoint_staypoints_distance_14400_300_20_interpolated_locations_120_filtered_accuracy_100) %>%
 
 a %>% 
   inner_join( df_numerous_surveys ) %>%
