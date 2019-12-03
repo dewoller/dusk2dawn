@@ -1,36 +1,10 @@
 
 # load in the individual locations information
+loadd(df_all_sp_match_survey_combined) 
 
-loadd(df_all_sp_match_survey_mode)
-loadd(df_all_sp_match_survey ) 
 
-df_all_sp_match_survey_mode %>%
+df_all_sp_match_survey_combined %>%
   mutate( base_file=source) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, 'interpolated_', 'interpolated.')) %>%
-  mutate( source = str_replace( source, 'filtered_', 'filtered.')) %>%
-  mutate( source = str_replace( source, 'filtered_accuracy', 'filtered.accuracy')) %>% 
-  { . } -> df2
-
-
-df_all_sp_match_survey %>%
-  mutate( base_file=source) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
-  mutate( source = str_replace( source, '_', '.')) %>%
   mutate( source = str_replace( source, '_', '.')) %>%
   mutate( source = str_replace( source, 'interpolated_', 'interpolated.')) %>%
   mutate( source = str_replace( source, 'filtered_', 'filtered.')) %>%
@@ -41,10 +15,6 @@ df1 %>%
   as.Node( pathName = 'source', pathDelimiter='_') %>% 
   { . } -> tree
 
-
-df2 %>%  
-  as.Node( pathName = 'source', pathDelimiter='_') %>% 
-  { . } -> tree2
 
 
 df1 %>% 
@@ -80,25 +50,11 @@ mutate( accuracy_filter = ifelse( filter_type=='filtered.accuracy', as.integer( 
 mutate(algorithm='matching') %>%
 { . } -> df1_filtered
 
-df2 %>% 
-  separate( col=source, 
-           into=c( paste('ms', 10:19, sep='') ), 
-           sep='_', 
-           convert=TRUE, 
-           extra='merge',
-           remove=FALSE)  %>% 
-dplyr::rename( interpol=ms17, accuracy.filter=ms19) %>%
-dplyr::select(-ms16, -ms18, -ms10) %>%
-mutate(algorithm='modeshift') %>%
-{ . } -> df2_renamed
-
-
-bind_rows( df1_filtered, df1_interpolated, df2_renamed ) %>% 
+bind_rows( df1_filtered, df1_interpolated) %>% 
   mutate( survey_rate = surveys_total / sp_total ) %>%
 { . } -> df_results
 
 df_results %>%
-  dplyr::select( algorithm, source ) %>%
   mutate( type = case_when(
                            str_detect( source, 'accuracy' ) ~ 'accuracy',
                            str_detect( source, 'geohash' ) ~ 'geohash',
