@@ -611,14 +611,24 @@ get_df_survey_nested = function( df_all_ts ) {
 
 
 #********************************************************************************
-#  get_n_staypoint 
+#  count_staypoints 
 #********************************************************************************
-get_n_staypoint = function( df_staypoints ) {
+count_staypoints = function( df_staypoints ) {
 
   df_staypoints  %>%
     group_by( userid, night) %>% 
     summarise( sp_total = max( n_staypoint)) %>%
     ungroup()
+}
+
+
+#********************************************************************************
+#  count_staypoints_per_algorithm 
+#********************************************************************************
+count_staypoints_per_algorithm = function( df_count_staypoints ) {
+
+  df_count_staypoints  %>%
+    summarise( sp_total = sum( sp_total )) 
 }
 
 #********************************************************************************
@@ -691,10 +701,7 @@ summarise_matching_surveys= function( df_matching_survey ) {
 # number of staypoints (sp_total), and the number of staypoints that matched surveys (survey_total)
 
   df_matching_survey%>%
-    group_by( userid, night) %>%
-    summarise( sp_total = max(sp_total), surveys_total=sum( is.na( n_staypoint ))) %>%
-    ungroup() %>%
-    summarise( sp_total=sum(sp_total), surveys_total = sum( surveys_total))
+    summarise(  surveys_total = n()) 
 
 }
 
