@@ -180,10 +180,10 @@ drakeplan <- drake::drake_plan(
   #
 #  a=head( df_all_staypoints_multi, 100),
   
-# df_matching_geography = target( 
-#                             calculate_sp_match_geography( staypoints_distance, df_target_locations_combined),
-#                             transform = map( staypoints_distance )
-  #),
+ df_matching_geography = target( 
+                             calculate_sp_match_geography( staypoints_distance, df_target_locations_combined),
+                             transform = map( staypoints_distance )
+),
 #
 #
 
@@ -201,9 +201,9 @@ df_matching_survey_summarised = target(
 #                                       summarise_matching_surveys( df_matching_survey_mode ),
 #                                       transform = cross( df_matching_survey_mode )),
 #
-#  df_matching_geography_summarised = target( 
-#                              summarise_matching_geography( df_matching_geography),
-#                              transform = map( df_matching_geography)),
+  df_matching_geography_summarised = target( 
+                              summarise_matching_geography( df_matching_geography),
+                              transform = map( df_matching_geography)),
 #
 # dq_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ), 
 #
