@@ -74,30 +74,6 @@ interpolate_locations = function( df,  max_delay = 120, period = 1, max_drop_tim
   bind_rows( dplyr::select( df, userid, night, latitude, longitude, timestamp), df_new_points )
 }
 
-m_per_latitude = 111320
-m_per_longitude = 111319.488
-desired_grid = 10 #meters
-#
-
-################################################################################
-# m2ll 
-################################################################################
-m2ll = function( m, base_ll, m_per_factor )  {
-  m/m_per_factor + base_ll 
-}
-#
-#
-
-
-################################################################################
-# ll2m
-################################################################################
-ll2m = function( ll, base_ll , m_per_factor )  {
-  (ll - base_ll ) * m_per_factor 
-}
-#
-
-
 ################################################################################
 # find_meanshift_mode
 ################################################################################
