@@ -79,6 +79,11 @@ starts_with('pre_'), starts_with('load_'), starts_with('forg_'), starts_with('dq
 
 df_location %>% count(timezone)
 
+loadd(df_all)
+
+df_all %>%
+  select( starts_with('epi') )
+
 df_all_ts %>%
 
 

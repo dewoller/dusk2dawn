@@ -139,10 +139,70 @@ df_poor_performers %>%
 # Dataset description
 
 
+loadd(df_all_summarise_staypoints)
+
+df_poor_performers %>%
+  head(2) %>% 
+  tail(1) %>%
+  inner_join( df_all_summarise_staypoints) %>%
+  count(n_staypoint)
+
+df_poor_performers %>%
+  head(2) %>% 
+  tail(1) %>% 
+  { . } -> df
+
+  plotit(df)
+
+plotit = function ( df ) {
 
 
-df %>%
-  right_join( df_sp_total, by=qc(userid, night))
+
+
+  df %>%
+    inner_join( df_location ) %>% 
+    { . } -> df_1_loc
+
+  df %>%
+    inner_join( df_all_summarise_staypoints)  %>%
+    { . } -> df_1_sp
+
+   df %>%
+    inner_join( df_all_ts_valid)  %>%
+      { . } -> df_1_surveys
+
+      arrange( timestamp ) %>%
+      ggplot( aes( latitude, longitude)) +
+      geom_path() +
+      geom_point( aes( latitude, longitude, color='red'), 
+                 data= df %>%
+                   inner_join( df_all_summarise_staypoints) 
+                 )
+
+      df %>%
+        inner_join( df_all_summarise_staypoints) %>%
+        ggplot( aes( ts_min )) +
+        geom_histogram()
+}
+
+
+# problem with timezones;  look at all unique timezones per person and night
+
+df_location %>% 
+  count( userid, night, timezone, name='n_location_tz' ) %>% 
+  rename( location_timezone = timezone) %>%
+  { . } -> df_location_tz
+
+df_all_ts_valid  %>%
+  count( userid, night, timezone, name='n_survey_tz' ) %>% 
+  rename( survey_timezone = timezone) %>%
+  { . } -> df_survey_tz
+
+
+inner_join( df_location_tz, df_survey_tz) %>%
+ count( location_timezone, survey_timezone, sort=TRUE ) %>% 
+ kableExtra::kable() %>% clipr::write_clip()
+
 
 
 
