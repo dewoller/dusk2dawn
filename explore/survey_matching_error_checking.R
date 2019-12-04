@@ -138,7 +138,11 @@ df_poor_performers %>%
 # TODO - do some basic error checking on survey matching algorithm
 # Dataset description
 
+<<<<<<< HEAD
 loadd(df_all_summarise_staypoints)
+=======
+
+>>>>>>> 6455dd29fc46ccdbc2b78cfb277bd166247c578d
 
 df_poor_performers %>%
   head(2) %>% 
