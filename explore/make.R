@@ -144,6 +144,15 @@ drakeplan <- drake::drake_plan(
 # Evaluate 
 #####################################
 
+ # summarise staypoints for every userid, night.  One line per staypoint / algorithm
+ df_summarise_staypoints = target( summarise_staypoints ( staypoints_distance),
+                                  transform = map( staypoints_distance)),
+
+ # summarise staypoints for every userid, night.  One line per staypoint / algorithm
+ df_all_summarise_staypoints = target( my_combine(df_summarise_staypoints   ) , 
+                                      transform = combine( df_summarise_staypoints )),
+
+
  # count staypoints for every userid, night.  One dataset per algorithm
  df_count_staypoints = target( 
                               count_staypoints ( staypoints_distance),
@@ -154,7 +163,7 @@ drakeplan <- drake::drake_plan(
                             count_staypoints_per_algorithm ( df_count_staypoints ),
                              transform = map( df_count_staypoints )),
 
-  df_all_staypoints_per_algorithm = target( 
+  df_all_count_staypoints_per_algorithm = target( 
                                 my_combine( df_count_staypoints_per_algorithm) , 
                                 transform = combine( df_count_staypoints_per_algorithm )),
 
@@ -220,7 +229,7 @@ df_all_sp_match_survey = target(
 df_all_sp_match_survey_combined = target( df_all_sp_match_survey   %>%
                                          mutate( source = str_replace( source, '.*_staypoints_', 'staypoints_' )) %>%
                                          inner_join( 
-                                                    df_all_staypoints_per_algorithm  %>%
+                                                    df_all_count_staypoints_per_algorithm  %>%
                                                       mutate( source = str_replace( source, '.*_staypoints_', 'staypoints_' )), by='source'
                                                     )),
 

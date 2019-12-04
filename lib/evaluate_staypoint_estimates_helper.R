@@ -611,6 +611,27 @@ get_df_survey_nested = function( df_all_ts ) {
 
 
 #********************************************************************************
+#  summarise_staypoints 
+#********************************************************************************
+summarise_staypoints = function( df_staypoints ) {
+
+  df_staypoints  %>%
+    group_by( userid, night, n_staypoint ) %>% 
+    summarise( 
+              latitude = mean(latitude),
+              longitude = mean(longitude),
+              min_latitude=min(latitude),
+              max_latitude=max(latitude),
+              min_longitude=min(longitude),
+              max_longitude=max(longitude),
+              ts_min = min(timestamp), 
+              ts_max = max(timestamp)
+              ) %>%
+    ungroup()
+}
+
+
+#********************************************************************************
 #  count_staypoints 
 #********************************************************************************
 count_staypoints = function( df_staypoints ) {
