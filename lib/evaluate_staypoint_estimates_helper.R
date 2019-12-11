@@ -625,7 +625,8 @@ summarise_staypoints = function( df_staypoints ) {
               min_longitude=min(longitude),
               max_longitude=max(longitude),
               ts_min = min(timestamp), 
-              ts_max = max(timestamp)
+              ts_max = max(timestamp),
+              ts_duration = ts_max - ts_min
               ) %>%
     ungroup()
 }
@@ -637,8 +638,11 @@ summarise_staypoints = function( df_staypoints ) {
 count_staypoints = function( df_staypoints ) {
 
   df_staypoints  %>%
+    group_by( userid, night, n_staypoint ) %>% 
+    summarise( ts_duration  = max(timestamp) - min(timestamp) ) %>%
     group_by( userid, night) %>% 
-    summarise( sp_total = max( n_staypoint)) %>%
+    summarise( sp_total = max( n_staypoint), 
+              ts_duration = sum( duration)) %>%
     ungroup()
 }
 
@@ -649,7 +653,8 @@ count_staypoints = function( df_staypoints ) {
 count_staypoints_per_algorithm = function( df_count_staypoints ) {
 
   df_count_staypoints  %>%
-    summarise( sp_total = sum( sp_total )) 
+    summarise( sp_total = sum( sp_total ),
+              ts_duration = sum( duration)) 
 }
 
 #********************************************************************************
@@ -719,7 +724,7 @@ get_matching_survey_per_staypoint= function( df_matching_survey ) {
 #********************************************************************************
 summarise_matching_surveys= function( df_matching_survey ) {
 # for each dataset, we want the total:
-# number of staypoints (sp_total), and the number of staypoints that matched surveys (survey_total)
+# the total nnumber of staypoints that matched surveys (survey_total) for this algorithm
 
   df_matching_survey%>%
     summarise(  surveys_total = n()) 

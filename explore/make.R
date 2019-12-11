@@ -158,7 +158,7 @@ drakeplan <- drake::drake_plan(
                               count_staypoints ( staypoints_distance),
                               transform = map( staypoints_distance)),
 
- # total staypoints for each algorithm
+ # total staypoints for each algorithm, one line per algorithm
  df_count_staypoints_per_algorithm  = target( 
                             count_staypoints_per_algorithm ( df_count_staypoints ),
                              transform = map( df_count_staypoints )),
