@@ -16,6 +16,7 @@ load_function = function() {
   source('lib/evaluate_staypoint_estimates_helper.R')
   source('lib/keys.R')
   source('lib/kernel_density_functions.R')
+  source('lib/optics_find_staypoint.R')
 }
 
 load_library = function() {
@@ -108,16 +109,14 @@ drakeplan <- drake::drake_plan(
                                               max_staypoint_distance  = !!sp_max_staypoint_distance_range  )
   )
   ,
-#  meanshift_mode = target(
-#                            find_meanshift_mode ( filtered_data,  min_staypoint_time, max_staypoint_distance, iterations, hm, ht ),
-#                            transform=cross( interpolated_locations, 
-#                                            min_staypoint_time = !!sp_min_staypoint_time_range,
-#                                            max_staypoint_distance  = !!sp_max_staypoint_distance_range ,
-#                                            iterations = !!iterations_range ,
-#                                            hm = !!hm_range ,
-#                                            ht = !!ht_range )
-#  )
-#  ,
+  optics_distance = target(
+                            find_cluster_optics_all( filtered_data,  min_staypoint_time, max_staypoint_distance),
+                            transform=cross( interpolated_locations, 
+                                            min_staypoint_time = !!sp_min_staypoint_time_range,
+                                            max_staypoint_distance  = !!sp_max_staypoint_distance_range 
+                                            )
+  )
+  ,
 #
 #####################################
 # Evaluation data prep
