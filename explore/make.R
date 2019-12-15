@@ -3,8 +3,9 @@ if (startsWith(Sys.info()['nodename'], 'lims')) {
   currentMachine = "lims"
   max_jobs=32
 } else (
-  currentMachine = Sys.info()['nodename']
+        currentMachine = Sys.info()['nodename']
 )
+#currentMachine = 'hermoine'
 
 
 

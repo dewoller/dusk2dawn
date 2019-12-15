@@ -453,37 +453,47 @@ get_df_sp_round_location = function(df_staypoints, rounding_factor = 1000000.0  
 #********************************************************************************
 #  get_df_sp_joined_geography
 #********************************************************************************
-#df_staypoints = readd(df_staypoints )
-#df_target_locations_combined = readd(df_target_locations_combined)
-#overlap_distance_needed = 20 
-
 #debug(get_df_sp_joined_geography)
+calculate_sp_match_geography_test = function() {
+  #get_df_sp_joined_geography( df_staypoints,  df_target_locations_combined)
+  df_staypoints = readd(staypoints_distance_14400_300_100_filtered_sigma_100)
+  df_target_locations_combined = readd(df_target_locations_combined)
+  overlap_distance_needed = 20 
 
-#get_df_sp_joined_geography( df_staypoints,  df_target_locations_combined)
+  calculate_sp_match_geography( df_staypoints,  
+                               df_target_locations_combined, 
+                               overlap_distance_needed )
+}
+
+#********************************************************************************
 
 calculate_sp_match_geography = function( df_staypoints,  
-                                             df_target_locations_combined_P, 
+                                             df_target_locations_combined, 
                                              overlap_distance_needed = 20 
                                              ) {
 
+#TODO - this could be better designed, using interval join?
 
 
   df_staypoints  %>% 
-    select( userid, night, n_staypoint, filename, latitude, longitude) %>%
+    group_by( userid, night, n_staypoint) %>%
+    summarise(latitude = mean(latitude), longitude = mean(longitude)) %>%
+    ungroup() %>% 
     st_as_sf(coords = c("longitude", "latitude"), crs = 4326, agr = "constant") %>%
     st_transform( 27700) %>% 
-    st_join( df_target_locations_combined_P, join = st_is_within_distance, dist = overlap_distance_needed ) %>%
-    filter(!is.na(tl_id)) %>% 
-    inner_join( df_target_locations_combined_P %>% as_tibble(), by='tl_id') %>%
-    mutate( distance_to_bar = st_distance(geometry.x, geometry.y, by_element=TRUE)   ) %>% 
-    as_tibble() %>%
-    dplyr::select(distance_to_bar, everything()) %>%
-    dplyr::select( -geometry.y, -geometry.x ) %>%
-    inner_join(df_staypoints , by=qc( userid, night, n_staypoint, filename)) %>%
-    group_by( filename, userid, night, n_staypoint) %>% 
-    arrange( distance_to_bar ) %>%  # find the closest bar for each proposed staypoint lat/lon pair
-    do( head(., 1)) %>%
-    ungroup() 
+    filter( !st_is_empty(geometry)) %>%
+    { . } -> df_sp_geo
+
+  st_nn(df_sp_geo, df_target_locations_combined, 
+          maxdist = overlap_distance_needed, 
+          k=1)
+
+    st_join( df_sp_geo, df_target_locations_combined, 
+          st_nn,
+          maxdist = overlap_distance_needed, 
+          k=1) %>%
+  filter( !is.na(tl_id ))
+
 
 }
 
@@ -635,15 +645,24 @@ summarise_staypoints = function( df_staypoints ) {
 #********************************************************************************
 #  count_staypoints 
 #********************************************************************************
+count_staypoints_test = function( ) {
+
+  df_staypoints = readd(staypoints_distance_14400_300_100_filtered_sigma_100)
+
+  count_staypoints (df_staypoints)
+
+}
+#********************************************************************************
 count_staypoints = function( df_staypoints ) {
 
   df_staypoints  %>%
     group_by( userid, night, n_staypoint ) %>% 
-    summarise( ts_duration  = max(timestamp) - min(timestamp) ) %>%
+    summarise( sp_duration  = max(timestamp) - min(timestamp) ) %>%
     group_by( userid, night) %>% 
     summarise( sp_total = max( n_staypoint), 
-              ts_duration = sum( duration)) %>%
+              total_sp_duration = sum( sp_duration)) %>%
     ungroup()
+
 }
 
 
