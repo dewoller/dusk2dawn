@@ -43,6 +43,9 @@ load_library = function() {
   library(zoo)
   library(glue)
   library(tibbletime)
+  library(nngeo)
+  library(futile.logger)
+  library(dbscan)
 
 }
 
