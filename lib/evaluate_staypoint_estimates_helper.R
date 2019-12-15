@@ -646,8 +646,11 @@ summarise_staypoints = function( df_staypoints ) {
 #  count_staypoints 
 #********************************************************************************
 count_staypoints_test = function( ) {
+  diagnose(df_count_staypoints_per_algorithm_df_count_staypoints_staypoints_distance_14400_600_100_interpolated_locations_300_filtered_accuracy_10)
 
-  df_staypoints = readd(staypoints_distance_14400_300_100_filtered_sigma_100)
+  staypoints_distance_14400_600_100_interpolated_locations_300_filtered_accuracy_10
+
+  df_staypoints = readd(staypoints_distance_14400_600_100_interpolated_locations_300_filtered_accuracy_10)
 
   count_staypoints (df_staypoints)
 
@@ -673,7 +676,7 @@ count_staypoints_per_algorithm = function( df_count_staypoints ) {
 
   df_count_staypoints  %>%
     summarise( sp_total = sum( sp_total ),
-              ts_duration = sum( duration)) 
+              total_sp_duration = sum( total_sp_duration)) 
 }
 
 #********************************************************************************
@@ -751,6 +754,26 @@ summarise_matching_surveys= function( df_matching_survey ) {
 }
 
 
+
+#********************************************************************************
+#  summarise_matching_geography
+#********************************************************************************
+summarise_matching_geography_test= function( ) {
+
+  df_matching_geography =  readd(df_matching_geography_staypoints_distance_14400_600_20_filtered_sigma.v2_0.5)
+
+}
+
+#********************************************************************************
+summarise_matching_geography= function( df_matching_geography ) {
+  # for each dataset, we want the total:
+  # nnumber of staypoints that matched geographic nlocations for this algorithm
+
+  df_matching_geography %>%
+    as_tibble() %>%
+    summarise(  bars_total_count = n()) 
+
+}
 
 #********************************************************************************
 #  df_summarise_staypoint_algorithms
