@@ -490,3 +490,6 @@ ll2m = function( ll, base_ll , m_per_factor )  {
 #
 
 
+
+m2ll(0,49, 11320)
+

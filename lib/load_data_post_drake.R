@@ -11,9 +11,9 @@ df_all_sp_match_survey_combined %>%
   mutate( source = str_replace( source, 'filtered_accuracy', 'filtered.accuracy')) %>% 
   { . } -> df1
 
-df1 %>%  
-  as.Node( pathName = 'source', pathDelimiter='_') %>% 
-  { . } -> tree
+#df1 %>%  
+#  as.Node( pathName = 'source', pathDelimiter='_') %>% 
+#  { . } -> tree
 
 
 
