@@ -43,7 +43,6 @@ load_library = function() {
   library(zoo)
   library(glue)
   library(tibbletime)
-  library(nngeo)
   library(futile.logger)
   library(dbscan)
 
@@ -280,6 +279,7 @@ if (currentMachine == "lims") {
 
 } else if( currentMachine == "hermoine") {
   library(sf)
+  library(nngeo)
 
   options(clustermq.scheduler = "multicore")
   make(drakeplan, parallelism="clustermq", jobs= parallel::detectCores() ,  memory_strategy = "autoclean"  )
