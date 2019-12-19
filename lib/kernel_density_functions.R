@@ -56,7 +56,7 @@ interpolate_locations = function( df,  max_delay = 120, period = 1, max_drop_tim
   df %>%
     dplyr::select( userid, night, latitude, longitude, timestamp) %>%
     group_by( userid, night ) %>%
-    arrange(timestamp) %>%
+    arrange( timestamp, .by_group = TRUE) %>%
     mutate( interval = lead(timestamp ) - timestamp,
            latitude_next = lead( latitude), 
            longitude_next = lead(longitude)) %>%

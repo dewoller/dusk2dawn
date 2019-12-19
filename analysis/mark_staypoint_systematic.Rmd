@@ -92,7 +92,7 @@ do_one_prune = function( .sigma ) {
 
   df_location %>%
     group_by( userid, night ) %>%
-    arrange( timestamp ) %>% 
+    arrange( timestamp, .by_group = TRUE) %>%
     group_modify( ~prune_gps_outliers(.x, sigma = .sigma)) %>% 
     saveRDS(file=fname)
   ParallelLogger::logInfo(paste('Finished prune_gps', fname))
@@ -214,7 +214,7 @@ if( FALSE) {
 
     df_location %>%  
       group_by( userid, night ) %>%
-      arrange( timestamp ) %>%
+      arrange( timestamp, .by_group = TRUE) %>%
       group_modify( ~prune_gps_outliers(.x, sigma = sigma)) %>%
       group_modify( ~findStayPoint(.x,  max_jump_time, min_staypoint_time, max_staypoint_distance)) %>%
       select( local_time, timestamp, n_staypoint, duration, distance, everything()) %>% 

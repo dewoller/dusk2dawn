@@ -195,7 +195,7 @@ find_staypoint_distance = function( df_location,  max_jump_time, min_staypoint_t
 
   df_location %>%
     group_by( userid, night) %>%
-    arrange(timestamp) %>%
+    arrange( timestamp, .by_group = TRUE) %>%
     group_modify( ~find_staypoint_distance_night(.x,  max_jump_time, min_staypoint_time, max_staypoint_distance)) %>%
     select( timestamp, n_staypoint, duration, everything()) %>%
     filter( n_staypoint > 0)
@@ -314,7 +314,7 @@ prune_gps_outliers.v2 = function( df_location, .sigma ) {
 
   df_location %>%
     group_by( userid, night ) %>%
-    arrange( timestamp ) %>% 
+    arrange( timestamp, .by_group = TRUE) %>%
     group_modify( ~prune_gps_outliers_one_night.v2 (.x, .sigma = .sigma))
 }
 
@@ -326,7 +326,7 @@ prune_gps_outliers = function( df_location, .sigma ) {
 
   df_location %>%
     group_by( userid, night ) %>%
-    arrange( timestamp ) %>% 
+    arrange( timestamp, .by_group = TRUE) %>%
     group_modify( ~prune_gps_outliers_one_night (.x, sigma = .sigma))
 }
 
@@ -401,7 +401,7 @@ prune_gps_geohash_one_night<- function( df, gh_precision = 7, minpoints=3 )  {
 prune_gps_geohash = function( df_location, precision, minpoints ) {
   df_location %>%
     group_by( userid, night ) %>%
-    arrange( timestamp ) %>% 
+    arrange( timestamp, .by_group = TRUE) %>%
     group_modify( ~prune_gps_geohash_one_night(.x, gh_precision = precision, minpoints = minpoints)) 
 }
 
