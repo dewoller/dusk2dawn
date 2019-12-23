@@ -22,4 +22,5 @@ lib/keys.R
 .future
 *.swo
 *.swp
+.nfs*
 

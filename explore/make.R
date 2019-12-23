@@ -43,7 +43,6 @@ load_library = function() {
   library(zoo)
   library(glue)
   library(tibbletime)
-  library(nngeo)
   library(futile.logger)
   library(dbscan)
 
@@ -117,7 +116,8 @@ drakeplan <- drake::drake_plan(
                             find_cluster_optics_all( filtered_data,  min_staypoint_time, max_staypoint_distance),
                             transform=cross( interpolated_locations, 
                                             min_staypoint_time = !!sp_min_staypoint_time_range,
-                                            max_staypoint_distance  = !!sp_max_staypoint_distance_range 
+                                            max_staypoint_distance  = !!sp_max_staypoint_distance_range,
+                                            .tag_out=staypoints_distance
                                             )
   )
   ,
@@ -279,6 +279,7 @@ if (currentMachine == "lims") {
 
 } else if( currentMachine == "hermoine") {
   library(sf)
+  library(nngeo)
 
   options(clustermq.scheduler = "multicore")
   make(drakeplan, parallelism="clustermq", jobs= parallel::detectCores() ,  memory_strategy = "autoclean"  )

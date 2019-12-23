@@ -161,7 +161,38 @@ find_cluster_optics_all_test = function( df)   {
 
   min_staypoint_time = 100
  max_staypoint_distance = 900
+
   df = readd(interpolated_locations_120_filtered_accuracy_10)
+
+
+ df = readd(interpolated_locations_120_filtered_accuracy_10)
+df_summarise_staypoints_optics_distance_900_100_interpolated_locations_
+ cached() %>% enframe() -> cache
+
+ cache %>% 
+   filter( startsWith( value,  'optics_distance_900_100_interpolated_locations_120'))
+
+readd('optics_distance_900_100_interpolated_locations_120_filtered_accuracy_10')
+readd('optics_distance_900_100_interpolated_locations_120_filtered_accuracy_100')
+
+  df %>% 
+    distinct( userid, night) %>%
+    head(4) %>%
+    tail(1) %>%
+    inner_join( df ) %>% 
+    { . } -> df
+
+
+  df %>%
+    group_by( userid, night ) %>%
+    arrange( timestamp, .by_group = TRUE) %>%
+    mutate( id = row_number()) %>% 
+    ungroup() %>%
+    { . } -> df1
+
+
+find_cluster_optics_single(df1 ,min_staypoint_time = min_staypoint_time , max_staypoint_distance = max_staypoint_distance )
+
 
 }
 #################################################################################
@@ -173,15 +204,17 @@ find_cluster_optics_all = function( df, min_staypoint_time = 10, max_staypoint_d
 
   df %>%
     group_by( userid, night ) %>%
-    arrange( timestamp) %>%
+    arrange( timestamp, .by_group = TRUE) %>%
     mutate( id = row_number()) %>%
     do( find_cluster_optics_single( . ,min_staypoint_time = min_staypoint_time , max_staypoint_distance = max_staypoint_distance )) %>%
+    group_by( userid, night ) %>%
+    mutate( n_staypoint = row_number()) %>%
     ungroup() %>% 
     { . } -> clusters
 
-df$cluster=0
+df$n_staypoint=0
   for( i in 1:nrow(clusters)) {
-    df[ pluck(clusters,'ids', i, 'id' ), ]$cluster = pluck( clusters,'cluster', i)
+    df[ pluck(clusters,'ids', i, 'id' ), ]$n_staypoint= pluck( clusters,'n_staypoint', i)
   }
 
 df
@@ -195,7 +228,7 @@ find_cluster_optics_single_test = function( ) {
 
   readd(interpolated_locations_120_filtered_accuracy_10) ->a
   a %>% inner_join( a %>% distinct( userid, night ) ) %>%
-    arrange( timestamp) %>%
+    arrange( timestamp, .by_group = TRUE) %>%
     mutate( id = row_number()) %>% 
     { . } -> df
 
@@ -237,24 +270,27 @@ find_cluster_optics_single = function( df, spos = 1, epos = nrow(df), min_staypo
 
       # assess each chunk prior to this chunk
       for(i in 1:nrow(rv)) {
-#        browser()
         flog.info("looking at the bits around cluster # %s, running from %s to %s", 
                   i, pluck(rv, 'cluster_spos', i) , pluck(rv, 'cluster_epos', i) )
         flog.info("investigating bit before %s th chunk, starting with %s", i, spos)
-        downstream_chunks = bind_rows( downstream_chunks, 
-                        find_cluster_optics_single( df, spos=spos, epos = pluck(rv, 'cluster_spos', i) - 1, 
-                                    min_staypoint_time, max_staypoint_distance, eps_cl_index))
+        next_chunks = find_cluster_optics_single( df, spos=spos, 
+                                                 epos = pluck(rv, 'cluster_spos', i) - 1, 
+                                                 min_staypoint_time, 
+                                                 max_staypoint_distance, eps_cl_index)
+        downstream_chunks = bind_rows( downstream_chunks, next_chunks )
         spos = pluck(rv,  'cluster_epos', i) + 1
       }
       flog.info("investigating last chunk, starting with %s to %s",  spos, epos)
-      downstream_chunks = bind_rows( downstream_chunks, 
-                                find_cluster_optics_single( df, spos=spos, epos = epos, 
-                                            min_staypoint_time, max_staypoint_distance, eps_cl_index))
+      next_chunks = find_cluster_optics_single( df, spos=spos, 
+                                               epos = epos , 
+                                               min_staypoint_time, 
+                                               max_staypoint_distance, eps_cl_index)
+      downstream_chunks = bind_rows( downstream_chunks, next_chunks )
       rv = bind_rows( rv, downstream_chunks)
     }
     eps_cl_index = eps_cl_index + 1
   }
-  rv
+  rv 
 }
 
 
@@ -269,7 +305,7 @@ optics_plot = function( df, eps_cl, min_staypoint_time = 10)   {
   df %>%
     mutate( cluster = calculate_clusters_optics(., eps_cl, min_staypoint_time ), eps_cl = eps_cl) %>%
     group_by(cluster) %>%
-    arrange( id ) %>%
+    arrange( id, .by_group = TRUE) %>%
     # do we have a break in the cluster of sufficient size
     mutate( newcluster = cumsum( id != lead( id, default=0 ) - 1 &
                                 (lead(timestamp, default=0) - timestamp)/60  > max_discontinuity
@@ -297,7 +333,7 @@ assess_eps_level_optics = function( df, spos = 1, epos = nrow(df), eps_cl, min_s
     filter( id >= spos & id <= epos ) %>% 
     mutate( cluster = calculate_clusters_optics(., eps_cl, min_staypoint_time ), eps_cl = eps_cl) %>%
     group_by(cluster) %>%
-    arrange( id ) %>%
+    arrange( id, .by_group = TRUE) %>%
     # do we have a break in the cluster of sufficient size
     mutate( newcluster = cumsum( id != lead( id, default=0 ) - 1 &
                                 (lead(timestamp, default=0) - timestamp)/60  > max_discontinuity
