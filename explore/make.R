@@ -109,7 +109,8 @@ drakeplan <- drake::drake_plan(
                               transform=cross( filtered_data, 
                                               max_jump_time = !!sp_max_jump_time_range, 
                                               min_staypoint_time = !!sp_min_staypoint_time_range,
-                                              max_staypoint_distance  = !!sp_max_staypoint_distance_range  )
+                                              max_staypoint_distance  = !!sp_max_staypoint_distance_range, 
+                              .tag_out = staypoint_discovery )
   )
   ,
   optics_distance = target(
@@ -117,7 +118,7 @@ drakeplan <- drake::drake_plan(
                             transform=cross( interpolated_locations, 
                                             min_staypoint_time = !!sp_min_staypoint_time_range,
                                             max_staypoint_distance  = !!sp_max_staypoint_distance_range,
-                                            .tag_out=staypoints_distance
+                                            .tag_out=staypoint_discovery
                                             )
   )
   ,
@@ -148,8 +149,8 @@ drakeplan <- drake::drake_plan(
 #####################################
 
  # summarise staypoints for every userid, night.  One line per staypoint / algorithm
- df_summarise_staypoints = target( summarise_staypoints ( staypoints_distance),
-                                  transform = map( staypoints_distance)),
+ df_summarise_staypoints = target( summarise_staypoints ( staypoint_discovery),
+                                  transform = map( staypoint_discovery)),
 
  # summarise staypoints for every userid, night.  One line per staypoint / algorithm
  df_all_summarise_staypoints = target( my_combine(df_summarise_staypoints   ) , 
@@ -158,8 +159,8 @@ drakeplan <- drake::drake_plan(
 
  # count staypoints for every userid, night.  One dataset per algorithm
  df_count_staypoints = target( 
-                              count_staypoints ( staypoints_distance),
-                              transform = map( staypoints_distance)),
+                              count_staypoints ( staypoint_discovery),
+                              transform = map( staypoint_discovery)),
 
  # total staypoints for each algorithm, one line per algorithm
  df_count_staypoints_per_algorithm  = target( 
@@ -173,8 +174,8 @@ drakeplan <- drake::drake_plan(
 
   # match survey data with staypoints
   df_matching_survey = target( 
-                              get_matching_survey ( staypoints_distance,  df_survey_nested ),
-                              transform = map( staypoints_distance )),
+                              get_matching_survey ( staypoint_discovery,  df_survey_nested ),
+                              transform = map( staypoint_discovery )),
 #
 
 # df_matching_survey_mode = target( 
@@ -184,8 +185,8 @@ drakeplan <- drake::drake_plan(
 #  a=head( df_all_staypoints_multi, 100),
   
  df_matching_geography = target( 
-                             calculate_sp_match_geography( staypoints_distance, df_target_locations_combined),
-                             transform = map( staypoints_distance )
+                             calculate_sp_match_geography( staypoint_discovery, df_target_locations_combined),
+                             transform = map( staypoint_discovery )
 ),
 #
 #
