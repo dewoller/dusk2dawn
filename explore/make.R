@@ -74,64 +74,64 @@ if (currentMachine == "dewlap") {
   df_location_initial = get_df_location()  
 }
 
-drakeplan <- drake::drake_plan(
+drakeplan <- drake::drake_plan
+  (
   max_expand = max_expand_setting,
-#
+  #
   # load in the GPS individual locations information
   df_location = df_location_initial,
-##
+  ##
   #
   filtered_accuracy = target(
-                            prune_gps_accuracy (df_location, accuracy),
-                            transform = map( accuracy = !!accuracy_range , .tag_out=filtered_data)
-  ) ,
-#  filtered_geohash = target(
-#                          prune_gps_geohash (df_location, precision, minpoints),
-#                          transform = cross( precision  = !!gh_precision_range,
-#                                              minpoints = !!gh_minpoints_range,
-#                                              .tag_out=filtered_data)
-#  ) ,
+							  prune_gps_accuracy (df_location, accuracy),
+							  transform = map( accuracy = !!accuracy_range , .tag_out=filtered_data)
+							  ) ,
+  #  filtered_geohash = target(
+  #                          prune_gps_geohash (df_location, precision, minpoints),
+  #                          transform = cross( precision  = !!gh_precision_range,
+  #                                              minpoints = !!gh_minpoints_range,
+  #                                              .tag_out=filtered_data)
+  #  ) ,
   filtered_sigma = target(
-                          prune_gps_outliers (df_location, .sigma = sigma),
-                          transform = map( sigma = !!sigma_range, .tag_out=filtered_data)
-  ),
+						  prune_gps_outliers (df_location, .sigma = sigma),
+						  transform = map( sigma = !!sigma_range, .tag_out=filtered_data)
+						  ),
   filtered_sigma.v2 = target(
-                    prune_gps_outliers.v2 (df_location, .sigma = sigma),
-                    transform = map( sigma = !!sigma_range, .tag_out=filtered_data)
-  ) ,
+							  prune_gps_outliers.v2 (df_location, .sigma = sigma),
+							  transform = map( sigma = !!sigma_range, .tag_out=filtered_data)
+							  ) ,
   interpolated_locations = target(
-                                   interpolate_locations (filtered_accuracy, max_delay=max_delay, period=30),
-                                  transform = cross( filtered_accuracy, max_delay = !!interpolation_delay_range, .tag_out=filtered_data)
+								  interpolate_locations (filtered_accuracy, max_delay=max_delay, period=30),
+								  transform = cross( filtered_accuracy, max_delay = !!interpolation_delay_range, .tag_out=filtered_data)
 
-  ),
+								  ),
   staypoints_distance= target(
-                              find_staypoint_distance( filtered_data,  max_jump_time, min_staypoint_time, max_staypoint_distance ),
-                              transform=cross( filtered_data, 
-                                              max_jump_time = !!sp_max_jump_time_range, 
-                                              min_staypoint_time = !!sp_min_staypoint_time_range,
-                                              max_staypoint_distance  = !!sp_max_staypoint_distance_range, 
-                              .tag_out = staypoint_discovery )
+							  find_staypoint_distance( filtered_data,  max_jump_time, min_staypoint_time, max_staypoint_distance ),
+							  transform=cross( filtered_data, 
+											  max_jump_time = !!sp_max_jump_time_range, 
+											  min_staypoint_time = !!sp_min_staypoint_time_range,
+											  max_staypoint_distance  = !!sp_max_staypoint_distance_range, 
+											  .tag_out = staypoint_discovery )
   )
   ,
   optics_distance = target(
-                            find_cluster_optics_all( filtered_data,  min_staypoint_time, max_staypoint_distance),
-                            transform=cross( interpolated_locations, 
-                                            min_staypoint_time = !!sp_min_staypoint_time_range,
-                                            max_staypoint_distance  = !!sp_max_staypoint_distance_range,
-                                            .tag_out=staypoint_discovery
-                                            )
+							find_cluster_optics_all( filtered_data,  min_staypoint_time, max_staypoint_distance),
+							transform=cross( interpolated_locations, 
+											min_staypoint_time = !!sp_min_staypoint_time_range,
+											max_staypoint_distance  = !!sp_max_staypoint_distance_range,
+											.tag_out=staypoint_discovery
+							)
   )
   ,
-#
-#####################################
-# Evaluation data prep
-#####################################
+  #
+  #####################################
+  # Evaluation data prep
+  #####################################
   # get target locations, osm and 4sq
   df_4sq_locations_filtered =  get_df_4sq_locations_filtered(), 
   df_osm_amenity  = get_df_osm_locations_amenity() ,
   df_osm_leisure  = get_df_osm_locations_leisure() ,
-  df_target_locations_combined =get_df_target_locations_combined  (df_osm_amenity, df_4sq_locations_filtered),
-#
+  #
   # get surveys
   df_all = get_df_all(),
 
@@ -139,112 +139,117 @@ drakeplan <- drake::drake_plan(
   df_all_ts = get_df_all_ts( df_all ),
 
   # get valid surveys;  eliminate pre, tom and load categories, and surveys without gps points
- df_all_ts_valid = get_df_all_ts_valid( df_all_ts, df_location ),
+  df_all_ts_valid = get_df_all_ts_valid( df_all_ts, df_location ),
 
-#  # nest surveys
+  #  # nest surveys
   df_survey_nested  = get_df_survey_nested( df_all_ts_valid ),
- 
-#####################################
-# Evaluate 
-#####################################
 
- # summarise staypoints for every userid, night.  One line per staypoint / algorithm
- df_summarise_staypoints = target( summarise_staypoints ( staypoint_discovery),
-                                  transform = map( staypoint_discovery)),
+  #####################################
+  # Evaluate 
+  #####################################
 
- # summarise staypoints for every userid, night.  One line per staypoint / algorithm
- df_all_summarise_staypoints = target( my_combine(df_summarise_staypoints   ) , 
-                                      transform = combine( df_summarise_staypoints )),
+  # summarise staypoints for every userid, night.  One line per staypoint / algorithm
+  df_summarise_staypoints = target( summarise_staypoints ( staypoint_discovery),
+									transform = map( staypoint_discovery)),
+
+  # summarise staypoints for every userid, night.  One line per staypoint / algorithm
+  df_all_summarise_staypoints = target( my_combine(df_summarise_staypoints   ) , 
+										transform = combine( df_summarise_staypoints )),
 
 
- # count staypoints for every userid, night.  One dataset per algorithm
- df_count_staypoints = target( 
-                              count_staypoints ( staypoint_discovery),
-                              transform = map( staypoint_discovery)),
+  # count staypoints for every userid, night.  One dataset per algorithm
+  df_count_staypoints = target( 
+								count_staypoints ( staypoint_discovery),
+								transform = map( staypoint_discovery)),
 
- # total staypoints for each algorithm, one line per algorithm
- df_count_staypoints_per_algorithm  = target( 
-                            count_staypoints_per_algorithm ( df_count_staypoints ),
-                             transform = map( df_count_staypoints )),
+  # total staypoints for each algorithm, one line per algorithm
+  df_count_staypoints_per_algorithm  = target( 
+											  count_staypoints_per_algorithm ( df_count_staypoints ),
+											  transform = map( df_count_staypoints )),
 
   df_all_count_staypoints_per_algorithm = target( 
-                                my_combine( df_count_staypoints_per_algorithm) , 
-                                transform = combine( df_count_staypoints_per_algorithm )),
+												  my_combine( df_count_staypoints_per_algorithm) , 
+												  transform = combine( df_count_staypoints_per_algorithm )),
 
 
   # match survey data with staypoints
   df_matching_survey = target( 
-                              get_matching_survey ( staypoint_discovery,  df_survey_nested ),
-                              transform = map( staypoint_discovery )),
-#
-
-# df_matching_survey_mode = target( 
-#                             get_matching_survey ( meanshift_mode,  df_survey_nested ),
-#                             transform = map( meanshift_mode ), .tag_out = matching_survey),
+							  get_matching_survey ( staypoint_discovery,  df_survey_nested ),
+							  transform = map( staypoint_discovery )),
   #
-#  a=head( df_all_staypoints_multi, 100),
-  
- df_matching_geography = target( 
-                             calculate_sp_match_geography( staypoint_discovery, df_target_locations_combined),
-                             transform = map( staypoint_discovery )
-),
-#
-#
 
-# consolidate surveys per staypoint
-df_matching_survey_per_staypoint = target( 
-                                       get_matching_survey_per_staypoint( df_matching_survey),
-                                       transform = map( df_matching_survey )),
+  # df_matching_survey_mode = target( 
+  #                             get_matching_survey ( meanshift_mode,  df_survey_nested ),
+  #                             transform = map( meanshift_mode ), .tag_out = matching_survey),
+  #
+  #  a=head( df_all_staypoints_multi, 100),
 
-# 
-df_matching_survey_summarised = target( 
-                                   summarise_matching_surveys( df_matching_survey_per_staypoint),
-                                      transform = map( df_matching_survey_per_staypoint)),
-#
-#df_matching_survey_summarised_mode = target( 
-#                                       summarise_matching_surveys( df_matching_survey_mode ),
-#                                       transform = cross( df_matching_survey_mode )),
-#
+  #
+  #
+
+  # consolidate surveys per staypoint
+  df_matching_survey_per_staypoint = target( 
+											get_matching_survey_per_staypoint( df_matching_survey),
+											transform = map( df_matching_survey )),
+
+  # 
+  df_matching_survey_summarised = target( 
+										  summarise_matching_surveys( df_matching_survey_per_staypoint),
+										  transform = map( df_matching_survey_per_staypoint)),
+  #
+  #df_matching_survey_summarised_mode = target( 
+  #                                       summarise_matching_surveys( df_matching_survey_mode ),
+  #                                       transform = cross( df_matching_survey_mode )),
+  #
   df_matching_geography_summarised = target( 
-                              summarise_matching_geography( df_matching_geography),
-                              transform = map( df_matching_geography)),
-#
-# dq_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ), 
-#
+											summarise_matching_geography( df_matching_geography),
+											transform = map( df_matching_geography)),
+  #
+  # dq_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ), 
+  #
 
-# Each survey, along with all the staypoint points that it matches
-# unused
-df_all_matching_survey = target( 
-                                my_combine( df_matching_survey) , 
-                                transform = combine(df_matching_survey)),
+  # Each survey, along with all the staypoint points that it matches
+  # unused
+  df_all_matching_survey = target( 
+								  my_combine( df_matching_survey) , 
+								  transform = combine(df_matching_survey)),
 
-# Each survey, along with the single staypoint points that it matches
-# unused
-df_all_matching_survey_per_staypoint = target( 
-                              my_combine( df_matching_survey_per_staypoint) , 
-                              transform = combine(df_matching_survey_per_staypoint)),
+  # Each survey, along with the single staypoint points that it matches
+  # unused
+  df_all_matching_survey_per_staypoint = target( 
+												my_combine( df_matching_survey_per_staypoint) , 
+												transform = combine(df_matching_survey_per_staypoint)),
 
-# number of surveys for each staypoint, summarised
-df_all_sp_match_survey = target( 
-                                my_combine( df_matching_survey_summarised) , 
-                                transform = combine(df_matching_survey_summarised )),
+  # number of surveys for each staypoint, summarised
+  df_all_sp_match_survey = target( 
+								  my_combine( df_matching_survey_summarised) , 
+								  transform = combine(df_matching_survey_summarised )),
 
-# combine the number of found surveys and the number of found staypoints
-df_all_sp_match_survey_combined = target( df_all_sp_match_survey   %>%
-                                         mutate( source = str_replace( source, '.*_staypoints_', 'staypoints_' )) %>%
-                                         inner_join( 
-                                                    df_all_count_staypoints_per_algorithm  %>%
-                                                      mutate( source = str_replace( source, '.*_staypoints_', 'staypoints_' )), by='source'
-                                                    )),
+  # combine the number of found surveys and the number of found staypoints
+  df_all_sp_match_survey_combined = target( df_all_sp_match_survey   %>%
+											mutate( source = str_replace( source, '.*_staypoints_', 'staypoints_' )) %>%
+											inner_join( 
+													  df_all_count_staypoints_per_algorithm  %>%
+														mutate( source = str_replace( source, '.*_staypoints_', 'staypoints_' )), by='source'
+													  )),
 
-# df_all_sp_match_survey_mode = target( 
-#                      my_combine( df_matching_survey_summarised_mode) , 
-#                      #gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source), 
-#                      transform = combine(df_matching_survey_summarised_mode)),
+  # df_all_sp_match_survey_mode = target( 
+  #                      my_combine( df_matching_survey_summarised_mode) , 
+  #                      #gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source), 
+  #                      transform = combine(df_matching_survey_summarised_mode)),
 
 
   #
   #wflow_publish(knitr_in("analysis/evaluate_staypoint_estimates.Rmd"), view = FALSE),
+  trace=TRUE
+)
+
+drakeplan_geography <- drake::drake_plan(
+  df_target_locations_combined =get_df_target_locations_combined  (df_osm_amenity, df_4sq_locations_filtered),
+ df_matching_geography = target( 
+                             calculate_sp_match_geography( staypoint_discovery, df_target_locations_combined),
+                             transform = map( staypoint_discovery )
+),
 trace=TRUE
 )
 
