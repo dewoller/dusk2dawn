@@ -181,6 +181,7 @@ drakeplan <- drake::drake_plan
   # df_matching_survey_mode = target( 
   #                             get_matching_survey ( meanshift_mode,  df_survey_nested ),
   #                             transform = map( meanshift_mode ), .tag_out = matching_survey),
+<<<<<<< HEAD
   #
   #  a=head( df_all_staypoints_multi, 100),
 
@@ -202,7 +203,35 @@ drakeplan <- drake::drake_plan
   #                                       transform = cross( df_matching_survey_mode )),
   #
     # Each survey, along with all the staypoint points that it matches
-  # unused
+=======
+  #
+  #  a=head( df_all_staypoints_multi, 100),
+
+  #
+  #
+
+  # consolidate surveys per staypoint
+  df_matching_survey_per_staypoint = target( 
+											get_matching_survey_per_staypoint( df_matching_survey),
+											transform = map( df_matching_survey )),
+
+  # 
+  df_matching_survey_summarised = target( 
+										  summarise_matching_surveys( df_matching_survey_per_staypoint),
+										  transform = map( df_matching_survey_per_staypoint)),
+  #
+  #df_matching_survey_summarised_mode = target( 
+  #                                       summarise_matching_surveys( df_matching_survey_mode ),
+  #                                       transform = cross( df_matching_survey_mode )),
+  #
+  df_matching_geography_summarised = target( 
+											summarise_matching_geography( df_matching_geography),
+											transform = map( df_matching_geography)),
+  #
+  # dq_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ), 
+  #
+
+  # Each survey, along with all the staypoint points that it matches
   df_all_matching_survey = target( 
 								  my_combine( df_matching_survey) , 
 								  transform = combine(df_matching_survey)),
