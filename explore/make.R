@@ -67,7 +67,7 @@ interpolation_delay_range = c(120, 300, 600)
 #ht_range = c(6, 60, 600 )
 
 if (currentMachine == "dewlap") {
-  max_expand_setting=1
+  max_expand_setting=3
   df_location_initial = get_df_single_location() 
 
 } else {
