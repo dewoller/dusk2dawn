@@ -1,4 +1,3 @@
-library(futile.logger)
 
 if(FALSE) {
 
@@ -111,6 +110,7 @@ for ( eps_cl in rev(1:100/1000)) {
 
 if(FALSE) {
 
+
   df=d%>% arrange(timestamp) %>% mutate( id = row_number()) 
   spos = 1
   epos = nrow(df)
@@ -174,6 +174,10 @@ df_summarise_staypoints_optics_distance_900_100_interpolated_locations_
 
 readd('optics_distance_900_100_interpolated_locations_120_filtered_accuracy_10')
 readd('optics_distance_900_100_interpolated_locations_120_filtered_accuracy_100')
+optics_distance_900_100_interpolated_locations_120_filtered_accuracy_100
+df = readd( interpolated_locations_120_filtered_accuracy_100)
+
+find_cluster_optics(df , 900, 100)
 
   df %>% 
     distinct( userid, night) %>%

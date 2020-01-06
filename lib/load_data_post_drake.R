@@ -1,5 +1,7 @@
 
-# load in the individual locations information
+library(tidyverse)
+library(drake)
+# load in the individual locations information and summarise it
 loadd(df_all_sp_match_survey_combined) 
 
 
@@ -10,6 +12,7 @@ df_all_sp_match_survey_combined %>%
   mutate( source = str_replace( source, 'filtered_', 'filtered.')) %>%
   mutate( source = str_replace( source, 'filtered_accuracy', 'filtered.accuracy')) %>% 
   { . } -> df1
+
 
 #df1 %>%  
 #  as.Node( pathName = 'source', pathDelimiter='_') %>% 
