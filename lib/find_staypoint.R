@@ -29,7 +29,7 @@ library(lubridate)
 
 library(multidplyr)
 library(parallel)
-library(ParallelLogger) 
+library(ParallelLogger)
 
 # load in the individual locations information
 df_location = get_df_location()
@@ -43,15 +43,15 @@ sigma_range=c(.25, .5, 1, 2, 100)
 gh_precision_range=7:9
 gh_minpoints_range=0:2*6+3
 
-expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, sigma_range ) %>% 
+expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, sigma_range ) %>%
   setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_sigma )) %>%
-  as_tibble() %>% 
-  { . } -> grid_search 
+  as_tibble() %>%
+  { . } -> grid_search
 
-expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, gh_precision_range, gh_minpoints_range ) %>% 
+expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_range, gh_precision_range, gh_minpoints_range ) %>%
   setNames( qc(i_min_staypoint_time, i_max_jump_time, i_max_staypoint_distance, i_precision, i_minpoints )) %>%
-  as_tibble() %>% 
-  { . } -> grid_search 
+  as_tibble() %>%
+  { . } -> grid_search
 
 
 
@@ -61,7 +61,7 @@ expand.grid(min_staypoint_time_range,max_jump_time_range,max_staypoint_distance_
 
 
 #prune_gps_geohash<- function( df, gh_precision = 7, minpoints=3 )  {
-#options(error = traceback)
+options(error = traceback)
 
 #get_geohashed_filename( 1,2)
 
@@ -108,10 +108,10 @@ clusterEvalQ(cluster, {
                NULL
              })
 
-grid_search  %>% 
+grid_search  %>%
   distinct( i_precision, i_minpoints ) %>%
   mutate( row = row_number()) %>%
-  nest( -row ) %>% 
+  nest( -row ) %>%
   { . } -> gs
 
 dummy <- clusterApply(cluster, gs$data, do_one_geohash)
@@ -150,9 +150,9 @@ clusterEvalQ(cluster, {
                library(RAppArmor)
                NULL
      })
-grid_search  %>% 
+grid_search  %>%
   mutate( row = row_number()) %>%
-  nest( -row ) %>% 
+  nest( -row ) %>%
   { . } -> gs
 dummy <- clusterApply(cluster, gs$data , do_one_search)
 
@@ -190,9 +190,9 @@ while(TRUE) {
                   NULL
                 })
 
-    grid_search  %>% 
+    grid_search  %>%
       mutate( row = row_number()) %>%
-      nest( -row ) %>% 
+      nest( -row ) %>%
       { . } -> gs
     dummy <- parallel::clusterApply(cluster, gs$data , do_one_search_geohash )
 

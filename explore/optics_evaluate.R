@@ -37,7 +37,25 @@ if(FALSE) {
     { . } -> b
 
   cache %>% 
-    filter(endsWith(value, 'interpolated_locations_120_filtered_accuracy_100'))
+    filter(endsWith(value, '300_100_interpolated_locations_120_filtered_accuracy_100')) %>%
+    filter(!str_detect(value, 'count')) %>%
+    filter(!str_detect(value, 'geography')) %>%
+    filter(!str_detect(value, 'mode')) %>% 
+    filter(str_detect(value, 'df_matching_survey_summarised')) %>% 
+    pluck('value') %>%
+   
+
+
+
+readd( df_matching_survey_per_staypoint_df_matching_survey_optics_distance_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
+mutate(algo='optics') %>%
+bind_rows( readd(df_matching_survey_per_staypoint_df_matching_survey_staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
+mutate(algo='sp')) %>%
+count( userid, night, algo) %>%
+spread(algo, n, fill=0) %>%
+arrange( optics-sp) %>%
+group_by( userid, night) %>%
+summarise
 
 
     b %>%

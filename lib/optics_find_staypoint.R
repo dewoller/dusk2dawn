@@ -177,7 +177,7 @@ readd('optics_distance_900_100_interpolated_locations_120_filtered_accuracy_100'
 optics_distance_900_100_interpolated_locations_120_filtered_accuracy_100
 df = readd( interpolated_locations_120_filtered_accuracy_100)
 
-find_cluster_optics(df , 900, 100)
+find_cluster_optics_all(df , 900, 100)
 
   df %>% 
     distinct( userid, night) %>%
