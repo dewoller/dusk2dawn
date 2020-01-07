@@ -53,19 +53,19 @@ test == function() {
   df_osm_leisure  = get_df_osm_locations_leisure()
 
 library(tmap)
+library(sf)
 tmap_mode("plot")
-df_rds %>%
-  inner_join( limit )
+
+df1 %>%
 #    group_by( n_staypoint) %>%
 #    summarise( latitude=mean(latitude), longitude=mean(longitude)) %>%
-st_as_sf( coords = c("longitude", "latitude"), crs = 4326, agr = "constant") -> df
-df %>%
+st_as_sf( coords = c("longitude", "latitude"), crs = 4326, agr = "constant")  %>%
   #  mutate( ts = as.numeric( cut(timestamp, 8))) %>%
   #    filter( n_staypoint>0 ) %>%
-  mutate( n_staypoint = as.factor( n_staypoint )) %>%
-  mutate( size=ifelse( n_staypoint==0, .01, 1 )) %>%
+#  mutate( n_staypoint = as.factor( n_staypoint )) %>%
+#  mutate( size=ifelse( n_staypoint==0, .01, 1 )) %>%
   tm_shape()  + 
-  tm_symbols(col = "n_staypoint", shape = "n_staypoint", scale = .3, size='size')  +
+  tm_bubbles(size=.01)  +
   tm_scale_bar(position=c("left", "bottom")) +
   tm_basemap(leaflet::providers$Stamen.TonerLite)  +
   #tm_shape( df_bars ) +
@@ -76,8 +76,8 @@ df %>%
   #tm_bubbles( col='black', scale=.3, id='name')+
   #tm_shape( df_osm_amenities$osm_polygon %>% filter( !is.na( amenity)) ) +
   #  tm_polygons(col='black',  id='name')+
-  tm_shape( df_osm_leisure$osm_polygon %>% filter( !is.na( leisure)) ) +
-  tm_polygons( col='gray', id='name') +
+#  tm_shape( df_osm_leisure$osm_polygon %>% filter( !is.na( leisure)) ) +
+#  tm_polygons( col='gray', id='name') +
   tm_scale_bar()
 
 of_lausanne$osm_points %>%
@@ -125,7 +125,7 @@ a %>%
   ggplot( aes( longitude )) +
   geom_histogram( )
 
-a %>%
+df1 %>%
   ggplot( aes( latitude )) +
   geom_histogram( )
 
