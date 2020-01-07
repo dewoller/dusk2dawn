@@ -99,18 +99,18 @@ df_results%>%
   ggplot( aes( sp_total, surveys_total, color=survey_rate)) +
   geom_point()
 
-df_results%>%
-  ggplot( aes( sp_total, surveys_total, color=type)) +
+df_results %>%
+  ggplot( aes( sp_total, surveys_total, color=filter_type)) +
+  geom_point()+
+  geom_text( aes( label=interpol))
+
+df_results %>%
+  ggplot( aes( sp_total, surveys_total, color=algorithm)) +
   geom_point()+
   geom_text( aes( label=interpol))
 
 df_results %>%
   count( filter_type)
-
-df_results %>%
-  filter( is.na(filter_type)) %>%
-  select(source)
-
 
 
 readd(df_matching_survey_mode_meanshift_mode_300_10_10_1_6_interpolated_locations_120_filtered_accuracy_100) %>%

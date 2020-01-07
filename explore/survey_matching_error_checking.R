@@ -50,14 +50,13 @@ df_results %>%
   { . } -> best_algorithm
 
 
-
 readd( best_algorithm, character_only=TRUE ) %>%
   { . } -> df_staypoints
 
 cached() %>% enframe() -> cache
 
 cache %>%
-  filter( endsWith( value, best_algorithm))
+  filter( endsWith( value, 'best_algorithm'))
 
 
 # counting staypoints
