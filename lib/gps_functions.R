@@ -97,7 +97,6 @@ calculate_distance_roll = tibbletime::rollify( calculate_distance, window=2)
 
 find_staypoint_distance_night_test = function () {
 
-  df %>%
 
 
 }
@@ -503,5 +502,4 @@ ll2m = function( ll, base_ll , m_per_factor )  {
 
 
 
-m2ll(0,49, 11320)
 
