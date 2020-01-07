@@ -105,7 +105,10 @@ drakeplan <- drake::drake_plan(
         ),
     staypoints_distance =
         target(
-            find_staypoint_distance(filtered_data, max_jump_time, min_staypoint_time, max_staypoint_distance),
+            find_staypoint_distance(filtered_data, 
+                                    max_jump_time = max_jump_time, 
+                                    min_staypoint_time = min_staypoint_time, 
+                                    max_staypoint_distance = max_staypoint_distance),
             transform = cross(filtered_data,
                 max_jump_time = !!sp_max_jump_time_range,
                 min_staypoint_time = !!sp_min_staypoint_time_range,
@@ -115,8 +118,12 @@ drakeplan <- drake::drake_plan(
         ),
     optics_distance =
         target(
-            find_cluster_optics_all(filtered_data, min_staypoint_time, max_staypoint_distance),
+            find_cluster_optics_all(filtered_data, 
+                                    max_jump_time = max_jump_time, 
+                                    min_staypoint_time = min_staypoint_time, 
+                                    max_staypoint_distance = max_staypoint_distance),
             transform = cross(interpolated_locations,
+                max_jump_time = !!sp_max_jump_time_range,
                 min_staypoint_time = !!sp_min_staypoint_time_range,
                 max_staypoint_distance = !!sp_max_staypoint_distance_range,
                 .tag_out = staypoint_discovery
