@@ -57,12 +57,18 @@ arrange( optics-sp) %>%
 group_by( userid, night) %>%
 
 
-find the actual points of the surveys that have disparity
+#find the actual points of the surveys that have disparity
+# optics_distance_600_20_interpolated_locations_300_filtered_accuracy_100
 
+df = readd( interpolated_locations_300_filtered_accuracy_100 )
 
-  df = readd( interpolated_locations_120_filtered_accuracy_100)
+df = readd( interpolated_locations_120_filtered_accuracy_100)
 
-find_cluster_optics_all(df) -> df_all_optics
+find_cluster_optics_all(df, 100, 10) -> df_all_optics
+
+df_all_optics %>%
+#filter( userid=='6abb3992-29f1-4d36-a9dd-1c67b258a8da' & night=='2014-10-24') %>%
+ count( n_staypoint,sort=TRUE) %>%
 
 df %>%
   filter( userid=='6abb3992-29f1-4d36-a9dd-1c67b258a8da' & night=='2014-10-24') %>%
@@ -72,9 +78,43 @@ df %>%
   {.} -> df_optics
 
 
-df_optics %>% 
+df %>%
+  distinct( userid, night ) %>t
+  count( night) %>%
+  filter( n<10) %>%
+    arrange(desc(n))
+
+df %>%
+  filter( userid=='6abb3992-29f1-4d36-a9dd-1c67b258a8da' & night=='2014-10-24') %>%
+  find_cluster_optics_all(min_staypoint_time = 10 , max_staypoint_radius = 100 ) %>% 
+  { . } -> eee
+
+eee %>% count( n_staypoint,sort=TRUE)
+
+df %>%
+  filter( night=='2014-12-05') %>%
+find_cluster_optics_all() %>% 
+{ . } -> eee
+
+  find_cluster_optics_single(min_staypoint_time = 10 , max_staypoint_radius = 100 )  %>%
+
+
+df %>%
+  group_by( userid, night ) %>%
+  arrange( timestamp, .by_group = TRUE) %>% 
+  mutate( id = row_number()) %>%
+  { . } -> dfaaa
+
+df_optics %>%
   mutate( n_staypoint = row_number()) %>%
   unnest(ids) %>%
+  inner_join(
+             df %>%
+               filter( userid=='6abb3992-29f1-4d36-a9dd-1c67b258a8da' & night=='2014-10-24') %>%
+               arrange( timestamp, .by_group = TRUE) %>%
+               mutate( id = row_number()) ,
+             by='id'
+             ) %>% 
 {.} -> df_optics_n
 
   df_optics %>%
@@ -84,15 +124,27 @@ df_optics %>%
     filter( userid=='6abb3992-29f1-4d36-a9dd-1c67b258a8da' & night=='2014-10-24') %>%
     arrange( timestamp, .by_group = TRUE) %>%
     mutate( id = row_number()) %>%
-    find_staypoint_distance_night(3600, min_staypoint_time = 10 , max_staypoint_distance=200 )  %>%
+    find_staypoint_distance_night(3600, min_staypoint_time = 600 , max_staypoint_distance=200 )  %>%
     {.} -> df_staypoint
 
   df_staypoint %>%
-    filter(n_staypoint > 0 ) %>% 
+    filter(n_staypoint > 0 ) %>%
     { . } -> df_staypoint_n
 
-  df_optics_n
+  df_staypoint_n %>% count( n_staypoint,sort=TRUE)
+  df_optics_n %>% count( n_staypoint,sort=TRUE)
 
+  df_staypoint_n %>% 
+    group_by( n_staypoint ) 
+    count( n_staypoint,sort=TRUE)
+
+  df_optics_n %>%
+    ggplot( aes( latitude, longitude, color=as.factor(n_staypoint))) +
+    geom_point()
+
+  df_staypoint_n %>%
+    ggplot( aes( latitude, longitude, color=as.factor(n_staypoint))) +
+    geom_point()
 
 
 
