@@ -164,8 +164,14 @@ find_cluster_optics_all_test = function( df)   {
 
   df = readd(interpolated_locations_120_filtered_accuracy_10)
 
+ readd(df_matching_survey_optics_distance_14400_600_20_interpolated_locations_600_filtered_accuracy_10)
 
- df = readd(interpolated_locations_120_filtered_accuracy_10)
+ readd(df_matching_survey_optics_distance_14400_600_20_interpolated_locations_600_filtered_accuracy_10)
+
+ find_cluster_optics_all(df, 14400,600,20) %>%
+   { . } -> clusters
+
+ df = readd(interpolated_locations_600_filtered_accuracy_10)
 df_summarise_staypoints_optics_distance_900_100_interpolated_locations_
  cached() %>% enframe() -> cache
 
@@ -227,6 +233,8 @@ df_id %>%
     mutate( n_staypoint = row_number()) %>%
     ungroup() %>%
     { . } -> df_test
+
+browser()
 
   if (nrow( df_test) > 0 ) {
     df_test %>%
@@ -367,7 +375,7 @@ assess_eps_level_optics = function( df,
                                    epos = nrow(df),
                                    eps_cl,
                                    max_jump_time = 3600,
-                                   min_staypoint_time = 600 )
+                                   min_staypoint_time = 600 ) {
   flog.info("Assessing, spos %s, epos %s, eps_cl %s", spos, epos, eps_cl)
   #browser()
 
