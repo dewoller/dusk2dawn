@@ -25,3 +25,4 @@ lib/keys.R
 .nfs*
 *.json
 
+Session.vim
