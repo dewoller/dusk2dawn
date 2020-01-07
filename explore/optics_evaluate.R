@@ -71,6 +71,12 @@ df %>%
   find_cluster_optics_single(min_staypoint_time = 10 , max_staypoint_radius = 100 )  %>%
   {.} -> df_optics
 
+
+df_optics %>% 
+  mutate( n_staypoint = row_number()) %>%
+  unnest(ids) %>%
+{.} -> df_optics_n
+
   df_optics %>%
     count( cluster)
 
@@ -78,9 +84,17 @@ df %>%
     filter( userid=='6abb3992-29f1-4d36-a9dd-1c67b258a8da' & night=='2014-10-24') %>%
     arrange( timestamp, .by_group = TRUE) %>%
     mutate( id = row_number()) %>%
-    find_staypoint_distance_night(60, min_staypoint_time = 10 , max_staypoint_distance=200 )  %>%
-    
-    {.} -> df_optics
+    find_staypoint_distance_night(3600, min_staypoint_time = 10 , max_staypoint_distance=200 )  %>%
+    {.} -> df_staypoint
+
+  df_staypoint %>%
+    filter(n_staypoint > 0 ) %>% 
+    { . } -> df_staypoint_n
+
+  df_optics_n
+
+
+
 
 readd( df_matching_survey_per_staypoint_df_matching_survey_optics_distance_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
 mutate(algo='optics') %>%

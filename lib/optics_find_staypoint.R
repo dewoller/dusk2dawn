@@ -209,7 +209,7 @@ find_cluster_optics_single(df1 ,min_staypoint_time = min_staypoint_time , max_st
 # find_cluster_optics_all
 #################################################################################
 
-find_cluster_optics_all = function( df, min_staypoint_time = 10, max_staypoint_radius = 1000)   {
+find_cluster_optics_all = function( df, min_staypoint_time = 10, max_staypoint_radius = 100)   {
   flog.threshold(WARN)
 
   df %>%
@@ -222,14 +222,23 @@ df_id %>%
     group_modify( ~find_cluster_optics_single( .x ,
                                               min_staypoint_time = min_staypoint_time ,
                                               max_staypoint_radius = max_staypoint_radius )) %>%
-    { . } -> df_test
-#browser()
-
-  df_test %>%
     group_by( userid, night ) %>%
     mutate( n_staypoint = row_number()) %>%
     ungroup() %>%
-    unnest( cols=c(ids)) %>%
+    { . } -> df_test
+
+  if (nrow( df_test) > 0 ) {
+    df_test %>%
+      unnest( cols=c(ids)) %>%
+      { . } -> df_test
+  } else {
+      df_test %>%
+        select(-ids) %>%
+        mutate(id=0) %>%
+        { . } -> df_test
+  }
+
+  df_test %>%
     inner_join( df_id, by=c('userid','night','id')) %>%
     { . } -> df_clusters
 
