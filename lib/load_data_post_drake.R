@@ -7,7 +7,6 @@ loadd(df_all_sp_match_survey_combined)
 
 df_all_sp_match_survey_combined %>%
   mutate( base_file=source) %>%
-  mutate( source = str_replace( source, 'optics_distance_', 'optics_distance_0_')) %>%
   mutate( source = str_replace( source, '_', '.')) %>%
   mutate( source = str_replace( source, 'interpolated_', 'interpolated.')) %>%
   mutate( source = str_replace( source, 'filtered_', 'filtered.')) %>%
