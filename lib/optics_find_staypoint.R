@@ -142,6 +142,17 @@ do( joined = interval_inner_join( data.frame(.$surveys),
                                  maxgap=600))  %>%
 ungroup()
 
+
+readd(interpolated_locations_300_filtered_accuracy_10) %>%
+{ . } -> df
+
+
+    find_cluster_optics_all ( df, 14400, 900, 20) %>%
+    { . } -> df_optics
+
+max_jump_time = 14400
+min_staypoint_time = 900
+max_staypoint_distance = 20
 }
 
 # global variables
@@ -187,7 +198,7 @@ find_cluster_optics_all(df, 3600, 900, 100) %>%
 { . } -> clusters
 
 
-
+# winnow out first 4 user nights
   df %>%
     distinct( userid, night) %>%
     head(4) %>%
@@ -209,6 +220,7 @@ find_cluster_optics_single(df1 )  %>%
 
 
 
+  flog.threshold(DEBUG)
 
 }
 #################################################################################
@@ -216,8 +228,9 @@ find_cluster_optics_single(df1 )  %>%
 #################################################################################
 
 find_cluster_optics_all = function( df, max_jump_time = 3600, min_staypoint_time = 600, max_staypoint_distance = 500)   {
-  flog.threshold(WARN)
+  flog.threshold(INFO)
 
+#  TRACE, DEBUG, INFO, WARN, ERROR, FATAL
   df %>%
     arrange( userid, night,  timestamp) %>%
     mutate( id = row_number()) %>%
@@ -228,13 +241,13 @@ df_id %>%
     group_modify( ~find_cluster_optics_single( .x ,
                                               max_jump_time = max_jump_time,
                                               min_staypoint_time = min_staypoint_time ,
-                                              max_staypoint_distance = max_staypoint_distance )) %>%
+                                              max_staypoint_distance = max_staypoint_distance ),
+                 keep=TRUE) %>%
     group_by( userid, night ) %>%
     mutate( n_staypoint = row_number()) %>%
     ungroup() %>%
     { . } -> df_test
 
-browser()
 
   if (nrow( df_test) > 0 ) {
     df_test %>%
@@ -273,7 +286,11 @@ find_cluster_optics_single_test = function( ) {
  eps_cl_index = 1
 
 }
-  #################################################################################
+
+
+#################################################################################
+# find_cluster_optics_single
+#################################################################################
 find_cluster_optics_single = function( df,
                                         spos = 1,
                                         epos = nrow(df),
@@ -284,7 +301,7 @@ find_cluster_optics_single = function( df,
 
   rv=tibble()
   # return if epos or spos messed up
-  if (epos <= spos | epos > nrow(df) | spos <=0 ) {
+  if (epos <= spos | epos > nrow(df) | spos <=0 | nrow(df) == 0 ) {
     return( rv )
   }
 
@@ -298,8 +315,7 @@ find_cluster_optics_single = function( df,
   while(!found & eps_cl_index <= length( eps_cl_levels)) {
     flog.debug("inside find chunks loop, spos %s epos %s  esp_cl %s ", spos, epos, eps_cl_levels[ eps_cl_index])
 
-    #browser()
-    # find clusters and assess goodness
+    # find all the clusters at this level, and choose the the best cluster
     df %>%
       assess_eps_level_optics( spos, epos, eps_cl_levels[ eps_cl_index], min_staypoint_time = min_staypoint_time ) %>%
       assess_cluster_optics( min_staypoint_time = min_staypoint_time, max_staypoint_distance = max_staypoint_distance ) %>%
@@ -308,31 +324,32 @@ find_cluster_optics_single = function( df,
 
     # if we have good clusters, otherwise, just keep refining the eps_cl_index
     if (nrow(rv) > 0) {
-      flog.info("we found %s good clusters, dive into remainders ", nrow(rv))
+      flog.trace("we found %s good clusters, dive into remainders ", nrow(rv))
       found=TRUE
       downstream_chunks = tibble()
+      #browser()
 
-      # look for clusters in each unused chunk, recursively
-      for(i in 1:nrow(rv)) {
-        flog.info("looking at the bits around cluster # %s, running from %s to %s",
-                  i, pluck(rv, 'cluster_spos', i) , pluck(rv, 'cluster_epos', i) )
-        flog.info("investigating bit before %s th chunk, starting with %s", i, spos)
-        next_chunks = find_cluster_optics_single( df, spos=spos,
-                                                 epos = pluck(rv, 'cluster_spos', i) - 1,
-                                                 max_jump_time,
-                                                 min_staypoint_time,
-                                                 max_staypoint_distance, eps_cl_index)
-        downstream_chunks = bind_rows( downstream_chunks, next_chunks )
-        spos = pluck(rv,  'cluster_epos', i) + 1
-      }
-      flog.info("investigating last chunk, starting with %s to %s",  spos, epos)
-      next_chunks = find_cluster_optics_single( df, spos=spos,
-                                               epos = epos ,
-                                               max_jump_time,
-                                               min_staypoint_time,
-                                               max_staypoint_distance, eps_cl_index)
-      downstream_chunks = bind_rows( downstream_chunks, next_chunks )
-      rv = bind_rows( rv, downstream_chunks)
+      # we only ever have a single cluster
+      cluster_this_min = pluck(rv, 'cluster_min_id', 1)
+      cluster_this_max = pluck(rv, 'cluster_max_id', 1)
+      cluster_spos = which( df$id == cluster_this_min) - 1
+      cluster_epos = which( df$id == cluster_this_max) + 1
+      flog.trace("looking at the bits before the cluster, running from ID %s to %s", cluster_this_min, cluster_this_max )
+      flog.trace("first, the bit before: running from positin %s to %s", spos, cluster_spos )
+      flog.trace("and, the bit after: running from positin %s to %s",  cluster_epos, epos )
+
+      rv %>%
+        bind_rows( find_cluster_optics_single( df, spos=spos,
+                                          epos = cluster_spos,
+                                          max_jump_time,
+                                          min_staypoint_time,
+                                          max_staypoint_distance, eps_cl_index) ) %>%
+        bind_rows( find_cluster_optics_single( df, spos=cluster_epos,
+                                            epos = epos ,
+                                            max_jump_time,
+                                            min_staypoint_time,
+                                            max_staypoint_distance, eps_cl_index) ) %>%
+        { . } -> rv
     }
     eps_cl_index = eps_cl_index + 1
   }
@@ -376,11 +393,11 @@ assess_eps_level_optics = function( df,
                                    eps_cl,
                                    max_jump_time = 3600,
                                    min_staypoint_time = 600 ) {
-  flog.info("Assessing, spos %s, epos %s, eps_cl %s", spos, epos, eps_cl)
-  #browser()
+  flog.trace("Assessing, spos %s, epos %s, eps_cl %s", spos, epos, eps_cl)
+
 
   df %>%
-    filter( id >= spos & id <= epos ) %>%
+    dplyr::slice( spos:epos ) %>%
     mutate( cluster = calculate_clusters_optics(., eps_cl, min_staypoint_time ),
            eps_cl = eps_cl) %>%
     group_by(cluster) %>%
@@ -409,11 +426,12 @@ normalize <- function(x) {
 
 #################################################################################
 # calculate_clusters_optics
+# for this selectd chunk of df, are there any clusters at this eps_cl level of at least min_staypoint_time length?
 #################################################################################
 
 calculate_clusters_optics = function( df, eps_cl, min_staypoint_time ) {
   dbscan_minimum_points_error_threshold = 5
-  flog.info("Calculating Clusters, df length %s, ranging from %s to %s, eps_cl=%s  ", nrow(df), min(df$id), max(df$id ), eps_cl)
+  flog.trace("Calculating Clusters, df length %s, ranging from IDs %s to %s, eps_cl=%s  ", nrow(df), min(df$id), max(df$id ), eps_cl)
 
   # to search for clusters, this chunk must be of sufficent duration, and have sufficient points
   if( ((max( df$timestamp ) - min( df$timestamp)) <  min_staypoint_time  ) |
@@ -437,7 +455,8 @@ calculate_clusters_optics = function( df, eps_cl, min_staypoint_time ) {
 #################################################################################
 
 assess_cluster_optics = function( df, min_staypoint_time, max_staypoint_distance  ) {
-  flog.info("Assessing Clusters,  nrow(df) = %s, ncluster= %s", nrow(df), max( df$cluster))
+  ncluster = df %>% distinct( cluster ) %>% nrow()
+    flog.trace("Assessing Clusters,  nrow(df) = %s, ncluster= %s", nrow(df), ncluster )
 
   max_staypoint_diameter = max_staypoint_distance * 2
   # find /the/ best chunk
@@ -453,8 +472,8 @@ assess_cluster_optics = function( df, min_staypoint_time, max_staypoint_distance
               t = (max(timestamp) - min(timestamp)) ,
               max_ts = max(timestamp) ,
               min_ts = min(timestamp),
-              cluster_spos = min(id),
-              cluster_epos = max(id)
+              cluster_min_id = min(id),
+              cluster_max_id = max(id)
     )  %>%
     filter( t >= min_staypoint_time &
            (w <= max_staypoint_diameter &
@@ -463,8 +482,11 @@ assess_cluster_optics = function( df, min_staypoint_time, max_staypoint_distance
     top_n(1, t) %>%
     head(1) %>%
     inner_join( df %>% dplyr::select( cluster, id ), by='cluster') %>%
-    nest( ids=c(id) )
+    nest( ids=c(id) ) %>%
+    { . } -> rv
 
+flog.trace("Finished assessing Clusters, found %s valid cluster", nrow(rv))
+rv
 
 
 }
