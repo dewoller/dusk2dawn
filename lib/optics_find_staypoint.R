@@ -168,7 +168,7 @@ find_cluster_optics_all_test = function( df)   {
   options(error=stop)
 
   flog.threshold(DEBUG)
-  flog.threshold(INFO)
+  flog.threshold(WARN)
 
   min_staypoint_time = 600
  max_staypoint_distance = 500
