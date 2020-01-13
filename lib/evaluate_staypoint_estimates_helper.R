@@ -1,6 +1,6 @@
 library(tidyverse)
 
-row= tribble( ~filename,'data/save_v1_maxspeed_1200_1200_10_20_df.rds')
+#row= tribble( ~filename,'data/save_v1_maxspeed_1200_1200_10_20_df.rds')
 
 #********************************************************************************
 #analyse_staypoint_base_information_detail
@@ -274,7 +274,120 @@ detectCores() %>%
 
 
 
+#********************************************************************************
+#  ptype_id_long_to_desc
+#********************************************************************************
+ptype_long = function() {
 
+tribble( ~ptype_long, ~ptype_id_long,
+"UNKNOWN", 0,
+"Bar", 1 ,
+"Club", 2 ,
+"Restaurant", 3 ,
+"Private", 4 ,
+"School / University", 5 ,
+"Streets / Urban", 6,
+"Indoor recreational", 7 ,
+"Events", 8 ,
+"Culture", 9 ,
+"Travelling", 10 ,
+"Other", 11 ,
+"Unknown", 12 ,
+"Outdoor / Park", 13) %>%
+mutate( ptype_id_short = ptype_id_long_to_short ( ptype_id_long )) %>%
+inner_join( ptype_short(), by='ptype_id_short')
+
+}
+
+#********************************************************************************
+#  ptype_id_short_to_desc
+#********************************************************************************
+ptype_short = function() {
+
+
+  tribble( ~ptype_short, ~ptype_id_short, ~category,
+          "UNKNOWN", 0, 'non-sp',
+          "Bar", 1,'sp',
+          "Club", 2,'sp',
+          "Restaurant", 3,'sp',
+          "Private", 4,'sp',
+          "Streets / Outdoor / Park", 6, 'non-sp',
+          "Travelling", 10, 'non-sp',
+          "Other commercial venue", 14, 'sp') 
+
+
+}
+
+n_ptype_short = function() {
+
+  structure(list(ptype_id_short = c(0, 1, 2, 3, 4, 6, 10, 14),
+								n_ptype_loc = c(2287, 345, 86, 130, 1304, 331, 116, 74)), class = c("tbl_df",
+								"tbl", "data.frame"), row.names = c(NA, -8L)
+  )
+}
+
+#********************************************************************************
+#  ptype_id_short_to_long
+#********************************************************************************
+ptype_id_long_to_short = function(ptype_id_long) {
+  #recode semloc (13 = 6)(7,8,9 = 14).
+
+recode( ptype_id_long, '13'=6,
+       '7'=14,
+       '8'=14,
+       '9'=14)
+
+}
+
+#********************************************************************************
+#  get_df_florian_locations_test
+#********************************************************************************
+get_df_florian_locations_test = function() {
+
+  get_df_florian_locations() %>%
+    count( ptype_id_short )  %>%
+    mutate( n = ifelse( ptype_id_short ==0, n+ (4673- sum(n) ), n) ) %>%
+    dplyr::rename(total = n) %>%
+    dput() %>% clipr::write_clip()
+
+
+    { . } ->
+
+
+    summarise( sum( n))
+
+    summarise(max(id))
+
+    inner_join(ptype_long(), by='ptype_id_long' ) %>%
+    mutate( ptype_id_short = ptype_id_long_to_short( ptype_id_long) ) %>%
+    inner_join(ptype_short(), by='ptype_id_short' )
+
+
+4673
+
+}
+
+#********************************************************************************
+#  get_df_florian_locations
+#********************************************************************************
+get_df_florian_locations = function() {
+
+  fl_col_types=cols(
+                 id = col_double(),
+                 user = col_character(),
+                 ptype_rec = col_double(),
+                 episod_episode = col_character()
+  )
+
+
+  read_csv( 'data/florian_handcoded_locations_final.csv', col_types = fl_col_types  ) %>%
+    mutate( ptype_rec = ifelse( is.na( ptype_rec), 0,ptype_rec)) %>%
+    dplyr::rename( ptype_id_long = ptype_rec) %>%
+  inner_join(ptype_long(), by='ptype_id_long' ) %>%
+    mutate( ptype_id_short = ptype_id_long_to_short( ptype_id_long) ) %>%
+    inner_join(ptype_short(), by='ptype_id_short' )
+
+}
 
 #********************************************************************************
 #  get_df_4sq_locations_filtered
@@ -609,12 +722,12 @@ get_df_sp_no_bar = function(   df_staypoints , df_sp_joined_geography  ) {
 get_df_survey_nested = function( df_all_ts ) {
 
   df_all_ts  %>%
-    mutate( userid = as.character( userid)) %>%
-    group_by( userid, night ) %>%
     mutate( timestamp_start=timestamp, timestamp_end=timestamp) %>%
-    dplyr::select( timestamp_start, timestamp_end, which, userid, night) %>%
-    nest( surveys = c(starts_with('timestamp'), which )) %>%
+    dplyr::select( timestamp_start, timestamp_end, which, id, userid, night) %>%
+    group_by( userid, night ) %>%
+    nest( surveys = c(starts_with('timestamp'), which, id )) %>%
     { . } -> df_all_ts_nested
+
   df_all_ts_nested
 
 }
@@ -681,6 +794,7 @@ count_staypoints_per_algorithm = function( df_count_staypoints ) {
 
 #********************************************************************************
 #  get_matching_survey
+#TODO: match against florian's locations, only choose the best staypoint for this survey
 #********************************************************************************
 get_matching_survey = function( df_staypoints,  df_survey_nested ) {
   # match all staypoints up to surveys,
@@ -742,15 +856,32 @@ get_matching_survey_per_staypoint= function( df_matching_survey ) {
 }
 
 
+
 #********************************************************************************
-#  summarise_matching_surveys
+#  matching_survey_categories
 #********************************************************************************
-summarise_matching_surveys= function( df_matching_survey ) {
+matching_survey_categories = function( df ) {
+  # for each unique surveyid, find  if it is matched by staypoints
+
+  df %>%
+    left_join( get_df_florian_locations() %>% dplyr::select( id, ptype_id_long), by='id' )  %>%
+    mutate( ptype_id_long = ifelse(is.na( ptype_id_long), 0, ptype_id_long  )) %>%
+    distinct( userid, night, id, ptype_id_long ,) %>%
+    inner_join( ptype_long(), by='ptype_id_long')
+
+}
+
+
+
+#********************************************************************************
+#  summarise_matching_survey_categories
+#********************************************************************************
+summarise_matching_survey_categories = function( df_matching_survey ) {
 # for each dataset, we want the total:
 # the total nnumber of staypoints that matched surveys (survey_total) for this algorithm
 
-  df_matching_survey%>%
-    summarise(  surveys_total = n())
+  df_matching_survey %>%
+    count( ptype_id_long, ptype_id_short, ptype_long, ptype_short, n_, category)
 
 }
 

@@ -15,6 +15,7 @@ output:
 library(drake)
 library(tidyverse)
 source('lib/gps_functions.R')
+source('lib/gps_functions.R')
 
 display_one_staypoint_set = function( df, .userid, .night ) {
 
@@ -86,6 +87,17 @@ display_one_staypoint_set(
 ```
 
 
+# what kind of surveys are matched, by the various algorithms
+Percentage match for all surveys of that type
+
+```{r surveys}
+
+readd(df_all_matching_survey)
+
+
+
+
+```
 
 
 

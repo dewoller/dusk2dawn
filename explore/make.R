@@ -6,47 +6,7 @@ if (startsWith(Sys.info()["nodename"], "lims")) {
     currentMachine <- Sys.info()["nodename"]
 }
 currentMachine <- "hermoine"
-
-load_function <- function() {
-    # source('lib/functions.R')
-    source("lib/get_data.R")
-    source("lib/location_prep.R")
-    source("lib/gps_functions.R")
-    source("lib/evaluate_staypoint_estimates_helper.R")
-    source("lib/keys.R")
-    source("lib/kernel_density_functions.R")
-    source("lib/optics_find_staypoint.R")
-}
-
-load_library <- function() {
-    #
-
-    library(raster)
-    library(RPostgreSQL)
-    library(tidyverse)
-    library(lubridate)
-    library(drake)
-    library(osmdata)
-    library(revgeo)
-    library(tsibble)
-    library(magrittr)
-    library(stringr)
-    library(knitr)
-    library(wrapr) # for the qc function
-    library(fuzzyjoin)
-    library(IRanges)
-    library(multidplyr)
-    library(geohash)
-    library(geosphere)
-    library(zoo)
-    library(glue)
-    library(tibbletime)
-    library(futile.logger)
-    library(dbscan)
-}
-
-load_library()
-load_function()
+source('lib/base_initialise.R')
 
 
 logFileName <- "staypoint_estimation.log"
@@ -74,7 +34,7 @@ drakeplan <- drake::drake_plan(
     max_expand = max_expand_setting,
     #
     # load in the GPS individual locations information
-    df_location = df_location_initial,
+    df_location = df_location_initial ,
     ##
     #
     filtered_accuracy =
@@ -139,16 +99,16 @@ drakeplan <- drake::drake_plan(
     df_osm_leisure = get_df_osm_locations_leisure(),
     #
     # get surveys
-    df_all = get_df_all(),
+    df_all = get_df_all() ,
 
     # get survey timestamps
-    df_all_ts = get_df_all_ts(df_all),
+    df_all_ts = get_df_all_ts(df_all) ,
 
     # get valid surveys;  eliminate pre, tom and load categories, and surveys without gps points
-    df_all_ts_valid = get_df_all_ts_valid(df_all_ts, df_location),
+    df_all_ts_valid = get_df_all_ts_valid(df_all_ts, df_location) ,
 
     #  # nest surveys
-    df_survey_nested = get_df_survey_nested(df_all_ts_valid),
+    df_survey_nested = get_df_survey_nested(df_all_ts_valid) ,
 
     #####################################
     # Evaluate
@@ -188,21 +148,32 @@ drakeplan <- drake::drake_plan(
         ),
 
 
-    # match survey data with staypoints
+    # Base 
+    #match survey data with staypoints
+
     df_matching_survey =
-        target(
+      target(
             get_matching_survey(staypoint_discovery, df_survey_nested),
             transform = map(staypoint_discovery)
+            ),
+    #
+      #
+    df_matching_survey_categories =
+      target(
+            matching_survey_categories (df_matching_survey),
+            transform = map(df_matching_survey)
+            ),
+    #
+    df_matching_survey_categories_summary =
+        target(
+            summarise_matching_survey_categories(df_matching_survey_categories),
+            transform = map(df_matching_survey_categories)
         ),
-    #
-
-    # df_matching_survey_mode = target(
-    #     get_matching_survey ( meanshift_mode,  df_survey_nested ),
-    #     transform = map( meanshift_mode ), .tag_out = matching_survey),
-    #
-    #  a=head( df_all_staypoints_multi, 100),
-
-    #
+    df_matching_survey_categories_summary_total =
+         target(
+          my_combine(df_matching_survey_categories_summary ),
+          transform = combine(df_matching_survey_categories_summary )
+      ),
     #
 
     # consolidate surveys per staypoint
@@ -218,17 +189,6 @@ drakeplan <- drake::drake_plan(
             summarise_matching_surveys(df_matching_survey_per_staypoint),
             transform = map(df_matching_survey_per_staypoint)
         ),
-    #
-    # df_matching_survey_summarised_mode = target(
-    #       summarise_matching_surveys( df_matching_survey_mode ),
-    #       transform = cross( df_matching_survey_mode )),
-    #
-    # Each survey, along with all the staypoint points that it matches
-    #
-    #  a=head( df_all_staypoints_multi, 100),
-
-    # dq_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ),
-    #
 
     # Each survey, along with all the staypoint points that it matches
     df_all_matching_survey =

@@ -56,14 +56,38 @@ readd( best_algorithm, character_only=TRUE ) %>%
 cached() %>% enframe() -> cache
 
 cache %>%
-  filter( endsWith( value, 'best_algorithm'))
+  filter( str_detect( value, '^df_matching_survey')) %>%
+  filter( !str_detect( value, 'mode')) %>%
+
+  readd(df_matching_survey_staypoints_distance_1800_600_20_interpolated_locations_120_filtered_accuracy_10)
+
+
+readd(df_matching_survey_optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_10) %>%
+left_join( get_df_florian_locations() %>% dplyr::select( id, ptype_id_long) )  %>%
+mutate( ptype_id_long = ifelse(is.na( ptype_id_long), 0, ptype_id_long  )) %>% 
+{ . } -> a
+
+a %>%
+distinct( userid, night, id, ptype_id_long ,) %>%
+inner_join( ptype_long(), by='ptype_id_long') %>%
+count(userid, night, id, sort=TRUE)  %>% 
+filter( n>1 ) %>%
+inner_join(a)  %>%
+mutate( d = round( (timestamp_survey - timestamp_start_location ) / 60 , 2) ) %>%
+
+
+readd( staypoints_distance_14400_300_20_interpolated_locations_120_filtered_accuracy_100 ) %>%
+    get_matching_survey( df_survey_nested) %>%
+    { . } -> df_test
 
 
 # counting staypoints
 df_count_staypoints_staypoints_distance_14400_300_20_interpolated_locations_120_filtered_accuracy_100
 
 # consolidated matching surveys, by userid and night
-df_matching_survey_per_staypoint_df_matching_survey_staypoints_distance_14400_300_20_interpolated_locations_120_filtered_accuracy_100
+df_matching_survey_per_staypoint_
+
+df_matching_survey_staypoints_distance_14400_300_20_interpolated_locations_120_filtered_accuracy_100
 df_matching_survey_staypoints_distance_14400_300_20_interpolated_locations_120_filtered_accuracy_100
 df_matching_survey_summarised_df_matching_survey_per_staypoint_df_matching_survey_staypoints_distance_14400_300_20_interpolated_locations_120_filtered_accuracy_100
 df_matching_survey_summarised_df_matching_survey_staypoints_distance_14400_300_20_interpolated_locations_120_filtered_accuracy_100
@@ -79,7 +103,7 @@ df_all_ts_valid %>%
   count(userid,  sort=TRUE, name='number_of_valid_surveys') %>%
 
 
-# all the surveys that were matched 
+# all the surveys that were matched
 loadd(df_all_matching_survey_per_staypoint )
 
 df_survey_frequencies %>%
@@ -97,30 +121,30 @@ df_surveys_with_no_corresponding_staypoints %>%
 df_surveys_with_no_corresponding_staypoints %>%
   inner_join( df_all_ts_valid ) %>%
   group_by( userid, night ) %>%
-  summarise( 
-            s_mints = min(timestamp), 
-            s_maxts = max(timestamp), 
+  summarise(
+            s_mints = min(timestamp),
+            s_maxts = max(timestamp),
             number_of_valid_surveys = min(number_of_valid_surveys)) %>%
   inner_join( df_staypoints) %>%
   group_by( userid, night ) %>%
-  summarise( 
-            sp_mints = min(timestamp), 
-            sp_maxts = max(timestamp), 
+  summarise(
+            sp_mints = min(timestamp),
+            sp_maxts = max(timestamp),
             number_of_valid_surveys = min(number_of_valid_surveys),
-            s_mints = max(s_mints ), 
+            s_mints = max(s_mints ),
             s_maxts = max(s_maxts)
             ) %>%
   ungroup() %>%
-  mutate( 
+  mutate(
          before = floor((sp_mints  - s_maxts)/3600+1),
          after = floor((s_mints  - sp_maxts)/3600+1),
          before=ifelse( before < 0, 0, before),
          after=ifelse( after < 0, 0, after)
          ) %>%
-  filter( before==1) %>% 
+  filter( before==1) %>%
   count( night, sort=TRUE) %>%
-  filter( before==0 & after==0) %>% 
-  count(userid) %>% 
+  filter( before==0 & after==0) %>%
+  count(userid) %>%
   inner_join( df_survey_frequencies ) %>%
 
   count( before, sort=TRUE) %>%
@@ -196,7 +220,7 @@ df_poor_performers %>%
 
 df_poor_performers %>%
   head(28) %>%
-  tail(1) %>% 
+  tail(1) %>%
   { . } -> df
 df %>%
   plotit()
@@ -208,14 +232,14 @@ loadd(df_all_summarise_staypoints)
   # plot all the  points for this dataset
 plotit = function ( df ) {
 
-  a=RColorBrewer::brewer.pal(10,'Spectral') 
+  a=RColorBrewer::brewer.pal(10,'Spectral')
   df %>%
     inner_join( df_location ) %>%
     { . } -> df_1_loc
   df %>%
     inner_join( df_all_summarise_staypoints)  %>%
-    inner_join( 
-               df_results %>% mutate(source=paste0('df_summarise_staypoints_',base_file)) 
+    inner_join(
+               df_results %>% mutate(source=paste0('df_summarise_staypoints_',base_file))
                ) %>%
     filter(match3 < 100) %>%
     { . } -> df_1_sp

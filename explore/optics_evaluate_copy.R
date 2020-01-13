@@ -51,16 +51,6 @@ if(FALSE) {
 
 
 
-# find the 2 surveys that have the most disparity
-readd( df_matching_survey_per_staypoint_df_matching_survey_optics_distance_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
-mutate(algo='optics') %>%
-bind_rows( readd(df_matching_survey_per_staypoint_df_matching_survey_staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
-          mutate(algo='sp')) %>%
-count( userid, night, algo) %>%
-spread(algo, n, fill=0) %>%
-arrange( optics-sp) %>%
-group_by( userid, night) %>%
-
 
 #find the actual points of the surveys that have disparity
 # optics_distance_600_20_interpolated_locations_300_filtered_accuracy_100
@@ -155,41 +145,7 @@ df_optics %>%
 
 
 
-# match optics and staypoint, comparing found surveys
-readd( df_matching_survey_per_staypoint_df_matching_survey_optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
-mutate(algo='optics') %>%
-bind_rows( readd(df_matching_survey_per_staypoint_df_matching_survey_staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
-    mutate(algo='sp')) %>%
-count( userid, night, algo) %>%
-spread(algo, n, fill=0) %>%
-arrange( optics-sp) %>%
-arrange( sp - optics) %>%
-summarise( sum(optics), sum(sp)) %>%
-group_by( userid, night) %>%
 
-
-#cache %>% filter( str_detect( value, 'df_all_summarise_staypoints')) %>%
-# match optics and staypoint methods, comparing found staypoints
-
-readd(df_all_summarise_staypoints) %>%
-filter( str_detect( source, 'distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100$') ) %>%
-mutate( algo = ifelse( str_detect( source, 'optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100$'), 'optics','sp' )) %>%
-count( userid, night, algo) %>%
-spread(algo, n, fill=0) %>%
-arrange( optics-sp) %>%
-filter( userid=='7907f345-ef4b-412a-9340-b56ebb589cca' & night=='2014-09-19') %>%
-
-
-readd( df_matching_survey_optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
-mutate(algo='optics') %>%
-bind_rows( readd(df_matching_survey_staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
-          mutate(algo='sp')) %>%
-count( userid, night, algo) %>%
-spread(algo, n, fill=0) %>%
-arrange( optics-sp) %>%
-arrange( sp - optics) %>%
-summarise( sum(optics), sum(sp)) %>%
-group_by( userid, night) %>%
 
 
     b %>%

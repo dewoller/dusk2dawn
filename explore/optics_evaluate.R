@@ -211,7 +211,6 @@ group_by( userid, night) %>%
     geom_point()
 
 
-# greedy algorithm;  extract the longest group of points that fits within the constrained area.  Repeat
 
     b
     do1( b, .0001, 5,1000)

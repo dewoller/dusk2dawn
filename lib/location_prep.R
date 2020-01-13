@@ -61,6 +61,7 @@ get_df_all_ts <- function( df_all ) {
       dplyr::rename( timestamp=4, timezone=5) %>%
       mutate(which=survey_type ) %>%
       filter( timestamp != "")
+
   }
 
   bind_rows(
@@ -117,7 +118,7 @@ get_df_all_ts_valid <- function( df_all_ts, df_location ) {
         episod_video_url = col_character(),
         episod_video_file_exits = col_logical(),
         episod_warning = col_character(),
-        pre_timestamp = col_datetime(format = ""),
+        pre_timestamp = col_character(),
         pre_timezone_id = col_character(),
         pre_timezone_display_name = col_character(),
         pre_timezone_raw_offset = col_double(),
@@ -133,7 +134,7 @@ get_df_all_ts_valid <- function( df_all_ts, df_location ) {
         pre_spirits = col_double(),
         pre_water = col_double(),
         pre_wine_champagne = col_double(),
-        load_timestamp = col_datetime(format = ""),
+        load_timestamp = col_character(),
         load_timezone_id = col_character(),
         load_timezone_display_name = col_character(),
         load_timezone_raw_offset = col_double(),
@@ -149,7 +150,7 @@ get_df_all_ts_valid <- function( df_all_ts, df_location ) {
         load_spirits = col_double(),
         load_water = col_double(),
         load_wine_champagne = col_double(),
-        forg_timestamp = col_datetime(format = ""),
+        forg_timestamp = col_character(),
         forg_timezone_id = col_character(),
         forg_timezone_display_name = col_character(),
         forg_timezone_raw_offset = col_double(),
@@ -165,7 +166,7 @@ get_df_all_ts_valid <- function( df_all_ts, df_location ) {
         forg_spirits = col_double(),
         forg_water = col_double(),
         forg_wine_champagne = col_double(),
-        dq_timestamp = col_datetime(format = ""),
+        dq_timestamp = col_character(),
         dq_timezone_id = col_character(),
         dq_timezone_display_name = col_character(),
         dq_timezone_raw_offset = col_double(),
@@ -181,7 +182,7 @@ get_df_all_ts_valid <- function( df_all_ts, df_location ) {
         dq_social_other_people_counter = col_character(),
         dq_social_partner_spouse_counter = col_double(),
         dq_imageFileName = col_character(),
-        tom_timestamp = col_datetime(format = ""),
+        tom_timestamp = col_character(),
         tom_timezone_id = col_character(),
         tom_timezone_display_name = col_character(),
         tom_timezone_raw_offset = col_double(),
@@ -195,7 +196,7 @@ get_df_all_ts_valid <- function( df_all_ts, df_location ) {
         tom_consequence_sexatrisk = col_logical(),
         tom_consequence_spentmore = col_logical(),
         tom_nb_drinks_last_night = col_character(),
-        env_timestamp = col_datetime(format = ""),
+        env_timestamp = col_character(),
         env_timezone_id = col_character(),
         env_timezone_display_name = col_character(),
         env_timezone_raw_offset = col_double(),
@@ -211,7 +212,7 @@ get_df_all_ts_valid <- function( df_all_ts, df_location ) {
         env_place_city = col_character(),
         env_place_id_name = col_character(),
         env_place_type = col_character(),
-        video_timestamp = col_datetime(format = ""),
+        video_timestamp = col_character(),
         video_timezone_id = col_character(),
         video_timezone_display_name = col_character(),
         video_timezone_raw_offset = col_double(),
