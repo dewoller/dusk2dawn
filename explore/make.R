@@ -148,7 +148,7 @@ drakeplan <- drake::drake_plan(
         ),
 
 
-    # Base 
+    # Base
     #match survey data with staypoints
 
     df_matching_survey =
@@ -169,7 +169,7 @@ drakeplan <- drake::drake_plan(
             summarise_matching_survey_categories(df_matching_survey_categories),
             transform = map(df_matching_survey_categories)
         ),
-    df_matching_survey_categories_summary_total =
+    df_matching_survey_categories_summary_all =
          target(
           my_combine(df_matching_survey_categories_summary ),
           transform = combine(df_matching_survey_categories_summary )

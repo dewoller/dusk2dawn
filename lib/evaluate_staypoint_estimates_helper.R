@@ -313,16 +313,21 @@ ptype_short = function() {
           "Private", 4,'sp',
           "Streets / Outdoor / Park", 6, 'non-sp',
           "Travelling", 10, 'non-sp',
-          "Other commercial venue", 14, 'sp') 
+          "Other commercial venue", 14, 'sp')
 
 
 }
 
+
+#********************************************************************************
+#  n_ptype_short
+# the total number of ptype_short 
+#********************************************************************************
 n_ptype_short = function() {
 
   structure(list(ptype_id_short = c(0, 1, 2, 3, 4, 6, 10, 14),
-								n_ptype_loc = c(2287, 345, 86, 130, 1304, 331, 116, 74)), class = c("tbl_df",
-								"tbl", "data.frame"), row.names = c(NA, -8L)
+        n_ptype_loc = c(2287, 345, 86, 130, 1304, 331, 116, 74)), class = c("tbl_df",
+        "tbl", "data.frame"), row.names = c(NA, -8L)
   )
 }
 
@@ -881,7 +886,7 @@ summarise_matching_survey_categories = function( df_matching_survey ) {
 # the total nnumber of staypoints that matched surveys (survey_total) for this algorithm
 
   df_matching_survey %>%
-    count( ptype_id_long, ptype_id_short, ptype_long, ptype_short, n_, category)
+    count( ptype_id_long, ptype_id_short, ptype_long, ptype_short,  category)
 
 }
 
