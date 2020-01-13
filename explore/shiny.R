@@ -13,7 +13,6 @@ library(wrapr)
 source('lib/get_data.R')
 source('lib/gps_functions.R')
 
-cached() %>%
 
 a %>%
   enframe() %>%

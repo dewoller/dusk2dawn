@@ -24,5 +24,4 @@ lib/keys.R
 *.swp
 .nfs*
 *.json
-
 Session.vim

@@ -1,0 +1,95 @@
+---
+title:           "Exploration of algorithms and parameters"
+author:          Dennis Wollersheim
+date:            2020-01-13
+linkcolor:       cyan
+citecolor:       grey
+output:
+  pdf_document:
+    highlight:   zenburn
+---
+
+\tableofcontents
+
+```{r initial}
+library(drake)
+library(tidyverse)
+source('lib/gps_functions.R')
+
+display_one_staypoint_set = function( df, .userid, .night ) {
+
+  readd(df, character_only=TRUE ) %>%
+    filter( userid==.userid & night==.night) %>%
+    mutate(
+            m_lat = ll2m( latitude, min(latitude), m_per_latitude),
+            m_lon = ll2m( longitude, min(longitude), m_per_longitude)) %>%
+    ggplot( aes( m_lat, m_lon, color=as.factor(n_staypoint))) +
+    ggtitle(paste(str_subset(.userid, '.*_'), .night, df)) +
+    geom_point()
+}
+
+```
+# demonstrate the difference between the different accuracy levels (100/10), and the impact on the different algorithms
+for a single user/night
+
+```{r compare_accuracies}
+
+display_one_staypoint_set (
+  'optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_10',
+  '60df2368-deb6-4f46-aebc-4ad7dd80f434',
+  '2014-10-31')
+
+display_one_staypoint_set(
+ 'staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_10',
+  '60df2368-deb6-4f46-aebc-4ad7dd80f434',
+  '2014-10-31')
+
+display_one_staypoint_set(
+ 'optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100',
+  '60df2368-deb6-4f46-aebc-4ad7dd80f434',
+  '2014-10-31')
+
+display_one_staypoint_set(
+ 'staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100',
+  '60df2368-deb6-4f46-aebc-4ad7dd80f434', '2014-10-31')
+
+
+```
+
+# match optics and staypoint, comparing found surveys behaviour
+Note, when using a loose accuracy level, sp algorithm is slightly better at finding surveys
+
+using dataset :
+  optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100
+
+```{r compare_surveys}
+
+
+readd( df_matching_survey_per_staypoint_df_matching_survey_optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
+  mutate(algo='optics') %>%
+  bind_rows( readd(df_matching_survey_per_staypoint_df_matching_survey_staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
+            mutate(algo='sp')) %>%
+  count( userid, night, algo) %>%
+  spread(algo, n, fill=0) %>%
+  arrange( sp - optics) %>%
+  head(5 )
+
+display_one_staypoint_set(
+ 'optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100',
+  '7907f345-ef4b-412a-9340-b56ebb589cca','2014-09-19')
+
+display_one_staypoint_set(
+ 'staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100',
+  '7907f345-ef4b-412a-9340-b56ebb589cca','2014-09-19')
+
+
+```
+
+
+
+
+
+
+
+
+

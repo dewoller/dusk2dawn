@@ -1,5 +1,10 @@
 
+
 if(FALSE) {
+
+  cached() %>%
+    enframe() %>%
+    { . } -> cache
 
   df_location %>%
     head(1) %>%
@@ -64,7 +69,9 @@ df = readd( interpolated_locations_300_filtered_accuracy_100 )
 
 df = readd( interpolated_locations_120_filtered_accuracy_100)
 
-find_cluster_optics_all(df) -> df_all_optics
+find_cluster_optics_all(df, 3600, 600, 200) -> df_all_optics
+
+find_staypoint_distance_night(3600, min_staypoint_time = 600 , max_staypoint_distance=200 )  %>%
 
 df_all_optics %>%
 #filter( userid=='6abb3992-29f1-4d36-a9dd-1c67b258a8da' & night=='2014-10-24') %>%
@@ -86,14 +93,14 @@ df %>%
 
 df %>%
   filter( userid=='6abb3992-29f1-4d36-a9dd-1c67b258a8da' & night=='2014-10-24') %>%
-  find_cluster_optics_all(min_staypoint_time = 10 , max_staypoint_radius = 100 ) %>% 
+  find_cluster_optics_all(min_staypoint_time = 10 , max_staypoint_radius = 100 ) %>%
   { . } -> eee
 
 eee %>% count( n_staypoint,sort=TRUE)
 
 df %>%
   filter( night=='2014-12-05') %>%
-find_cluster_optics_all() %>% 
+find_cluster_optics_all() %>%
 { . } -> eee
 
   find_cluster_optics_single(min_staypoint_time = 10 , max_staypoint_radius = 100 )  %>%
@@ -101,7 +108,7 @@ find_cluster_optics_all() %>%
 
 df %>%
   group_by( userid, night ) %>%
-  arrange( timestamp, .by_group = TRUE) %>% 
+  arrange( timestamp, .by_group = TRUE) %>%
   mutate( id = row_number()) %>%
   { . } -> dfaaa
 
@@ -114,7 +121,7 @@ df_optics %>%
                arrange( timestamp, .by_group = TRUE) %>%
                mutate( id = row_number()) ,
              by='id'
-             ) %>% 
+             ) %>%
 {.} -> df_optics_n
 
   df_optics %>%
@@ -134,8 +141,8 @@ df_optics %>%
   df_staypoint_n %>% count( n_staypoint,sort=TRUE)
   df_optics_n %>% count( n_staypoint,sort=TRUE)
 
-  df_staypoint_n %>% 
-    group_by( n_staypoint ) 
+  df_staypoint_n %>%
+    group_by( n_staypoint )
     count( n_staypoint,sort=TRUE)
 
   df_optics_n %>%
@@ -148,13 +155,40 @@ df_optics %>%
 
 
 
-readd( df_matching_survey_per_staypoint_df_matching_survey_optics_distance_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
+# match optics and staypoint, comparing found surveys
+readd( df_matching_survey_per_staypoint_df_matching_survey_optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
 mutate(algo='optics') %>%
 bind_rows( readd(df_matching_survey_per_staypoint_df_matching_survey_staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
-mutate(algo='sp')) %>%
+    mutate(algo='sp')) %>%
 count( userid, night, algo) %>%
 spread(algo, n, fill=0) %>%
 arrange( optics-sp) %>%
+arrange( sp - optics) %>%
+summarise( sum(optics), sum(sp)) %>%
+group_by( userid, night) %>%
+
+
+#cache %>% filter( str_detect( value, 'df_all_summarise_staypoints')) %>%
+# match optics and staypoint methods, comparing found staypoints
+
+readd(df_all_summarise_staypoints) %>%
+filter( str_detect( source, 'distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100$') ) %>%
+mutate( algo = ifelse( str_detect( source, 'optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100$'), 'optics','sp' )) %>%
+count( userid, night, algo) %>%
+spread(algo, n, fill=0) %>%
+arrange( optics-sp) %>%
+filter( userid=='7907f345-ef4b-412a-9340-b56ebb589cca' & night=='2014-09-19') %>%
+
+
+readd( df_matching_survey_optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
+mutate(algo='optics') %>%
+bind_rows( readd(df_matching_survey_staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
+          mutate(algo='sp')) %>%
+count( userid, night, algo) %>%
+spread(algo, n, fill=0) %>%
+arrange( optics-sp) %>%
+arrange( sp - optics) %>%
+summarise( sum(optics), sum(sp)) %>%
 group_by( userid, night) %>%
 
 

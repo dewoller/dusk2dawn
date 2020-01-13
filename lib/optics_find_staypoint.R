@@ -311,7 +311,11 @@ find_cluster_optics_single = function( df,
   }
 
   found=FALSE
-  flog.info("Starting find_cluster_optics_single userid %s night %s spos %s epos %s  esp_cl %s ", pluck(df, 'userid', 1), pluck(df, 'night', 1), spos, epos, eps_cl_levels[ eps_cl_index])
+  flog.info("FCOS stt userid %s night %s spos %s epos %s  esp_cl %s ", 
+            pluck(df, 'userid', 1) %>% str_sub( 1, 10 ),
+            pluck(df, 'night', 1), 
+            spos, epos, 
+            eps_cl_levels[ eps_cl_index])
   while(!found & eps_cl_index <= length( eps_cl_levels)) {
     flog.debug("inside find chunks loop, spos %s epos %s  esp_cl %s ", spos, epos, eps_cl_levels[ eps_cl_index])
 
@@ -353,6 +357,13 @@ find_cluster_optics_single = function( df,
     }
     eps_cl_index = eps_cl_index + 1
   }
+  flog.info("FCOS end userid %s night %s spos %s epos %s  esp_cl %s rv %s ", 
+            pluck(df, 'userid', 1) %>% str_sub( 1, 10 ),
+            pluck(df, 'night', 1), 
+            spos, epos, 
+            eps_cl_levels[ eps_cl_index],
+            nrow(rv)
+  )
   rv
 }
 
