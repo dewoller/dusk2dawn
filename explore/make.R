@@ -112,20 +112,30 @@ drakeplan <- drake::drake_plan(
 
     #####################################
     # Evaluate
+    ####################################
+
     #####################################
+    # evaluate each staypoints
+    ####################################
+
 
     # summarise staypoints for every userid, night.  One line per staypoint / algorithm
+    # for each staypoint, what is the gist of it
     df_summarise_staypoints =
         target(summarise_staypoints(staypoint_discovery),
             transform = map(staypoint_discovery)
         ),
 
-    # summarise staypoints for every userid, night.  One line per staypoint / algorithm
+    # combine summarised staypoints for every userid, night.  One line per staypoint / algorithm 
     df_all_summarise_staypoints =
         target(my_combine(df_summarise_staypoints),
             transform = combine(df_summarise_staypoints)
         ),
 
+
+    #####################################
+    #  count staypoints per userid/night/algorithm
+    ####################################
 
     # count staypoints for every userid, night.  One dataset per algorithm
     df_count_staypoints =
@@ -147,9 +157,10 @@ drakeplan <- drake::drake_plan(
             transform = combine(df_count_staypoints_per_algorithm)
         ),
 
-
+    ####################
     # Base
     #match survey data with staypoints
+    ####################
 
     df_matching_survey =
       target(
@@ -157,25 +168,27 @@ drakeplan <- drake::drake_plan(
             transform = map(staypoint_discovery)
             ),
     #
-      #
+    # what category do matches fall into
     df_matching_survey_categories =
       target(
             matching_survey_categories (df_matching_survey),
             transform = map(df_matching_survey)
             ),
-    #
+    # summarise matches
     df_matching_survey_categories_summary =
         target(
             summarise_matching_survey_categories(df_matching_survey_categories),
             transform = map(df_matching_survey_categories)
         ),
+
+    # combine summarised matches
     df_matching_survey_categories_summary_all =
          target(
           my_combine(df_matching_survey_catefories_summary ),
           transform = combine(df_matching_survey_categories_summary )
       ),
     #
-
+    # for each staypoint what survey matches it
     # consolidate surveys per staypoint
     df_matching_survey_per_staypoint =
         target(
