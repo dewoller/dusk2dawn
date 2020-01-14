@@ -171,7 +171,7 @@ drakeplan <- drake::drake_plan(
         ),
     df_matching_survey_categories_summary_all =
          target(
-          my_combine(df_matching_survey_categories_summary ),
+          my_combine(df_matching_survey_catefories_summary ),
           transform = combine(df_matching_survey_categories_summary )
       ),
     #
@@ -186,9 +186,16 @@ drakeplan <- drake::drake_plan(
     #
     df_matching_survey_summarised =
         target(
-            summarise_matching_surveys(df_matching_survey_per_staypoint),
+            summarise_matching_survey_categories ( df_matching_survey_per_staypoint ),
             transform = map(df_matching_survey_per_staypoint)
         ),
+
+    # Each survey, along with all the staypoint points that it matches
+    df_matching_survey_summarised_all=
+      target(
+            my_combine(df_matching_survey_summarised),
+            transform = combine(df_matching_survey_summarised)
+            ),
 
     # Each survey, along with all the staypoint points that it matches
     df_all_matching_survey =
