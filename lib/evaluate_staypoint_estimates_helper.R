@@ -740,6 +740,7 @@ get_df_survey_nested = function( df_all_ts ) {
 
 #********************************************************************************
 #  summarise_staypoints
+# for each staypoint, what is the gist of it
 #********************************************************************************
 summarise_staypoints = function( df_staypoints ) {
 
@@ -877,6 +878,13 @@ matching_survey_categories = function( df ) {
 }
 
 
+  summarise_matching_survey_categories_test = function() ){
+
+
+#df_matching_survey_summarised_
+
+readd(df_matching_survey_per_staypoint_df_matching_survey_staypoints_distance_14400_900_20_filtered_sigma_0.5)
+}
 
 #********************************************************************************
 #  summarise_matching_survey_categories
