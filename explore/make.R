@@ -184,7 +184,7 @@ drakeplan <- drake::drake_plan(
     # combine summarised matches
     df_matching_survey_categories_summary_all =
          target(
-          my_combine(df_matching_survey_catefories_summary ),
+          my_combine(df_matching_survey_categories_summary ),
           transform = combine(df_matching_survey_categories_summary )
       ),
     #
@@ -196,19 +196,19 @@ drakeplan <- drake::drake_plan(
             transform = map(df_matching_survey)
         ),
 
-    #
-    df_matching_survey_summarised =
-        target(
-            summarise_matching_survey_categories ( df_matching_survey_per_staypoint ),
-            transform = map(df_matching_survey_per_staypoint)
-        ),
 
     # Each survey, along with all the staypoint points that it matches
-    df_matching_survey_summarised_all=
-      target(
-            my_combine(df_matching_survey_summarised),
-            transform = combine(df_matching_survey_summarised)
-            ),
+    df_matching_survey_per_sp_summarised =
+        target(
+            summarise_matching_survey_per_staypoint( df_matching_survey_per_staypoint ),
+            transform = map(df_matching_survey_per_staypoint)
+         ),
+
+    # df_matching_survey_summarised_all=
+    #   target(
+    #         my_combine(df_matching_survey_per_sp_summarised),
+    #         transform = combine(df_matching_survey_per_sp_summarised)
+    #         ),
 
     # Each survey, along with all the staypoint points that it matches
     df_all_matching_survey =
@@ -228,8 +228,8 @@ drakeplan <- drake::drake_plan(
     # number of surveys for each staypoint, summarised
     df_all_sp_match_survey =
         target(
-            my_combine(df_matching_survey_summarised),
-            transform = combine(df_matching_survey_summarised)
+            my_combine(df_matching_survey_per_sp_summarised),
+            transform = combine(df_matching_survey_per_sp_summarised)
         ),
 
     # combine the number of found surveys and the number of found staypoints
@@ -239,15 +239,10 @@ drakeplan <- drake::drake_plan(
                 mutate(source = str_replace(source, ".*(staypoints|optics)_distance_", "\\1_distance_")) %>%
                 inner_join(
                     df_all_count_staypoints_per_algorithm %>%
-                        mutate(source = str_replace(source, ".*(staypoints|optics)_distance_", "\\1_distance_"))
+                        mutate(source = str_replace(source, ".*(staypoints|optics)_distance_", "\\1_distance_")),
+                    by='source'
                 )
         ),
-
-    # df_all_sp_match_survey_mode =
-    # target(
-    #      my_combine( df_matching_survey_summarised_mode) ,
-    #      #gdata::combine( df_matching_survey_summarised) %>% rename( original_target=source),
-    #      transform = combine(df_matching_survey_summarised_mode)),
 
 
     #

@@ -877,24 +877,30 @@ matching_survey_categories = function( df ) {
 
 }
 
-
-  summarise_matching_survey_categories_test = function() {
-
-
-#df_matching_survey_summarised_
-
-readd(df_matching_survey_per_staypoint_df_matching_survey_staypoints_distance_14400_900_20_filtered_sigma_0.5)
-}
-
 #********************************************************************************
 #  summarise_matching_survey_categories
 #********************************************************************************
 summarise_matching_survey_categories = function( df_matching_survey ) {
-# for each dataset, we want the total:
-# the total nnumber of staypoints that matched surveys (survey_total) for this algorithm
+  # for each dataset, we want the total:
+  # the total nnumber of staypoints that matched surveys (survey_total) for this algorithm
 
   df_matching_survey %>%
     count( ptype_id_long, ptype_id_short, ptype_long, ptype_short,  category)
+
+}
+
+
+
+
+#********************************************************************************
+#  summarise_matching_survey
+#********************************************************************************
+summarise_matching_survey_per_staypoint = function( df_matching_survey_per_staypoint  ) {
+# for each dataset, we want the total:
+# the total nnumber of staypoints that matched surveys (survey_total) for this algorithm
+
+  df_matching_survey_per_staypoint %>%
+    count( userid, night )
 
 }
 
