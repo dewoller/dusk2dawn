@@ -878,7 +878,7 @@ matching_survey_categories = function( df ) {
 }
 
 
-  summarise_matching_survey_categories_test = function() ){
+  summarise_matching_survey_categories_test = function() {
 
 
 #df_matching_survey_summarised_

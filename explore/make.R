@@ -12,7 +12,7 @@ source('lib/base_initialise.R')
 logFileName <- "staypoint_estimation.log"
 sp_min_staypoint_time_range <- c(5, 10, 15) * 60
 sp_max_jump_time_range <- c(30, 240) * 60
-sp_max_staypoint_distance_range <- c(10, 20, 100)
+sp_max_staypoint_distance_range <- c(20, 100)
 sigma_range <- c(.5, 1, 2, 3, 100)
 # gh_precision_range=7:9
 # gh_minpoints_range=0:2*6+3
@@ -305,6 +305,8 @@ if (currentMachine == "lims" | currentMachine == "baseVM2"  ) {
         drake_config() %>%
         vis_drake_graph()
     #  drake_plan_source(drakeplan)
+    drakeplan %>% drake_config() %>% outdated()
+
 } else if (currentMachine == "hermoine") {
     library(sf)
     library(nngeo)
