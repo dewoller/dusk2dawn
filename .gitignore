@@ -18,8 +18,9 @@ lib/keys.R
 *.log
 .drake  
 .drake*
-*tmp.R
 .future
+.future*
+*tmp.R
 *.swo
 *.swp
 .nfs*

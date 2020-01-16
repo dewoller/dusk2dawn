@@ -1,18 +1,18 @@
 
+max_jobs <- 32
 if (startsWith(Sys.info()["nodename"], "lims")) {
     currentMachine <- "lims"
-    max_jobs <- 32
 } else {
     currentMachine <- Sys.info()["nodename"]
 }
-currentMachine <- "hermoine"
+#currentMachine <- "hermoine"
 source('lib/base_initialise.R')
 
 
 logFileName <- "staypoint_estimation.log"
 sp_min_staypoint_time_range <- c(5, 10, 15) * 60
 sp_max_jump_time_range <- c(30, 240) * 60
-sp_max_staypoint_distance_range <- c(20, 100)
+sp_max_staypoint_distance_range <- c(10, 20, 100)
 sigma_range <- c(.5, 1, 2, 3, 100)
 # gh_precision_range=7:9
 # gh_minpoints_range=0:2*6+3
@@ -273,10 +273,13 @@ my_combine <- function(...) {
 }
 
 
-if (currentMachine == "lims") {
+if (currentMachine == "lims" | currentMachine == "baseVM2"  ) {
+
     library(future.batchtools)
     future::plan(batchtools_slurm, template = "slurm_batchtools.tmpl")
-    make(drakeplan, parallelism = "future", jobs = max_jobs, caching = "worker", elapsed = Inf, retries = 1)
+    #make(drakeplan, parallelism = "future", jobs = max_jobs, caching = "worker", elapsed = Inf, retries = 1)
+    make(drakeplan, parallelism = "future", jobs = max_jobs, elapsed = Inf, retries = 1)
+
 } else if (currentMachine == "dewlap") {
     drakeplan %>%
         drake_config() %>%
@@ -291,4 +294,4 @@ if (currentMachine == "lims") {
    # make(drakeplan, parallelism = "clustermq", jobs =1 , memory_strategy = "autoclean")
 }
 
-# make(drakeplan)
+# make(drakeplanns)
