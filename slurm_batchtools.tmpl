@@ -1,6 +1,6 @@
 #!/bin/bash
 # From https://github.com/mllg/batchtools/blob/master/inst/templates/
-DIR='/data/group/wollersheimlab/project'
+DIR='../'
 LOGFILE=$DIR/slurm_job_inside.log
 
 <%
@@ -9,7 +9,7 @@ if (!"ncpus" %in% names(resources)) {
   resources$ncpus = 1
 }
 -%>
-#SBATCH --partition=compute
+#SBATCH --partition=debug
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 
@@ -29,7 +29,6 @@ echo "SLURM_JOB_NODELIST"=$SLURM_JOB_NODELIST >>$LOGFILE
 
 # The initial srun will trigger the SLURM prologue on the compute nodes.
 #NPROCS=`srun --nodes=${SLURM_NNODES} bash -c 'hostname' |wc -l`
-#echo NPROCS=$NPROCS >>/home/group/wollersheimlab/slurm_job_inside.log
 
 ## Initialize work environment like
 ## source /etc/profile
