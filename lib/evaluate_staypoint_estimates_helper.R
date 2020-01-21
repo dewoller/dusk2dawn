@@ -740,6 +740,7 @@ get_df_survey_nested = function( df_all_ts ) {
 
 #********************************************************************************
 #  summarise_staypoints
+# for each staypoint, what is the gist of it
 #********************************************************************************
 summarise_staypoints = function( df_staypoints ) {
 
@@ -875,7 +876,6 @@ matching_survey_categories = function( df ) {
     inner_join( ptype_long(), by='ptype_id_long')
 
 }
-
 
 #********************************************************************************
 #  summarise_matching_survey_categories

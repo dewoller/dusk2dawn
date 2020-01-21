@@ -47,6 +47,21 @@ sadgg <- function ( plot ) {
   #system2( 'display', args=c( paste0(  base_dir, filename)), wait=FALSE)
   #    }
 }
+mView = function( df ) {
+  f = tempfile(fileext='.csv')
+  write_excel_csv(df, f)
+
+  system(paste('gnumeric', f), 
+         intern=TRUE,
+         wait=FALSE,
+         ignore.stderr=TRUE,
+  ignore.stdout=TRUE
+  )
+
+}
 
 
 
+mkpct = function( x ) {
+  round(x * 100, 2  )
+}
