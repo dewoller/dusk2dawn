@@ -11,7 +11,7 @@ source('lib/base_initialise.R')
 logFileName <- "staypoint_estimation.log"
 sp_min_staypoint_time_range <- c(5, 10, 15) * 60
 sp_max_jump_time_range <- c(30, 240) * 60
-sp_max_staypoint_distance_range <- c(20, 100)
+sp_max_staypoint_distance_range <- c(10,20, 30, 100)
 sigma_range <- c(.5, 1, 2, 3, 100)
 # gh_precision_range=7:9
 # gh_minpoints_range=0:2*6+3
@@ -76,12 +76,26 @@ drakeplan <- drake::drake_plan(
             )
         ),
     optics_distance =
-        target(
+      target(
             find_cluster_optics_all(filtered_data,
                                     max_jump_time = max_jump_time,
                                     min_staypoint_time = min_staypoint_time,
                                     max_staypoint_distance = max_staypoint_distance),
             transform = cross(interpolated_locations,
+                              max_jump_time = !!sp_max_jump_time_range,
+                              min_staypoint_time = !!sp_min_staypoint_time_range,
+                              max_staypoint_distance = !!sp_max_staypoint_distance_range,
+                              .tag_out = staypoint_discovery
+            )
+            ),
+    #
+    optics_distance_other =
+        target(
+            find_cluster_optics_all(filtered_accuracy,
+                                    max_jump_time = max_jump_time,
+                                    min_staypoint_time = min_staypoint_time,
+                                    max_staypoint_distance = max_staypoint_distance),
+            transform = cross(filtered_accuracy,
                 max_jump_time = !!sp_max_jump_time_range,
                 min_staypoint_time = !!sp_min_staypoint_time_range,
                 max_staypoint_distance = !!sp_max_staypoint_distance_range,
@@ -287,27 +301,33 @@ my_combine <- function(...) {
 }
 
 
-if (currentMachine == "lims" | currentMachine == "baseVM2"  ) {
+drakeplan %>%
+  drake_config() %>%
+  outdated()
+
+#drakeplan %>%
+#  drake_config() %>%
+#  recoverable()
+
+if (currentMachine == "lims" ) {
+
+  library(future.batchtools)
+  future::plan(batchtools_slurm, template = "slurm_batchtools.tmpl")
+  #make(drakeplan, parallelism = "future", jobs = max_jobs, caching = "worker", elapsed = Inf, retries = 1)
+  make(drakeplan, parallelism = "future", jobs = max_jobs, elapsed = Inf, retries = 1)
+
+} else if ( currentMachine == "baseVM2"  ) {
 
     library(future.batchtools)
     future::plan(batchtools_slurm, template = "slurm_batchtools.tmpl")
     #make(drakeplan, parallelism = "future", jobs = max_jobs, caching = "worker", elapsed = Inf, retries = 1)
     make(drakeplan, parallelism = "future", jobs = max_jobs, elapsed = Inf, retries = 1)
 
-} else if (currentMachine == "dewlap") {
-    drakeplan %>%
-        drake_config() %>%
-        vis_drake_graph()
-    #  drake_plan_source(drakeplan)
-    drakeplan %>% drake_config() %>% outdated()
-
-} else if (currentMachine == "hermoine") {
+} else {
     library(sf)
     library(nngeo)
 
     options(clustermq.scheduler = "multicore")
    make(drakeplan, parallelism = "clustermq", jobs = parallel::detectCores(), memory_strategy = "autoclean")
-   # make(drakeplan, parallelism = "clustermq", jobs =1 , memory_strategy = "autoclean")
 }
 
-# make(drakeplanns)
