@@ -13,9 +13,7 @@ output:
 
 ```{r initial}
 
-library(drake)
-library(tidyverse)
-library(lubridate)
+source('lib/base_initialise.R')
 source('lib/functions.R')
 source('lib/gps_functions.R')
 source('lib/location_prep.R')
@@ -120,7 +118,7 @@ n_ptype_short_total() %>%
 ```
 
 In summary, there are this breakdown of target staypoints
-```{r}
+```{r breakdown}
 
   n_ptype_short_total() %>%
   inner_join( ptype_short()) %>%
@@ -133,19 +131,19 @@ In summary, there are this breakdown of target staypoints
 ### which algorithim and parameters maximise discovery of appropriate surveys
 Here are the top 20 algorithms, for raw survey discovery.  Optics is comparable, but both have very loose parameters
 
-```{r }
+```{r top_20 }
 
 df_results %>%
   arrange( desc( sp )) %>%
   mutate( pct_coverage = mkpct( sp / 1939 )) %>%
-  select( base_file, sp,pct_coverage ) %>%
+  dplyr::select( base_file, sp,pct_coverage ) %>%
   head(20) %>%
   kableExtra::kable()
 
 df_results %>%
   arrange( desc( sp )) %>%
   mutate( pct_coverage = mkpct( sp / 1939 )) %>%
-  select( base_file, sp,pct_coverage, algorithm ) %>%
+  dplyr::select( base_file, sp,pct_coverage, algorithm ) %>%
   head(20) %>%
   ggplot( aes( base_file, sp, fill=algorithm ) ) +
   geom_col() +
@@ -156,7 +154,7 @@ df_results %>%
 # Is there a difference between optics and distance staypoint discovery sets?
 look at the characteristics of the best of each;  not much difference, at the wide parameter level
 
-```{r}
+```{r algo_diff}
 
 df_results %>%
   arrange( desc( sp )) %>%
@@ -183,7 +181,7 @@ df_results %>%
 
 Maybe 1% difference in night overlap
 
-```{r }
+```{r some_overlap }
 df_op %>%
   anti_join( df_sp, by=c('userid','night'))
 
@@ -194,7 +192,7 @@ df_sp %>%
 # difference between optics and distance staypoint discovery sets at finer parameter levels  (staypoint radius=20m)
 At this level, optics gets 13% fewer sp, same staypoint duration, many fewer staypoints
 
-```{r}
+```{r finer_grain}
 
 df_results %>%
   arrange( desc( sp )) %>%
@@ -215,13 +213,13 @@ which what do results look like when looking at algorithim and parameters maximi
 
 Here are the top 20 algorithms, for raw survey discovery.  Optics is comparable, but both have very loose parameters
 
-```{r }
+```{r  200m}
 
 df_results %>%
   filter( max_sp_radius==20) %>%
   arrange( desc( sp )) %>%
   mutate( pct_coverage = mkpct( sp / 1939 )) %>%
-  select( base_file, sp,pct_coverage ) %>%
+  dplyr::select( base_file, sp,pct_coverage ) %>%
   head(20) %>%
   kableExtra::kable()
 
@@ -229,7 +227,7 @@ df_results %>%
   filter( max_sp_radius==20) %>%
   arrange( desc( sp )) %>%
   mutate( pct_coverage = mkpct( sp / 1939 )) %>%
-  select( base_file, sp,pct_coverage, algorithm ) %>%
+  dplyr::select( base_file, sp,pct_coverage, algorithm ) %>%
   head(20) %>%
   ggplot( aes( base_file, sp, fill=algorithm ) ) +
   geom_col() +
@@ -367,28 +365,16 @@ readd( df_all_ts  ) %>%
   dplyr::summarise( timestamp = min(timestamp)) %>%
   { . } ->  df_surveys
 
-# zoom into the surveys that we are supposed to have found
-get_df_florian_locations() %>%
-  filter(category =='sp') %>%
-  inner_join( df_surveys, by='id') %>%
-  { . } -> df_surveys_to_match
+df_surveys_to_match = get_surveys_to_match()
 
-
-readd(df_location) %>%
-  filter( accuracy < min_accuracy ) %>%
-  group_by( userid, night ) %>%
-  summarise( n=n(),
-            last_gps_timestamp = max(timestamp),
-            first_gps_timestamp = min(timestamp),
-            duration = last_gps_timestamp - first_gps_timestamp  ) %>%
-  { . } -> df_nights_with_gps
+df_nights_with_gps = get_nights_with_gps()
 
 ```
 
 
 ## nights with surveys, but missing GPS entirely
 
-```{r }
+```{r nights_without_gps}
 
 df_surveys_to_match %>%
   anti_join( df_nights_with_gps) %>%
@@ -403,25 +389,11 @@ df_surveys_to_match %>%
 
 #
 
-## poor quality GPS signals
- what nights, even thhough they had GPS, NEVER found a staypoint with ANY algorithm
-
-```{r }
-readd(df_all_summarise_staypoints ) %>%
-  count(userid, night, name='n_algorithms_found' ) %>%
-  { . } -> df_all_found_staypoints
-
-df_surveys_to_match_2 %>%
-  anti_join( df_all_found_staypoints) %>%
-  { . } -> count
-```
-
-#
-
 # too small duration GPS
 which survey nights had less than 20 minutes of GPS in a night
 
-```{r }
+```{r too_little_gps}
+
 df_nights_with_gps %>%
   filter( duration < 1200 ) %>%
   inner_join( df_surveys_to_match_2, by=c('userid','night')  ) %>%
@@ -438,14 +410,15 @@ df_surveys_to_match_2 %>%
 ## battery failure
 which nights only had surveys AFTER the last GPS point (battery)
 
-```{r }
+```{r no_battery}
+
 df_surveys_to_match_3  %>%
   group_by( userid, night ) %>%
   dplyr::summarise( first_survey_timestamp = min( timestamp), last_survey_timestamp = max(timestamp)) %>%
   ungroup() %>%
   inner_join( df_nights_with_gps ) %>%
   filter( last_gps_timestamp < first_survey_timestamp )  %>%
-  select( userid, night ) %>%
+  dplyr::select( userid, night ) %>%
   inner_join(df_surveys_to_match_3 )  %>%
   count()
 
@@ -455,7 +428,7 @@ df_surveys_to_match_3  %>%
   ungroup() %>%
   inner_join( df_nights_with_gps ) %>%
   filter( last_gps_timestamp < first_survey_timestamp )  %>%
-  select( userid, night ) %>%
+  dplyr::select( userid, night ) %>%
   { . } -> df_lost_battery_nights
 
 df_surveys_to_match_3  %>%
@@ -470,7 +443,7 @@ df_surveys_to_match_3  %>%
 
  fully 1/2 of the surveys are prior to the first gps point
 
-```{r }
+```{r surveys_prior}
 
 df_surveys_to_match_4  %>%
   group_by( userid, night ) %>%
@@ -478,7 +451,7 @@ df_surveys_to_match_4  %>%
   ungroup() %>%
   inner_join( df_nights_with_gps ) %>%
   filter( first_gps_timestamp > last_survey_timestamp )  %>%
-  select( userid, night ) %>%
+  dplyr::select( userid, night ) %>%
   inner_join(df_surveys_to_match_4 ) %>%
   count()
 
@@ -489,7 +462,7 @@ df_surveys_to_match_4  %>%
   ungroup() %>%
   inner_join( df_nights_with_gps ) %>%
   filter( first_gps_timestamp > last_survey_timestamp )  %>%
-  select( userid, night ) %>%
+  dplyr::select( userid, night ) %>%
 { . } -> df_surveys_prior_to_gps
 
 df_surveys_to_match_4  %>%
@@ -543,9 +516,9 @@ df_location %>%
   ungroup() %>%
   { . } -> df_location_deserts
 
-
-get_df_surveys_cleaned () %>%
-  { . } -> df_surveys_to_match_5
+#
+# get_df_surveys_cleaned () %>%
+#   { . } -> df_surveys_to_match_5
 
 df_surveys_to_match_5 %>%
   group_by(userid, night) %>%
@@ -587,19 +560,44 @@ df_surveys_to_match_5 %>%
 
 ```
 
+# get rid of surveys that are before or after the last gps points
+
+```{r surveys_post}
+
+df_surveys_to_match_6 %>%
+  inner_join( df_nights_with_gps, by=c('userid', 'night')) %>%
+  filter( timestamp < first_gps_timestamp - desert_endpoint_offset  | timestamp > last_gps_timestamp + desert_endpoint_offset ) %>%
+  count()
+
+df_surveys_to_match_6 %>%
+  inner_join( df_nights_with_gps, by=c('userid', 'night')) %>%
+  filter( timestamp < first_gps_timestamp - desert_endpoint_offset  | timestamp > last_gps_timestamp + desert_endpoint_offset ) %>%
+  { . } -> df_surveys_pre_or_post_gps
+
+df_surveys_to_match_6 %>%
+  anti_join( df_surveys_pre_or_post_gps, by='id' ) %>%
+  { . } -> df_surveys_to_match_7
+
+
+df_surveys_to_match_final = df_surveys_to_match_7
+
+get_predictable_surveys()
+
+```
+
 # failure analysis - wtf is happening with these lost surveys
 # given the best location set, what surveys does it miss?
 
 best location set gets about 25% of surveys
 
-```{r}
+```{r failure}
 
-df_surveys_to_match_6 %>%
+df_surveys_to_match_final %>%
   anti_join( readd(df_matching_survey_categories_df_matching_survey_optics_distance_14400_900_20_interpolated_locations_600_filtered_accuracy_10),
             by='id') %>%
             { . } -> df_surveys_missed
 
-df_surveys_to_match_6 %>%
+df_surveys_to_match_final %>%
   inner_join( readd(df_matching_survey_categories_df_matching_survey_optics_distance_14400_900_20_interpolated_locations_600_filtered_accuracy_10),
            by='id') %>%
            { . } -> df_surveys_gotten
@@ -611,34 +609,58 @@ df_surveys_gotten %>% count()
 #  filter( str_detect(source, paste0( df_best_base_filename, '$'))) %>%
 #  distinct(source) %>%
 #  pluck('source')
+```
+
+# Current failure rate
+
+```{r fiaure_rate}
+
+(df_surveys_missed %>% count()) / (df_surveys_gotten %>% count() + df_surveys_missed %>% count())
+
+
 
 ```
 
 #  what are the characteristics of the missing surveys, for a single egrious example
 map a single user
 
-```{r }
+```{r single_user}
 
 df_surveys_missed %>%
   count( userid, night, sort=TRUE, name='n_missing_surveys' ) %>%
-  inner_join(  df_location %>% filter( accuracy < min_accuracy   ) %>% count( userid, night, name='n_gps_points'), by=c('userid', 'night')) %>%
+  inner_join(  df_nights_with_gps,  n_gps_points, by=c('userid', 'night')) %>%
+  mutate(hours = duration/3600, points_per_minute = n_gps_points/(duration/60) ) %>%
   { . } -> df_missing_summary
 
 
 df_missing_summary %>% head(10)
 
-df_location %>%
-  inner_join( df_missing_summary[10,]) %>%
-  filter( accuracy < min_accuracy   ) %>%
-  mutate(
-         m_lat = ll2m( latitude, min(latitude), m_per_latitude),
-         m_lon = ll2m( longitude, min(longitude), m_per_longitude)
-         ) %>%
-  arrange( timestamp) %>%
-  mutate( ts_diff = timestamp-min(timestamp)) %>%
-  ggplot( aes(m_lat, m_lon, fill=ts_diff, label=as.character(ts_diff)  ) )  +
-  geom_point() +
-  geom_path()
+df_missing_summary %>% count(userid) %>% count()
+
+map_one_user = function( df_user_night, df_location, min_accuracy ) {
+
+
+  df_location %>%
+    inner_join( df_user_night, by=c('userid', 'night')) %>%
+    filter( accuracy < min_accuracy   ) %>%
+    mutate(
+          m_lat = ll2m( latitude, min(latitude), m_per_latitude),
+          m_lon = ll2m( longitude, min(longitude), m_per_longitude)
+          ) %>%
+    arrange( timestamp) %>%
+    mutate( ts_diff = timestamp-min(timestamp)) %>%
+    ggplot( aes(m_lat, m_lon, color=ts_diff  ) )  +
+    geom_point() +
+    geom_path() %>% 
+    { . } -> p 
+
+  p - sadgg
+
+}
+
+
+for( i in rownames(df_missing_summary %>% head(10)) )
+  map_one_user(df_missing_summary [i,], df_location, min_accuracy)
 
 ```
 
@@ -651,13 +673,15 @@ df_missing_summary %>%
 
 df_best %>% distinct( n_staypoint)
 
-plot_one_person_survey(df_missing_summary[10,], df_location,df_best, df_surveys_missed )
+for( i in rownames(df_missing_summary %>% head(10)) )
+  plot_one_person_survey(df_missing_summary[i,], df_location,df_best, df_surveys_missed )
+
 
 ```
 
 #  what is the difference between the time of the survey and the time of the GPS points, within staypoints
 
-```{r }
+```{r surveytime_vs_gps_point_time}
 
 df_best  %>%
   group_by(userid, night) %>%
