@@ -1,4 +1,3 @@
-
 max_jobs <- 32
 if (startsWith(Sys.info()["nodename"], "lims")) {
     currentMachine <- "lims"
@@ -239,7 +238,7 @@ drakeplan <- drake::drake_plan(
             transform = combine(df_matching_survey_per_staypoint)
         ),
 
-    # number of surveys for each staypoint, summarised
+    # number of surveys for each staypoint, summarised at userid/night level
     df_all_sp_match_survey =
         target(
             my_combine(df_matching_survey_per_sp_summarised),

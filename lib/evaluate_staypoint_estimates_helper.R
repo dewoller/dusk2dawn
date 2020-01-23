@@ -311,7 +311,7 @@ ptype_short = function() {
           "Club", 2,'sp',
           "Restaurant", 3,'sp',
           "Private", 4,'sp',
-          "Streets / Outdoor / Park", 6, 'non-sp',
+          "Streets / Outdoor / Park", 6, 'sp',
           "Travelling", 10, 'non-sp',
           "Other commercial venue", 14, 'sp')
 
@@ -321,9 +321,9 @@ ptype_short = function() {
 
 #********************************************************************************
 #  n_ptype_short
-# the total number of ptype_short 
+# the total number of ptype_short
 #********************************************************************************
-n_ptype_short = function() {
+n_ptype_short_total = function() {
 
   structure(list(ptype_id_short = c(0, 1, 2, 3, 4, 6, 10, 14),
         n_ptype_loc = c(2287, 345, 86, 130, 1304, 331, 116, 74)), class = c("tbl_df",
@@ -386,11 +386,10 @@ get_df_florian_locations = function() {
 
 
   read_csv( 'data/florian_handcoded_locations_final.csv', col_types = fl_col_types  ) %>%
+  dplyr::select(-user, -episod_episode) %>%
     mutate( ptype_rec = ifelse( is.na( ptype_rec), 0,ptype_rec)) %>%
     dplyr::rename( ptype_id_long = ptype_rec) %>%
-  inner_join(ptype_long(), by='ptype_id_long' ) %>%
-    mutate( ptype_id_short = ptype_id_long_to_short( ptype_id_long) ) %>%
-    inner_join(ptype_short(), by='ptype_id_short' )
+  inner_join(ptype_long(), by='ptype_id_long' )
 
 }
 
@@ -718,7 +717,22 @@ get_df_sp_no_bar = function(   df_staypoints , df_sp_joined_geography  ) {
 }
 
 
+#********************************************************************************
+#  get_df_survey_nested
+#********************************************************************************
 
+get_df_florian_survey_nested = function( df_all_ts ) {
+
+  df_all_ts  %>%
+    mutate( timestamp_start=timestamp, timestamp_end=timestamp) %>%
+    dplyr::select( timestamp_start, timestamp_end, which, id, userid, night) %>%
+    group_by( userid, night ) %>%
+    nest( surveys = c(starts_with('timestamp'), which, id )) %>%
+    { . } -> df_all_ts_nested
+
+  df_all_ts_nested
+
+}
 
 #********************************************************************************
 #  get_df_survey_nested
@@ -755,7 +769,8 @@ summarise_staypoints = function( df_staypoints ) {
               max_longitude=max(longitude),
               ts_min = min(timestamp),
               ts_max = max(timestamp),
-              ts_duration = ts_max - ts_min
+              ts_duration = ts_max - ts_min,
+              n_gps_points = n()
               ) %>%
     ungroup()
 }
@@ -813,7 +828,7 @@ get_matching_survey = function( df_staypoints,  df_survey_nested ) {
 
   # keep track of ALL staypoints found so we don't lose any staypoints
   # when we join them to the surveys in the next step
-  maximum_seconds_distant = 5*60
+  maximum_seconds_distant = 10*60
 
   # which staypoints match survey timestamps
   df_staypoints  %>%

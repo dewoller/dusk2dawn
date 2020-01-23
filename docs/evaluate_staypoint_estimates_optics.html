@@ -411,7 +411,7 @@ div.section {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2020-01-21
+<strong>Last updated:</strong> 2020-01-22
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -502,10 +502,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree682022b36f2828836444ef322bda14ab88963fb0targetblank682022ba"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/dewoller/dusk2dawn/tree/682022b36f2828836444ef322bda14ab88963fb0" target="_blank">682022b</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree1d3268778aadd6efe6e9f63ba405f9fb85bccc16targetblank1d32687a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/dewoller/dusk2dawn/tree/1d3268778aadd6efe6e9f63ba405f9fb85bccc16" target="_blank">1d32687</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree682022b36f2828836444ef322bda14ab88963fb0targetblank682022ba" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree1d3268778aadd6efe6e9f63ba405f9fb85bccc16targetblank1d32687a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -536,8 +536,8 @@ Unstaged changes:
     Modified:   explore/explore_results_final.R
     Modified:   explore/make.R
     Modified:   lib/evaluate_staypoint_estimates_helper.R
-    Modified:   lib/functions.R
     Modified:   lib/load_results.R
+    Modified:   lib/location_prep.R
 
 </code></pre>
 <p>
@@ -576,6 +576,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/1d3268778aadd6efe6e9f63ba405f9fb85bccc16/analysis/evaluate_staypoint_estimates_optics.Rmd" target="_blank">1d32687</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2020-01-21
+</td>
+<td>
+wflow_publish(“analysis/evaluate_staypoint_estimates_optics.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/dewoller/dusk2dawn/9ccf746bd298acb873254d3fb8e386ae73e9d41b/docs/evaluate_staypoint_estimates_optics.html" target="_blank">9ccf746</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2020-01-20
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 html
@@ -669,34 +703,172 @@ stuff
 </div>
 </div>
 
-<pre class="r"><code>library(drake)
-library(tidyverse)</code></pre>
+<pre class="r"><code>source(&#39;lib/base_initialise.R&#39;)</code></pre>
+<pre><code>Loading required package: sp</code></pre>
+<pre><code>Loading required package: DBI</code></pre>
 <pre><code>── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
 <pre><code>✔ ggplot2 3.2.1     ✔ purrr   0.3.3
 ✔ tibble  2.1.3     ✔ dplyr   0.8.3
 ✔ tidyr   1.0.0     ✔ stringr 1.4.0
 ✔ readr   1.3.1     ✔ forcats 0.4.0</code></pre>
 <pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-✖ tidyr::expand() masks drake::expand()
-✖ dplyr::filter() masks stats::filter()
-✖ tidyr::gather() masks drake::gather()
-✖ dplyr::lag()    masks stats::lag()</code></pre>
-<pre class="r"><code>library(lubridate)</code></pre>
+✖ tidyr::extract() masks raster::extract()
+✖ dplyr::filter()  masks stats::filter()
+✖ dplyr::lag()     masks stats::lag()
+✖ dplyr::select()  masks raster::select()</code></pre>
 <pre><code>
 Attaching package: &#39;lubridate&#39;</code></pre>
 <pre><code>The following object is masked from &#39;package:base&#39;:
 
     date</code></pre>
+<pre><code>Warning: package &#39;drake&#39; was built under R version 3.6.2</code></pre>
+<pre><code>
+Attaching package: &#39;drake&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:tidyr&#39;:
+
+    expand, gather</code></pre>
+<pre><code>Data (c) OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright</code></pre>
+<pre><code>
+Attaching package: &#39;tsibble&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:lubridate&#39;:
+
+    interval, new_interval</code></pre>
+<pre><code>The following object is masked from &#39;package:dplyr&#39;:
+
+    id</code></pre>
+<pre><code>The following object is masked from &#39;package:raster&#39;:
+
+    stretch</code></pre>
+<pre><code>
+Attaching package: &#39;magrittr&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:purrr&#39;:
+
+    set_names</code></pre>
+<pre><code>The following object is masked from &#39;package:tidyr&#39;:
+
+    extract</code></pre>
+<pre><code>The following object is masked from &#39;package:raster&#39;:
+
+    extract</code></pre>
+<pre><code>Warning: package &#39;knitr&#39; was built under R version 3.6.2</code></pre>
+<pre><code>
+Attaching package: &#39;wrapr&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:dplyr&#39;:
+
+    coalesce</code></pre>
+<pre><code>The following object is masked from &#39;package:tibble&#39;:
+
+    view</code></pre>
+<pre><code>Loading required package: BiocGenerics</code></pre>
+<pre><code>Loading required package: parallel</code></pre>
+<pre><code>
+Attaching package: &#39;BiocGenerics&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:parallel&#39;:
+
+    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
+    clusterExport, clusterMap, parApply, parCapply, parLapply,
+    parLapplyLB, parRapply, parSapply, parSapplyLB</code></pre>
+<pre><code>The following objects are masked from &#39;package:lubridate&#39;:
+
+    intersect, setdiff, union</code></pre>
+<pre><code>The following objects are masked from &#39;package:dplyr&#39;:
+
+    combine, intersect, setdiff, union</code></pre>
+<pre><code>The following objects are masked from &#39;package:raster&#39;:
+
+    as.data.frame, intersect, match, union, unique, which.max,
+    which.min</code></pre>
+<pre><code>The following objects are masked from &#39;package:stats&#39;:
+
+    IQR, mad, sd, var, xtabs</code></pre>
+<pre><code>The following objects are masked from &#39;package:base&#39;:
+
+    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
+    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
+    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
+    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
+    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
+    union, unique, unsplit, which, which.max, which.min</code></pre>
+<pre><code>Loading required package: S4Vectors</code></pre>
+<pre><code>Loading required package: stats4</code></pre>
+<pre><code>
+Attaching package: &#39;S4Vectors&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:drake&#39;:
+
+    expand</code></pre>
+<pre><code>The following objects are masked from &#39;package:lubridate&#39;:
+
+    second, second&lt;-</code></pre>
+<pre><code>The following objects are masked from &#39;package:dplyr&#39;:
+
+    first, rename</code></pre>
+<pre><code>The following object is masked from &#39;package:tidyr&#39;:
+
+    expand</code></pre>
+<pre><code>The following objects are masked from &#39;package:raster&#39;:
+
+    metadata, metadata&lt;-, values, values&lt;-</code></pre>
+<pre><code>The following object is masked from &#39;package:base&#39;:
+
+    expand.grid</code></pre>
+<pre><code>
+Attaching package: &#39;IRanges&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:tsibble&#39;:
+
+    tile</code></pre>
+<pre><code>The following object is masked from &#39;package:lubridate&#39;:
+
+    %within%</code></pre>
+<pre><code>The following objects are masked from &#39;package:dplyr&#39;:
+
+    collapse, desc, slice</code></pre>
+<pre><code>The following object is masked from &#39;package:purrr&#39;:
+
+    reduce</code></pre>
+<pre><code>The following objects are masked from &#39;package:raster&#39;:
+
+    distance, shift, trim</code></pre>
+<pre><code>The following object is masked from &#39;package:sp&#39;:
+
+    %over%</code></pre>
+<pre><code>Warning: package &#39;zoo&#39; was built under R version 3.6.2</code></pre>
+<pre><code>
+Attaching package: &#39;zoo&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:tsibble&#39;:
+
+    index</code></pre>
+<pre><code>The following objects are masked from &#39;package:base&#39;:
+
+    as.Date, as.Date.numeric</code></pre>
+<pre><code>
+Attaching package: &#39;glue&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:IRanges&#39;:
+
+    collapse, trim</code></pre>
+<pre><code>The following object is masked from &#39;package:dplyr&#39;:
+
+    collapse</code></pre>
+<pre><code>The following object is masked from &#39;package:raster&#39;:
+
+    trim</code></pre>
+<pre><code>
+Attaching package: &#39;tibbletime&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:stats&#39;:
+
+    filter</code></pre>
 <pre class="r"><code>source(&#39;lib/functions.R&#39;)</code></pre>
 <pre><code>
 Attaching package: &#39;janitor&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:raster&#39;:
+
+    crosstab</code></pre>
 <pre><code>The following objects are masked from &#39;package:stats&#39;:
 
     chisq.test, fisher.test</code></pre>
 <pre class="r"><code>source(&#39;lib/gps_functions.R&#39;)
 source(&#39;lib/location_prep.R&#39;)
 source(&#39;lib/load_results.R&#39;)</code></pre>
-<pre><code>Warning: Expected 8 pieces. Missing pieces filled with `NA` in 288 rows [1, 2,
+<pre><code>Warning: Expected 8 pieces. Missing pieces filled with `NA` in 624 rows [1, 2,
 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].</code></pre>
 <pre class="r"><code>source(&#39;lib/evaluate_staypoint_estimates_helper.R&#39;)
 source(&#39;lib/survey_functions.R&#39;)
@@ -901,10 +1073,10 @@ Dennis Wollersheim
   userid                               night      optics    sp
   &lt;chr&gt;                                &lt;date&gt;      &lt;dbl&gt; &lt;dbl&gt;
 1 7907f345-ef4b-412a-9340-b56ebb589cca 2014-09-19      2     7
-2 a9062844-ba26-4d87-983f-d32192b61709 2014-10-11      1     5
+2 0387ce90-5e83-4ee8-a3ee-bc2e09877249 2014-09-20      1     4
 3 24c0f1c5-a8f0-4f7e-a8c9-3bb9b545ddae 2014-09-27      3     6
 4 c0d272db-1759-4fd4-94cf-e69af5581393 2014-10-18      3     6
-5 e97b1aa8-f5e0-4e5a-a2f3-6e336f865355 2014-10-10      1     4</code></pre>
+5 374554f1-a18c-4636-8be1-d290dc16f55e 2014-10-24      2     4</code></pre>
 <pre class="r"><code>display_one_staypoint_set(
                           &#39;optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100&#39;,
                           &#39;7907f345-ef4b-412a-9340-b56ebb589cca&#39;,&#39;2014-09-19&#39;)</code></pre>
@@ -1229,7 +1401,7 @@ sp
 <pre class="r"><code>df_results %&gt;%
   arrange( desc( sp )) %&gt;%
   mutate( pct_coverage = mkpct( sp / 1939 )) %&gt;%
-  select( base_file, sp,pct_coverage ) %&gt;%
+  dplyr::select( base_file, sp,pct_coverage ) %&gt;%
   head(20) %&gt;%
   kableExtra::kable()</code></pre>
 <table>
@@ -1252,10 +1424,10 @@ pct_coverage
 staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-1111
+1106
 </td>
 <td style="text-align:right;">
-57.30
+57.04
 </td>
 </tr>
 <tr>
@@ -1263,10 +1435,10 @@ staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_1
 staypoints_distance_14400_300_100_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-1110
+1105
 </td>
 <td style="text-align:right;">
-57.25
+56.99
 </td>
 </tr>
 <tr>
@@ -1274,10 +1446,10 @@ staypoints_distance_14400_300_100_filtered_accuracy_100
 staypoints_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-1110
+1105
 </td>
 <td style="text-align:right;">
-57.25
+56.99
 </td>
 </tr>
 <tr>
@@ -1285,10 +1457,10 @@ staypoints_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_1
 staypoints_distance_14400_300_100_interpolated_locations_600_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-1110
+1105
 </td>
 <td style="text-align:right;">
-57.25
+56.99
 </td>
 </tr>
 <tr>
@@ -1296,37 +1468,15 @@ staypoints_distance_14400_300_100_interpolated_locations_600_filtered_accuracy_1
 staypoints_distance_14400_300_100_filtered_sigma.v2_0.5
 </td>
 <td style="text-align:right;">
-1103
+1097
 </td>
 <td style="text-align:right;">
-56.88
+56.58
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-1101
-</td>
-<td style="text-align:right;">
-56.78
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-optics_distance_1800_300_100_interpolated_locations_120_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-1101
-</td>
-<td style="text-align:right;">
-56.78
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-optics_distance_14400_300_100_interpolated_locations_600_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
 1095
@@ -1337,7 +1487,7 @@ optics_distance_14400_300_100_interpolated_locations_600_filtered_accuracy_100
 </tr>
 <tr>
 <td style="text-align:left;">
-optics_distance_1800_300_100_interpolated_locations_600_filtered_accuracy_100
+optics_distance_1800_300_100_interpolated_locations_120_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
 1095
@@ -1351,10 +1501,21 @@ optics_distance_1800_300_100_interpolated_locations_600_filtered_accuracy_100
 optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-1094
+1089
 </td>
 <td style="text-align:right;">
-56.42
+56.16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+optics_distance_14400_300_100_interpolated_locations_600_filtered_accuracy_100
+</td>
+<td style="text-align:right;">
+1089
+</td>
+<td style="text-align:right;">
+56.16
 </td>
 </tr>
 <tr>
@@ -1362,21 +1523,21 @@ optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100
 optics_distance_1800_300_100_interpolated_locations_300_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-1094
+1089
 </td>
 <td style="text-align:right;">
-56.42
+56.16
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-staypoints_distance_14400_300_100_filtered_sigma.v2_1
+optics_distance_1800_300_100_interpolated_locations_600_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-1093
+1089
 </td>
 <td style="text-align:right;">
-56.37
+56.16
 </td>
 </tr>
 <tr>
@@ -1384,10 +1545,21 @@ staypoints_distance_14400_300_100_filtered_sigma.v2_1
 staypoints_distance_14400_300_100_filtered_sigma.v2_3
 </td>
 <td style="text-align:right;">
-1093
+1088
 </td>
 <td style="text-align:right;">
-56.37
+56.11
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+staypoints_distance_14400_300_100_filtered_sigma.v2_1
+</td>
+<td style="text-align:right;">
+1087
+</td>
+<td style="text-align:right;">
+56.06
 </td>
 </tr>
 <tr>
@@ -1395,70 +1567,15 @@ staypoints_distance_14400_300_100_filtered_sigma.v2_3
 staypoints_distance_14400_300_100_filtered_sigma.v2_2
 </td>
 <td style="text-align:right;">
-1092
+1087
 </td>
 <td style="text-align:right;">
-56.32
+56.06
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-staypoints_distance_14400_600_100_interpolated_locations_120_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-1090
-</td>
-<td style="text-align:right;">
-56.21
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-staypoints_distance_14400_300_100_filtered_sigma.v2_100
-</td>
-<td style="text-align:right;">
-1089
-</td>
-<td style="text-align:right;">
-56.16
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-staypoints_distance_14400_600_100_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-1089
-</td>
-<td style="text-align:right;">
-56.16
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-staypoints_distance_14400_600_100_interpolated_locations_300_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-1089
-</td>
-<td style="text-align:right;">
-56.16
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-staypoints_distance_14400_600_100_interpolated_locations_600_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-1089
-</td>
-<td style="text-align:right;">
-56.16
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-staypoints_distance_14400_300_100_filtered_sigma_0.5
+optics_distance_other_14400_300_100_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
 1085
@@ -1467,60 +1584,72 @@ staypoints_distance_14400_300_100_filtered_sigma_0.5
 55.96
 </td>
 </tr>
+<tr>
+<td style="text-align:left;">
+optics_distance_other_1800_300_100_filtered_accuracy_100
+</td>
+<td style="text-align:right;">
+1085
+</td>
+<td style="text-align:right;">
+55.96
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+staypoints_distance_14400_600_100_interpolated_locations_120_filtered_accuracy_100
+</td>
+<td style="text-align:right;">
+1085
+</td>
+<td style="text-align:right;">
+55.96
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+staypoints_distance_14400_300_100_filtered_sigma.v2_100
+</td>
+<td style="text-align:right;">
+1084
+</td>
+<td style="text-align:right;">
+55.91
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+staypoints_distance_14400_600_100_filtered_accuracy_100
+</td>
+<td style="text-align:right;">
+1084
+</td>
+<td style="text-align:right;">
+55.91
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+staypoints_distance_14400_600_100_interpolated_locations_300_filtered_accuracy_100
+</td>
+<td style="text-align:right;">
+1084
+</td>
+<td style="text-align:right;">
+55.91
+</td>
+</tr>
 </tbody>
 </table>
 <pre class="r"><code>df_results %&gt;%
   arrange( desc( sp )) %&gt;%
   mutate( pct_coverage = mkpct( sp / 1939 )) %&gt;%
-  select( base_file, sp,pct_coverage, algorithm ) %&gt;%
+  dplyr::select( base_file, sp,pct_coverage, algorithm ) %&gt;%
   head(20) %&gt;%
   ggplot( aes( base_file, sp, fill=algorithm ) ) +
   geom_col() +
   coord_flip()</code></pre>
-<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-2-1">
-Past versions of unnamed-chunk-2-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-2-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/dewoller/dusk2dawn/blob/682022b36f2828836444ef322bda14ab88963fb0/docs/figure/evaluate_staypoint_estimates_optics.Rmd/unnamed-chunk-2-1.png" target="_blank">682022b</a>
-</td>
-<td>
-Dennis Wollersheim
-</td>
-<td>
-2020-01-20
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div id="is-there-a-difference-between-optics-and-distance-staypoint-discovery-sets" class="section level1">
-<h1>Is there a difference between optics and distance staypoint discovery sets?</h1>
-<p>look at the characteristics of the best of each; not much difference, at the wide parameter level</p>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/top_20-1.png" width="672" style="display: block; margin: auto;" /> # Is there a difference between optics and distance staypoint discovery sets? look at the characteristics of the best of each; not much difference, at the wide parameter level</p>
 <pre class="r"><code>df_results %&gt;%
   arrange( desc( sp )) %&gt;%
   filter( str_detect( base_file, &#39;^stay&#39;)) %&gt;%
@@ -1544,38 +1673,45 @@ df_results %&gt;%
 <p>Maybe 1% difference in night overlap</p>
 <pre class="r"><code>df_op %&gt;%
   anti_join( df_sp, by=c(&#39;userid&#39;,&#39;night&#39;))</code></pre>
-<pre><code># A tibble: 24 x 11
-   userid night      timestamp_survey timestamp_end.x which    id n_staypoint
-   &lt;chr&gt;  &lt;date&gt;                &lt;dbl&gt;           &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;       &lt;int&gt;
- 1 184a1… 2014-10-10       1412965301      1412965301 dq      273           1
- 2 184a1… 2014-10-10       1412966165      1412966165 dq      274           1
- 3 184a1… 2014-10-10       1412965324      1412965324 env     273           1
- 4 184a1… 2014-10-10       1412965344      1412965344 video   273           1
- 5 52bd4… 2014-10-31       1414790420      1414790420 forg   1305           2
- 6 60df2… 2014-10-11       1413063025      1413063025 dq     1525           1
- 7 60df2… 2014-10-11       1413063065      1413063065 env    1525           1
- 8 60df2… 2014-10-11       1413063084      1413063084 video  1525           1
- 9 64105… 2014-10-03       1412366308      1412366308 dq     1599           1
-10 64105… 2014-10-03       1412366388      1412366388 env    1599           1
-# … with 14 more rows, and 4 more variables: timestamp_start_location &lt;dbl&gt;,
+<pre><code># A tibble: 9 x 11
+  userid night      timestamp_survey timestamp_end.x which    id n_staypoint
+  &lt;chr&gt;  &lt;date&gt;                &lt;dbl&gt;           &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;       &lt;int&gt;
+1 184a1… 2014-10-10       1412965301      1412965301 dq      273           1
+2 184a1… 2014-10-10       1412966165      1412966165 dq      274           1
+3 60df2… 2014-10-11       1413063025      1413063025 dq     1525           1
+4 64105… 2014-10-03       1412366308      1412366308 dq     1599           1
+5 9afc6… 2014-10-31       1414791859      1414791859 dq     2669           2
+6 ad36d… 2014-10-04       1412449334      1412449334 dq     2933           1
+7 b7858… 2014-10-25       1414268128      1414268128 dq     3164           3
+8 bb628… 2014-09-26       1411754650      1411754650 dq     3239           2
+9 c53a9… 2014-10-18       1413662840      1413662840 dq     3418           1
+# … with 4 more variables: timestamp_start_location &lt;dbl&gt;,
 #   timestamp_end_location &lt;dbl&gt;, longitude &lt;dbl&gt;, latitude &lt;dbl&gt;</code></pre>
 <pre class="r"><code>df_sp %&gt;%
   anti_join( df_op, by=c(&#39;userid&#39;,&#39;night&#39;))</code></pre>
-<pre><code># A tibble: 24 x 11
+<pre><code># A tibble: 16 x 11
    userid night      timestamp_survey timestamp_end.x which    id n_staypoint
    &lt;chr&gt;  &lt;date&gt;                &lt;dbl&gt;           &lt;dbl&gt; &lt;chr&gt; &lt;dbl&gt;       &lt;dbl&gt;
  1 184a1… 2014-10-04       1412449642      1412449642 dq      270           1
  2 184a1… 2014-10-04       1412453927      1412453927 dq      271           1
- 3 184a1… 2014-10-04       1412461101      1412461101 forg    272           1
- 4 184a1… 2014-10-04       1412461101      1412461101 forg    272           2
- 5 26d4c… 2014-09-27       1411853954      1411853954 dq      495           3
- 6 26d4c… 2014-09-27       1411856095      1411856095 dq      496           3
- 7 26d4c… 2014-09-27       1411854013      1411854013 env     495           3
- 8 26d4c… 2014-09-27       1411854031      1411854031 video   495           3
- 9 5feda… 2014-11-08       1415477550      1415477550 dq     1503           2
-10 5feda… 2014-11-08       1415477581      1415477581 env    1503           2
-# … with 14 more rows, and 4 more variables: timestamp_start_location &lt;dbl&gt;,
+ 3 26d4c… 2014-09-27       1411853954      1411853954 dq      495           3
+ 4 26d4c… 2014-09-27       1411856095      1411856095 dq      496           3
+ 5 5feda… 2014-11-08       1415477550      1415477550 dq     1503           2
+ 6 7907f… 2014-10-24       1414192420      1414192420 dq     1986           8
+ 7 7907f… 2014-10-24       1414192684      1414192684 dq     1987           8
+ 8 98c7d… 2014-09-27       1411845243      1411845243 dq     2601           2
+ 9 98c7d… 2014-09-27       1411845421      1411845421 dq     2602           2
+10 98c7d… 2014-10-04       1412455850      1412455850 dq     2605           5
+11 98c7d… 2014-10-04       1412455850      1412455850 dq     2605           6
+12 a588f… 2014-10-31       1414797973      1414797973 dq     2833           5
+13 bfae1… 2014-09-27       1411842295      1411842295 dq     3282           1
+14 bfae1… 2014-09-27       1411843001      1411843001 dq     3283           1
+15 e3aec… 2014-10-04       1412453337      1412453337 dq     3958           3
+16 feb82… 2014-10-10       1412968681      1412968681 dq     4668           1
+# … with 4 more variables: timestamp_start_location &lt;dbl&gt;,
 #   timestamp_end_location &lt;dbl&gt;, longitude &lt;dbl&gt;, latitude &lt;dbl&gt;</code></pre>
+</div>
+</div>
 </div>
 <div id="difference-between-optics-and-distance-staypoint-discovery-sets-at-finer-parameter-levels-staypoint-radius20m" class="section level1">
 <h1>difference between optics and distance staypoint discovery sets at finer parameter levels (staypoint radius=20m)</h1>
@@ -1614,7 +1750,7 @@ df_results %&gt;%
   filter( max_sp_radius==20) %&gt;%
   arrange( desc( sp )) %&gt;%
   mutate( pct_coverage = mkpct( sp / 1939 )) %&gt;%
-  select( base_file, sp,pct_coverage ) %&gt;%
+  dplyr::select( base_file, sp,pct_coverage ) %&gt;%
   head(20) %&gt;%
   kableExtra::kable()</code></pre>
 <table>
@@ -1637,32 +1773,10 @@ pct_coverage
 staypoints_distance_14400_300_20_interpolated_locations_120_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-998
+984
 </td>
 <td style="text-align:right;">
-51.47
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-staypoints_distance_14400_300_20_interpolated_locations_300_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-997
-</td>
-<td style="text-align:right;">
-51.42
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-staypoints_distance_14400_300_20_interpolated_locations_600_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-996
-</td>
-<td style="text-align:right;">
-51.37
+50.75
 </td>
 </tr>
 <tr>
@@ -1670,10 +1784,32 @@ staypoints_distance_14400_300_20_interpolated_locations_600_filtered_accuracy_10
 staypoints_distance_14400_300_20_filtered_sigma.v2_0.5
 </td>
 <td style="text-align:right;">
-989
+981
 </td>
 <td style="text-align:right;">
-51.01
+50.59
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+staypoints_distance_14400_300_20_interpolated_locations_300_filtered_accuracy_100
+</td>
+<td style="text-align:right;">
+980
+</td>
+<td style="text-align:right;">
+50.54
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+staypoints_distance_14400_300_20_interpolated_locations_600_filtered_accuracy_100
+</td>
+<td style="text-align:right;">
+979
+</td>
+<td style="text-align:right;">
+50.49
 </td>
 </tr>
 <tr>
@@ -1681,48 +1817,15 @@ staypoints_distance_14400_300_20_filtered_sigma.v2_0.5
 staypoints_distance_1800_300_20_interpolated_locations_120_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-966
+952
 </td>
 <td style="text-align:right;">
-49.82
+49.10
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
 staypoints_distance_1800_300_20_interpolated_locations_300_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-965
-</td>
-<td style="text-align:right;">
-49.77
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-staypoints_distance_14400_300_20_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-964
-</td>
-<td style="text-align:right;">
-49.72
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-staypoints_distance_1800_300_20_interpolated_locations_600_filtered_accuracy_100
-</td>
-<td style="text-align:right;">
-964
-</td>
-<td style="text-align:right;">
-49.72
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-staypoints_distance_14400_300_20_filtered_sigma.v2_1
 </td>
 <td style="text-align:right;">
 948
@@ -1733,13 +1836,35 @@ staypoints_distance_14400_300_20_filtered_sigma.v2_1
 </tr>
 <tr>
 <td style="text-align:left;">
-staypoints_distance_14400_300_20_filtered_sigma.v2_2
+staypoints_distance_14400_300_20_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-943
+947
 </td>
 <td style="text-align:right;">
-48.63
+48.84
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+staypoints_distance_1800_300_20_interpolated_locations_600_filtered_accuracy_100
+</td>
+<td style="text-align:right;">
+947
+</td>
+<td style="text-align:right;">
+48.84
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+staypoints_distance_14400_300_20_filtered_sigma.v2_1
+</td>
+<td style="text-align:right;">
+934
+</td>
+<td style="text-align:right;">
+48.17
 </td>
 </tr>
 <tr>
@@ -1747,10 +1872,21 @@ staypoints_distance_14400_300_20_filtered_sigma.v2_2
 staypoints_distance_1800_300_20_filtered_sigma.v2_0.5
 </td>
 <td style="text-align:right;">
-938
+930
 </td>
 <td style="text-align:right;">
-48.38
+47.96
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+staypoints_distance_14400_300_20_filtered_sigma.v2_2
+</td>
+<td style="text-align:right;">
+928
+</td>
+<td style="text-align:right;">
+47.86
 </td>
 </tr>
 <tr>
@@ -1758,10 +1894,10 @@ staypoints_distance_1800_300_20_filtered_sigma.v2_0.5
 staypoints_distance_14400_300_20_filtered_sigma.v2_3
 </td>
 <td style="text-align:right;">
-936
+921
 </td>
 <td style="text-align:right;">
-48.27
+47.50
 </td>
 </tr>
 <tr>
@@ -1769,10 +1905,10 @@ staypoints_distance_14400_300_20_filtered_sigma.v2_3
 staypoints_distance_14400_300_20_filtered_sigma.v2_100
 </td>
 <td style="text-align:right;">
-932
+917
 </td>
 <td style="text-align:right;">
-48.07
+47.29
 </td>
 </tr>
 <tr>
@@ -1780,10 +1916,10 @@ staypoints_distance_14400_300_20_filtered_sigma.v2_100
 staypoints_distance_14400_300_20_filtered_sigma_0.5
 </td>
 <td style="text-align:right;">
-925
+910
 </td>
 <td style="text-align:right;">
-47.71
+46.93
 </td>
 </tr>
 <tr>
@@ -1791,10 +1927,10 @@ staypoints_distance_14400_300_20_filtered_sigma_0.5
 staypoints_distance_14400_300_20_filtered_sigma_1
 </td>
 <td style="text-align:right;">
-925
+910
 </td>
 <td style="text-align:right;">
-47.71
+46.93
 </td>
 </tr>
 <tr>
@@ -1802,10 +1938,10 @@ staypoints_distance_14400_300_20_filtered_sigma_1
 staypoints_distance_14400_300_20_filtered_sigma_100
 </td>
 <td style="text-align:right;">
-925
+910
 </td>
 <td style="text-align:right;">
-47.71
+46.93
 </td>
 </tr>
 <tr>
@@ -1813,10 +1949,10 @@ staypoints_distance_14400_300_20_filtered_sigma_100
 staypoints_distance_14400_300_20_filtered_sigma_2
 </td>
 <td style="text-align:right;">
-925
+910
 </td>
 <td style="text-align:right;">
-47.71
+46.93
 </td>
 </tr>
 <tr>
@@ -1824,10 +1960,10 @@ staypoints_distance_14400_300_20_filtered_sigma_2
 staypoints_distance_14400_300_20_filtered_sigma_3
 </td>
 <td style="text-align:right;">
-925
+910
 </td>
 <td style="text-align:right;">
-47.71
+46.93
 </td>
 </tr>
 <tr>
@@ -1835,10 +1971,10 @@ staypoints_distance_14400_300_20_filtered_sigma_3
 staypoints_distance_1800_300_20_filtered_accuracy_100
 </td>
 <td style="text-align:right;">
-920
+903
 </td>
 <td style="text-align:right;">
-47.45
+46.57
 </td>
 </tr>
 <tr>
@@ -1846,10 +1982,10 @@ staypoints_distance_1800_300_20_filtered_accuracy_100
 staypoints_distance_1800_300_20_filtered_sigma.v2_1
 </td>
 <td style="text-align:right;">
-908
+894
 </td>
 <td style="text-align:right;">
-46.83
+46.11
 </td>
 </tr>
 </tbody>
@@ -1858,54 +1994,12 @@ staypoints_distance_1800_300_20_filtered_sigma.v2_1
   filter( max_sp_radius==20) %&gt;%
   arrange( desc( sp )) %&gt;%
   mutate( pct_coverage = mkpct( sp / 1939 )) %&gt;%
-  select( base_file, sp,pct_coverage, algorithm ) %&gt;%
+  dplyr::select( base_file, sp,pct_coverage, algorithm ) %&gt;%
   head(20) %&gt;%
   ggplot( aes( base_file, sp, fill=algorithm ) ) +
   geom_col() +
   coord_flip()</code></pre>
-<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-6-1">
-Past versions of unnamed-chunk-6-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-6-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/dewoller/dusk2dawn/blob/682022b36f2828836444ef322bda14ab88963fb0/docs/figure/evaluate_staypoint_estimates_optics.Rmd/unnamed-chunk-6-1.png" target="_blank">682022b</a>
-</td>
-<td>
-Dennis Wollersheim
-</td>
-<td>
-2020-01-20
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</div>
-</div>
-<div id="model-precision-recall" class="section level1">
-<h1>model precision / recall</h1>
-<p>we are trying to identify correct survey marked staypoints</p>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/200m-1.png" width="672" style="display: block; margin: auto;" /> # model precision / recall we are trying to identify correct survey marked staypoints</p>
 <ul>
 <li>True positive - surveys identified as staypoints</li>
 <li>false positive - surveys missed by staypoint discovery</li>
@@ -1918,6 +2012,7 @@ Dennis Wollersheim
 <p>we will get relativly good (but low) values for precision and recall if we assume that the surveypoints do identify staypoints</p>
 <p>recall is the number of true positives divided by the number of true positives plus the number of false negatives.</p>
 <p>Precision is defined as the number of true positives divided by the number of true positives plus the number of false positives.</p>
+</div>
 <div id="what-does-precision-and-recall-look-like" class="section level2">
 <h2>what does precision and recall look like</h2>
 <p>duration in seconds, distance from centriod in meters</p>
@@ -2185,21 +2280,9 @@ df_best_base_filename %&gt;%
   dplyr::summarise( timestamp = min(timestamp)) %&gt;%
   { . } -&gt;  df_surveys
 
-# zoom into the surveys that we are supposed to have found
-get_df_florian_locations() %&gt;%
-  filter(category ==&#39;sp&#39;) %&gt;%
-  inner_join( df_surveys, by=&#39;id&#39;) %&gt;%
-  { . } -&gt; df_surveys_to_match
+df_surveys_to_match = get_surveys_to_match()
 
-
-readd(df_location) %&gt;%
-  filter( accuracy &lt; min_accuracy ) %&gt;%
-  group_by( userid, night ) %&gt;%
-  summarise( n=n(),
-            last_gps_timestamp = max(timestamp),
-            first_gps_timestamp = min(timestamp),
-            duration = last_gps_timestamp - first_gps_timestamp  ) %&gt;%
-  { . } -&gt; df_nights_with_gps</code></pre>
+df_nights_with_gps = get_nights_with_gps()</code></pre>
 </div>
 <div id="nights-with-surveys-but-missing-gps-entirely" class="section level2">
 <h2>nights with surveys, but missing GPS entirely</h2>
@@ -2210,28 +2293,13 @@ readd(df_location) %&gt;%
 <pre><code># A tibble: 1 x 1
       n
   &lt;int&gt;
-1   820</code></pre>
+1   786</code></pre>
 <pre class="r"><code>df_surveys_to_match %&gt;%
   inner_join( df_nights_with_gps %&gt;% dplyr::select(userid, night), by=c(&#39;userid&#39;,&#39;night&#39;)) %&gt;%
   { . } -&gt; df_surveys_to_match_2</code></pre>
 </div>
 </div>
 <div id="section" class="section level1">
-<h1></h1>
-<div id="poor-quality-gps-signals" class="section level2">
-<h2>poor quality GPS signals</h2>
-<p>what nights, even thhough they had GPS, NEVER found a staypoint with ANY algorithm</p>
-<pre class="r"><code>readd(df_all_summarise_staypoints ) %&gt;%
-  count(userid, night, name=&#39;n_algorithms_found&#39; ) %&gt;%
-  { . } -&gt; df_all_found_staypoints
-
-df_surveys_to_match_2 %&gt;%
-  anti_join( df_all_found_staypoints) %&gt;%
-  { . } -&gt; count</code></pre>
-<pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
-</div>
-</div>
-<div id="section-1" class="section level1">
 <h1></h1>
 </div>
 <div id="too-small-duration-gps" class="section level1">
@@ -2246,13 +2314,13 @@ df_surveys_to_match_2 %&gt;%
    userid                                   n
    &lt;chr&gt;                                &lt;int&gt;
  1 05f35693-7fec-4372-af78-7bd904c187e0     1
- 2 0606e872-4a83-4e04-b90c-9b7c06e15a7b     3
+ 2 0606e872-4a83-4e04-b90c-9b7c06e15a7b     2
  3 0ea8dc43-bd54-425d-ba09-7ceaf0dd81ee     1
- 4 184a19da-2ba4-4be0-bf31-7c03216a06b4     8
+ 4 184a19da-2ba4-4be0-bf31-7c03216a06b4     6
  5 1dd4c355-b584-4cff-9f7a-71b361795521     1
- 6 211e25c5-dfcd-4fe3-8e70-81639a9c4e74     1
- 7 24c0f1c5-a8f0-4f7e-a8c9-3bb9b545ddae     3
- 8 29a5418a-4e67-43d0-bf5c-11d37aaf19fc     3
+ 6 24c0f1c5-a8f0-4f7e-a8c9-3bb9b545ddae     3
+ 7 29a5418a-4e67-43d0-bf5c-11d37aaf19fc     2
+ 8 2be6c6d4-a381-4d67-af8d-745077eb21fa     3
  9 2d06d8a5-febc-4c02-850b-e6d3e35cebfe     1
 10 33dc1703-077d-4028-b6d8-55bbfb5b405c     2
 # … with 52 more rows</code></pre>
@@ -2269,21 +2337,21 @@ df_surveys_to_match_2 %&gt;%
   ungroup() %&gt;%
   inner_join( df_nights_with_gps ) %&gt;%
   filter( last_gps_timestamp &lt; first_survey_timestamp )  %&gt;%
-  select( userid, night ) %&gt;%
+  dplyr::select( userid, night ) %&gt;%
   inner_join(df_surveys_to_match_3 )  %&gt;%
   count()</code></pre>
 <pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
 <pre><code># A tibble: 1 x 1
       n
   &lt;int&gt;
-1    23</code></pre>
+1    81</code></pre>
 <pre class="r"><code>df_surveys_to_match_3  %&gt;%
   group_by( userid, night ) %&gt;%
   dplyr::summarise( first_survey_timestamp = min( timestamp), last_survey_timestamp = max(timestamp)) %&gt;%
   ungroup() %&gt;%
   inner_join( df_nights_with_gps ) %&gt;%
   filter( last_gps_timestamp &lt; first_survey_timestamp )  %&gt;%
-  select( userid, night ) %&gt;%
+  dplyr::select( userid, night ) %&gt;%
   { . } -&gt; df_lost_battery_nights</code></pre>
 <pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
 <pre class="r"><code>df_surveys_to_match_3  %&gt;%
@@ -2302,21 +2370,21 @@ df_surveys_to_match_2 %&gt;%
   ungroup() %&gt;%
   inner_join( df_nights_with_gps ) %&gt;%
   filter( first_gps_timestamp &gt; last_survey_timestamp )  %&gt;%
-  select( userid, night ) %&gt;%
+  dplyr::select( userid, night ) %&gt;%
   inner_join(df_surveys_to_match_4 ) %&gt;%
   count()</code></pre>
 <pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
 <pre><code># A tibble: 1 x 1
       n
   &lt;int&gt;
-1  1128</code></pre>
+1   158</code></pre>
 <pre class="r"><code>df_surveys_to_match_4  %&gt;%
   group_by( userid, night ) %&gt;%
   dplyr::summarise( first_survey_timestamp = min( timestamp), last_survey_timestamp = max(timestamp)) %&gt;%
   ungroup() %&gt;%
   inner_join( df_nights_with_gps ) %&gt;%
   filter( first_gps_timestamp &gt; last_survey_timestamp )  %&gt;%
-  select( userid, night ) %&gt;%
+  dplyr::select( userid, night ) %&gt;%
 { . } -&gt; df_surveys_prior_to_gps</code></pre>
 <pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
 <pre class="r"><code>df_surveys_to_match_4  %&gt;%
@@ -2354,152 +2422,11 @@ df_location %&gt;%
   ungroup() %&gt;%
   { . } -&gt; df_location_deserts
 
+#
+# get_df_surveys_cleaned () %&gt;%
+#   { . } -&gt; df_surveys_to_match_5
 
-get_df_surveys_cleaned () %&gt;%
-  { . } -&gt; df_surveys_to_match_5</code></pre>
-<pre><code>Loading required package: sp</code></pre>
-<pre><code>
-Attaching package: &#39;raster&#39;</code></pre>
-<pre><code>The following object is masked from &#39;package:janitor&#39;:
-
-    crosstab</code></pre>
-<pre><code>The following object is masked from &#39;package:dplyr&#39;:
-
-    select</code></pre>
-<pre><code>The following object is masked from &#39;package:tidyr&#39;:
-
-    extract</code></pre>
-<pre><code>Loading required package: DBI</code></pre>
-<pre><code>Data (c) OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright</code></pre>
-<pre><code>
-Attaching package: &#39;tsibble&#39;</code></pre>
-<pre><code>The following object is masked from &#39;package:raster&#39;:
-
-    stretch</code></pre>
-<pre><code>The following objects are masked from &#39;package:lubridate&#39;:
-
-    interval, new_interval</code></pre>
-<pre><code>The following object is masked from &#39;package:dplyr&#39;:
-
-    id</code></pre>
-<pre><code>
-Attaching package: &#39;magrittr&#39;</code></pre>
-<pre><code>The following object is masked from &#39;package:raster&#39;:
-
-    extract</code></pre>
-<pre><code>The following object is masked from &#39;package:purrr&#39;:
-
-    set_names</code></pre>
-<pre><code>The following object is masked from &#39;package:tidyr&#39;:
-
-    extract</code></pre>
-<pre><code>
-Attaching package: &#39;wrapr&#39;</code></pre>
-<pre><code>The following object is masked from &#39;package:dplyr&#39;:
-
-    coalesce</code></pre>
-<pre><code>The following object is masked from &#39;package:tibble&#39;:
-
-    view</code></pre>
-<pre><code>Loading required package: BiocGenerics</code></pre>
-<pre><code>Loading required package: parallel</code></pre>
-<pre><code>
-Attaching package: &#39;BiocGenerics&#39;</code></pre>
-<pre><code>The following objects are masked from &#39;package:parallel&#39;:
-
-    clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
-    clusterExport, clusterMap, parApply, parCapply, parLapply,
-    parLapplyLB, parRapply, parSapply, parSapplyLB</code></pre>
-<pre><code>The following objects are masked from &#39;package:raster&#39;:
-
-    as.data.frame, intersect, match, union, unique, which.max,
-    which.min</code></pre>
-<pre><code>The following objects are masked from &#39;package:lubridate&#39;:
-
-    intersect, setdiff, union</code></pre>
-<pre><code>The following objects are masked from &#39;package:dplyr&#39;:
-
-    combine, intersect, setdiff, union</code></pre>
-<pre><code>The following objects are masked from &#39;package:stats&#39;:
-
-    IQR, mad, sd, var, xtabs</code></pre>
-<pre><code>The following objects are masked from &#39;package:base&#39;:
-
-    anyDuplicated, append, as.data.frame, basename, cbind, colnames,
-    dirname, do.call, duplicated, eval, evalq, Filter, Find, get, grep,
-    grepl, intersect, is.unsorted, lapply, Map, mapply, match, mget,
-    order, paste, pmax, pmax.int, pmin, pmin.int, Position, rank,
-    rbind, Reduce, rownames, sapply, setdiff, sort, table, tapply,
-    union, unique, unsplit, which, which.max, which.min</code></pre>
-<pre><code>Loading required package: S4Vectors</code></pre>
-<pre><code>Loading required package: stats4</code></pre>
-<pre><code>
-Attaching package: &#39;S4Vectors&#39;</code></pre>
-<pre><code>The following objects are masked from &#39;package:raster&#39;:
-
-    metadata, metadata&lt;-, values, values&lt;-</code></pre>
-<pre><code>The following objects are masked from &#39;package:lubridate&#39;:
-
-    second, second&lt;-</code></pre>
-<pre><code>The following objects are masked from &#39;package:dplyr&#39;:
-
-    first, rename</code></pre>
-<pre><code>The following object is masked from &#39;package:tidyr&#39;:
-
-    expand</code></pre>
-<pre><code>The following object is masked from &#39;package:drake&#39;:
-
-    expand</code></pre>
-<pre><code>The following object is masked from &#39;package:base&#39;:
-
-    expand.grid</code></pre>
-<pre><code>
-Attaching package: &#39;IRanges&#39;</code></pre>
-<pre><code>The following object is masked from &#39;package:tsibble&#39;:
-
-    tile</code></pre>
-<pre><code>The following objects are masked from &#39;package:raster&#39;:
-
-    distance, shift, trim</code></pre>
-<pre><code>The following object is masked from &#39;package:sp&#39;:
-
-    %over%</code></pre>
-<pre><code>The following object is masked from &#39;package:lubridate&#39;:
-
-    %within%</code></pre>
-<pre><code>The following objects are masked from &#39;package:dplyr&#39;:
-
-    collapse, desc, slice</code></pre>
-<pre><code>The following object is masked from &#39;package:purrr&#39;:
-
-    reduce</code></pre>
-<pre><code>
-Attaching package: &#39;zoo&#39;</code></pre>
-<pre><code>The following object is masked from &#39;package:tsibble&#39;:
-
-    index</code></pre>
-<pre><code>The following objects are masked from &#39;package:base&#39;:
-
-    as.Date, as.Date.numeric</code></pre>
-<pre><code>
-Attaching package: &#39;glue&#39;</code></pre>
-<pre><code>The following objects are masked from &#39;package:IRanges&#39;:
-
-    collapse, trim</code></pre>
-<pre><code>The following object is masked from &#39;package:raster&#39;:
-
-    trim</code></pre>
-<pre><code>The following object is masked from &#39;package:dplyr&#39;:
-
-    collapse</code></pre>
-<pre><code>
-Attaching package: &#39;tibbletime&#39;</code></pre>
-<pre><code>The following object is masked from &#39;package:stats&#39;:
-
-    filter</code></pre>
-<pre><code>Warning: Expected 8 pieces. Missing pieces filled with `NA` in 288 rows [1, 2,
-3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].</code></pre>
-<pre class="r"><code>df_surveys_to_match_5 %&gt;%
+df_surveys_to_match_5 %&gt;%
   group_by(userid, night) %&gt;%
   mutate( timestamp_start = timestamp, timestamp_end = timestamp) %&gt;%
   dplyr::select(userid, night, starts_with(&#39;timestamp_&#39;), id) %&gt;%
@@ -2526,7 +2453,7 @@ df_surveys_in_desert %&gt;%  count()</code></pre>
 <pre><code># A tibble: 1 x 1
       n
   &lt;int&gt;
-1   335</code></pre>
+1   334</code></pre>
 <pre class="r"><code># alternative way to count
 df_surveys_to_match_nested%&gt;%
   unnest(surveys) %&gt;%
@@ -2538,10 +2465,50 @@ df_surveys_to_match_nested%&gt;%
 <pre><code># A tibble: 1 x 1
       n
   &lt;int&gt;
-1   335</code></pre>
+1   334</code></pre>
 <pre class="r"><code>df_surveys_to_match_5 %&gt;%
   anti_join( df_surveys_in_desert, by=&#39;id&#39;) %&gt;%
   { . } -&gt; df_surveys_to_match_6</code></pre>
+</div>
+<div id="get-rid-of-surveys-that-are-before-or-after-the-last-gps-points" class="section level1">
+<h1>get rid of surveys that are before or after the last gps points</h1>
+<pre class="r"><code>df_surveys_to_match_6 %&gt;%
+  inner_join( df_nights_with_gps, by=c(&#39;userid&#39;, &#39;night&#39;)) %&gt;%
+  filter( timestamp &lt; first_gps_timestamp - desert_endpoint_offset  | timestamp &gt; last_gps_timestamp + desert_endpoint_offset ) %&gt;%
+  count()</code></pre>
+<pre><code># A tibble: 1 x 1
+      n
+  &lt;int&gt;
+1   200</code></pre>
+<pre class="r"><code>df_surveys_to_match_6 %&gt;%
+  inner_join( df_nights_with_gps, by=c(&#39;userid&#39;, &#39;night&#39;)) %&gt;%
+  filter( timestamp &lt; first_gps_timestamp - desert_endpoint_offset  | timestamp &gt; last_gps_timestamp + desert_endpoint_offset ) %&gt;%
+  { . } -&gt; df_surveys_pre_or_post_gps
+
+df_surveys_to_match_6 %&gt;%
+  anti_join( df_surveys_pre_or_post_gps, by=&#39;id&#39; ) %&gt;%
+  { . } -&gt; df_surveys_to_match_7
+
+
+df_surveys_to_match_final = df_surveys_to_match_7
+
+get_predictable_surveys()</code></pre>
+<pre><code># A tibble: 531 x 13
+      id ptype_id_long ptype_long ptype_id_short ptype_short category userid
+   &lt;dbl&gt;         &lt;dbl&gt; &lt;chr&gt;               &lt;dbl&gt; &lt;chr&gt;       &lt;chr&gt;    &lt;chr&gt; 
+ 1     5             1 Bar                     1 Bar         sp       02f95…
+ 2     7             6 Streets /…              6 Streets / … sp       0387c…
+ 3     8             6 Streets /…              6 Streets / … sp       0387c…
+ 4    10             1 Bar                     1 Bar         sp       0387c…
+ 5   168             4 Private                 4 Private     sp       0ea8d…
+ 6   169             4 Private                 4 Private     sp       0ea8d…
+ 7   170             4 Private                 4 Private     sp       0ea8d…
+ 8   171             4 Private                 4 Private     sp       0ea8d…
+ 9   172             4 Private                 4 Private     sp       0ea8d…
+10   174             7 Indoor re…             14 Other comm… sp       0ea8d…
+# … with 521 more rows, and 6 more variables: night &lt;date&gt;, timestamp &lt;dbl&gt;,
+#   n_gps_points &lt;int&gt;, last_gps_timestamp &lt;int&gt;, first_gps_timestamp &lt;int&gt;,
+#   duration &lt;int&gt;</code></pre>
 </div>
 <div id="failure-analysis---wtf-is-happening-with-these-lost-surveys" class="section level1">
 <h1>failure analysis - wtf is happening with these lost surveys</h1>
@@ -2549,12 +2516,12 @@ df_surveys_to_match_nested%&gt;%
 <div id="given-the-best-location-set-what-surveys-does-it-miss" class="section level1">
 <h1>given the best location set, what surveys does it miss?</h1>
 <p>best location set gets about 25% of surveys</p>
-<pre class="r"><code>df_surveys_to_match_6 %&gt;%
+<pre class="r"><code>df_surveys_to_match_final %&gt;%
   anti_join( readd(df_matching_survey_categories_df_matching_survey_optics_distance_14400_900_20_interpolated_locations_600_filtered_accuracy_10),
             by=&#39;id&#39;) %&gt;%
             { . } -&gt; df_surveys_missed
 
-df_surveys_to_match_6 %&gt;%
+df_surveys_to_match_final %&gt;%
   inner_join( readd(df_matching_survey_categories_df_matching_survey_optics_distance_14400_900_20_interpolated_locations_600_filtered_accuracy_10),
            by=&#39;id&#39;) %&gt;%
            { . } -&gt; df_surveys_gotten
@@ -2563,91 +2530,109 @@ df_surveys_missed %&gt;% count()</code></pre>
 <pre><code># A tibble: 1 x 1
       n
   &lt;int&gt;
-1   770</code></pre>
+1   159</code></pre>
 <pre class="r"><code>df_surveys_gotten %&gt;% count()</code></pre>
 <pre><code># A tibble: 1 x 1
       n
   &lt;int&gt;
-1   373</code></pre>
+1   365</code></pre>
 <pre class="r"><code>#readd(df_matching_survey_categories_summary_all) %&gt;%
 #  filter( str_detect(source, paste0( df_best_base_filename, &#39;$&#39;))) %&gt;%
 #  distinct(source) %&gt;%
 #  pluck(&#39;source&#39;)</code></pre>
+</div>
+<div id="current-failure-rate" class="section level1">
+<h1>Current failure rate</h1>
+<pre class="r"><code>(df_surveys_missed %&gt;% count()) / (df_surveys_gotten %&gt;% count() + df_surveys_missed %&gt;% count())</code></pre>
+<pre><code>          n
+1 0.3034351</code></pre>
 </div>
 <div id="what-are-the-characteristics-of-the-missing-surveys-for-a-single-egrious-example" class="section level1">
 <h1>what are the characteristics of the missing surveys, for a single egrious example</h1>
 <p>map a single user</p>
 <pre class="r"><code>df_surveys_missed %&gt;%
   count( userid, night, sort=TRUE, name=&#39;n_missing_surveys&#39; ) %&gt;%
-  inner_join(  df_location %&gt;% filter( accuracy &lt; min_accuracy   ) %&gt;% count( userid, night, name=&#39;n_gps_points&#39;), by=c(&#39;userid&#39;, &#39;night&#39;)) %&gt;%
+  inner_join(  df_nights_with_gps,  n_gps_points, by=c(&#39;userid&#39;, &#39;night&#39;)) %&gt;%
+  mutate(hours = duration/3600, points_per_minute = n_gps_points/(duration/60) ) %&gt;%
   { . } -&gt; df_missing_summary
 
 
 df_missing_summary %&gt;% head(10)</code></pre>
-<pre><code># A tibble: 10 x 4
-   userid                               night      n_missing_surve… n_gps_points
-   &lt;chr&gt;                                &lt;date&gt;                &lt;int&gt;        &lt;int&gt;
- 1 374554f1-a18c-4636-8be1-d290dc16f55e 2014-11-01                7            5
- 2 64e00825-2ab1-414c-b8b3-9de0f3da3809 2014-10-04                7           34
- 3 7e560313-6691-4ba5-b1e7-8aa3239522b3 2014-09-19                7           22
- 4 184a19da-2ba4-4be0-bf31-7c03216a06b4 2014-10-11                6            2
- 5 3eacbf9f-0187-46ae-8e3d-feb350fe8803 2014-10-18                6           62
- 6 840ad894-e9c4-4596-813b-bacb8550d4ae 2014-10-31                6            8
- 7 d386f411-c538-4fb9-8807-016e3ba487e2 2014-11-22                6           43
- 8 85e04e45-7c42-4425-8e13-65df60a164f9 2014-10-03                5            2
- 9 a2c62958-9dce-4da8-a903-0675e2fde78e 2014-11-07                5           19
-10 b5f8d732-2e65-4643-8103-e0a6fa43f367 2014-09-26                5          225</code></pre>
-<pre class="r"><code>df_location %&gt;%
-  inner_join( df_missing_summary[10,]) %&gt;%
-  filter( accuracy &lt; min_accuracy   ) %&gt;%
-  mutate(
-         m_lat = ll2m( latitude, min(latitude), m_per_latitude),
-         m_lon = ll2m( longitude, min(longitude), m_per_longitude)
-         ) %&gt;%
-  arrange( timestamp) %&gt;%
-  mutate( ts_diff = timestamp-min(timestamp)) %&gt;%
-  ggplot( aes(m_lat, m_lon, fill=ts_diff, label=as.character(ts_diff)  ) )  +
-  geom_point() +
-  geom_path()</code></pre>
-<pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
-<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-13-1">
-Past versions of unnamed-chunk-13-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-13-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/dewoller/dusk2dawn/blob/682022b36f2828836444ef322bda14ab88963fb0/docs/figure/evaluate_staypoint_estimates_optics.Rmd/unnamed-chunk-13-1.png" target="_blank">682022b</a>
-</td>
-<td>
-Dennis Wollersheim
-</td>
-<td>
-2020-01-20
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<pre><code># A tibble: 10 x 9
+   userid night      n_missing_surve… n_gps_points last_gps_timest…
+   &lt;chr&gt;  &lt;date&gt;                &lt;int&gt;        &lt;int&gt;            &lt;int&gt;
+ 1 64e00… 2014-10-04                4          130       1412466051
+ 2 6abb3… 2014-10-04                4          156       1412470717
+ 3 98b17… 2014-09-26                4          224       1411771777
+ 4 c0d27… 2014-10-11                4          673       1413078765
+ 5 0387c… 2014-09-20                3          409       1411264753
+ 6 3eacb… 2014-10-25                3          136       1414276047
+ 7 5feda… 2014-10-03                3          273       1412387717
+ 8 7028d… 2014-10-10                3          211       1412975395
+ 9 b5f8d… 2014-09-19                3          170       1411166433
+10 0ea8d… 2014-10-24                2          546       1414202167
+# … with 4 more variables: first_gps_timestamp &lt;int&gt;, duration &lt;int&gt;,
+#   hours &lt;dbl&gt;, points_per_minute &lt;dbl&gt;</code></pre>
+<pre class="r"><code>df_missing_summary %&gt;% count(userid) %&gt;% count()</code></pre>
+<pre><code># A tibble: 1 x 1
+      n
+  &lt;int&gt;
+1    72</code></pre>
+<pre class="r"><code>map_one_user = function( df_user_night, df_location, min_accuracy ) {
+
+
+  df_location %&gt;%
+    inner_join( df_user_night, by=c(&#39;userid&#39;, &#39;night&#39;)) %&gt;%
+    filter( accuracy &lt; min_accuracy   ) %&gt;%
+    mutate(
+          m_lat = ll2m( latitude, min(latitude), m_per_latitude),
+          m_lon = ll2m( longitude, min(longitude), m_per_longitude)
+          ) %&gt;%
+    arrange( timestamp) %&gt;%
+    mutate( ts_diff = timestamp-min(timestamp)) %&gt;%
+    ggplot( aes(m_lat, m_lon, color=ts_diff  ) )  +
+    geom_point() +
+    geom_path() %&gt;% 
+    { . } -&gt; p 
+
+  p - sadgg
+
+}
+
+
+for( i in rownames(df_missing_summary %&gt;% head(10)) )
+  map_one_user(df_missing_summary [i,], df_location, min_accuracy)</code></pre>
+<pre><code>Warning: `as.tibble()` is deprecated, use `as_tibble()` (but mind the new semantics).
+This warning is displayed once per session.</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/single_user-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/single_user-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/single_user-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/single_user-4.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/single_user-5.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/single_user-6.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/single_user-7.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/single_user-8.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/single_user-9.png" width="672" style="display: block; margin: auto;" /><img src="figure/evaluate_staypoint_estimates_optics.Rmd/single_user-10.png" width="672" style="display: block; margin: auto;" /></p>
 <p>#what is the range of missing surveys per usernight</p>
 <pre class="r"><code>df_missing_summary %&gt;%
   ggplot( aes( n_missing_surveys)  ) + geom_histogram()</code></pre>
@@ -2703,13 +2688,23 @@ Dennis Wollersheim
 7           7
 8           8
 9           9</code></pre>
-<pre class="r"><code>plot_one_person_survey(df_missing_summary[10,], df_location,df_best, df_surveys_missed )</code></pre>
+<pre class="r"><code>for( i in rownames(df_missing_summary %&gt;% head(10)) )
+  plot_one_person_survey(df_missing_summary[i,], df_location,df_best, df_surveys_missed )</code></pre>
 <pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
 <pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
 <pre><code># A tibble: 1 x 4
   userid                               night      timezone     n
   &lt;chr&gt;                                &lt;date&gt;        &lt;int&gt; &lt;int&gt;
-1 b5f8d732-2e65-4643-8103-e0a6fa43f367 2014-09-26     7200  1302</code></pre>
+1 64e00825-2ab1-414c-b8b3-9de0f3da3809 2014-10-04     7200   892</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image
+Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
+<pre><code># A tibble: 1 x 4
+  userid                               night      timezone     n
+  &lt;chr&gt;                                &lt;date&gt;        &lt;int&gt; &lt;int&gt;
+1 6abb3992-29f1-4d36-a9dd-1c67b258a8da 2014-10-04     7200  1465</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
 <p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/what_is_wrong_with_survey_match-2.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-what_is_wrong_with_survey_match-2">
@@ -2748,6 +2743,79 @@ Dennis Wollersheim
 </table>
 </div>
 </div>
+<pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by
+= c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
+<pre><code># A tibble: 1 x 4
+  userid                               night      timezone     n
+  &lt;chr&gt;                                &lt;date&gt;        &lt;int&gt; &lt;int&gt;
+1 98b1781e-3a7e-486a-98fe-bb2ef0198b24 2014-09-26     7200  1294</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/what_is_wrong_with_survey_match-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by
+= c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
+<pre><code># A tibble: 1 x 4
+  userid                               night      timezone     n
+  &lt;chr&gt;                                &lt;date&gt;        &lt;int&gt; &lt;int&gt;
+1 c0d272db-1759-4fd4-94cf-e69af5581393 2014-10-11     7200  2218</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/what_is_wrong_with_survey_match-4.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by
+= c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
+<pre><code># A tibble: 1 x 4
+  userid                               night      timezone     n
+  &lt;chr&gt;                                &lt;date&gt;        &lt;int&gt; &lt;int&gt;
+1 0387ce90-5e83-4ee8-a3ee-bc2e09877249 2014-09-20     7200  1692</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/what_is_wrong_with_survey_match-5.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by
+= c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
+<pre><code># A tibble: 2 x 4
+  userid                               night      timezone     n
+  &lt;chr&gt;                                &lt;date&gt;        &lt;int&gt; &lt;int&gt;
+1 3eacbf9f-0187-46ae-8e3d-feb350fe8803 2014-10-25     3600    60
+2 3eacbf9f-0187-46ae-8e3d-feb350fe8803 2014-10-25     7200  1000</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/what_is_wrong_with_survey_match-6.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by
+= c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
+<pre><code># A tibble: 1 x 4
+  userid                               night      timezone     n
+  &lt;chr&gt;                                &lt;date&gt;        &lt;int&gt; &lt;int&gt;
+1 5feda001-86fd-4dba-bc8e-6436237afb37 2014-10-03     7200  2263</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/what_is_wrong_with_survey_match-7.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by
+= c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
+<pre><code># A tibble: 1 x 4
+  userid                               night      timezone     n
+  &lt;chr&gt;                                &lt;date&gt;        &lt;int&gt; &lt;int&gt;
+1 7028dc7c-022b-4d02-a640-b55ad89a017a 2014-10-10     7200  3496</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/what_is_wrong_with_survey_match-8.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by
+= c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
+<pre><code># A tibble: 1 x 4
+  userid                               night      timezone     n
+  &lt;chr&gt;                                &lt;date&gt;        &lt;int&gt; &lt;int&gt;
+1 b5f8d732-2e65-4643-8103-e0a6fa43f367 2014-09-19     7200   828</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/what_is_wrong_with_survey_match-9.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by = c(&quot;userid&quot;, &quot;night&quot;)Joining, by
+= c(&quot;userid&quot;, &quot;night&quot;)</code></pre>
+<pre><code># A tibble: 1 x 4
+  userid                               night      timezone     n
+  &lt;chr&gt;                                &lt;date&gt;        &lt;int&gt; &lt;int&gt;
+1 0ea8dc43-bd54-425d-ba09-7ceaf0dd81ee 2014-10-24     7200  1019</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre><code>Saving 7 x 5 in image</code></pre>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/what_is_wrong_with_survey_match-10.png" width="672" style="display: block; margin: auto;" /><img src="figure/evaluate_staypoint_estimates_optics.Rmd/what_is_wrong_with_survey_match-11.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="what-is-the-difference-between-the-time-of-the-survey-and-the-time-of-the-gps-points-within-staypoints" class="section level1">
 <h1>what is the difference between the time of the survey and the time of the GPS points, within staypoints</h1>
@@ -2759,44 +2827,7 @@ Dennis Wollersheim
   mutate( diff =  timestamp.x - timestamp.y)  %&gt;%
   ggplot( aes( diff/3600)) + geom_histogram()</code></pre>
 <pre><code>`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
-<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>
-<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-unnamed-chunk-14-1">
-Past versions of unnamed-chunk-14-1.png
-</button>
-</p>
-<div id="fig-unnamed-chunk-14-1" class="collapse">
-<div class="table-responsive">
-<table class="table table-condensed table-hover">
-<thead>
-<tr>
-<th>
-Version
-</th>
-<th>
-Author
-</th>
-<th>
-Date
-</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<a href="https://github.com/dewoller/dusk2dawn/blob/682022b36f2828836444ef322bda14ab88963fb0/docs/figure/evaluate_staypoint_estimates_optics.Rmd/unnamed-chunk-14-1.png" target="_blank">682022b</a>
-</td>
-<td>
-Dennis Wollersheim
-</td>
-<td>
-2020-01-20
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
+<p><img src="figure/evaluate_staypoint_estimates_optics.Rmd/surveytime_vs_gps_point_time-1.png" width="672" style="display: block; margin: auto;" /></p>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -2826,45 +2857,46 @@ attached base packages:
 [8] methods   base     
 
 other attached packages:
- [1] dbscan_1.1-5          futile.logger_1.4.3   tibbletime_0.1.3     
- [4] glue_1.3.1            zoo_1.8-6             geosphere_1.5-7      
- [7] geohash_0.4.0         multidplyr_0.0.0.9000 IRanges_2.19.10      
-[10] S4Vectors_0.23.18     BiocGenerics_0.31.5   fuzzyjoin_0.1.5      
-[13] wrapr_1.8.9           knitr_1.26            magrittr_1.5         
-[16] tsibble_0.8.5         revgeo_0.15           osmdata_0.1.1        
-[19] RPostgreSQL_0.6-2     DBI_1.1.0             raster_3.0-1         
-[22] sp_1.3-2              janitor_1.2.0         lubridate_1.7.4      
-[25] forcats_0.4.0         stringr_1.4.0         dplyr_0.8.3          
-[28] purrr_0.3.3           readr_1.3.1           tidyr_1.0.0          
-[31] tibble_2.1.3          ggplot2_3.2.1         tidyverse_1.3.0      
-[34] drake_7.8.0           nvimcom_0.9-82       
+ [1] gdtools_0.2.1         janitor_1.2.0         dbscan_1.1-5         
+ [4] futile.logger_1.4.3   tibbletime_0.1.3      glue_1.3.1           
+ [7] zoo_1.8-7             geosphere_1.5-7       geohash_0.4.0        
+[10] multidplyr_0.0.0.9000 IRanges_2.19.10       S4Vectors_0.23.18    
+[13] BiocGenerics_0.31.5   fuzzyjoin_0.1.5       wrapr_1.8.9          
+[16] knitr_1.27            magrittr_1.5          tsibble_0.8.5        
+[19] revgeo_0.15           osmdata_0.1.1         drake_7.9.0          
+[22] lubridate_1.7.4       forcats_0.4.0         stringr_1.4.0        
+[25] dplyr_0.8.3           purrr_0.3.3           readr_1.3.1          
+[28] tidyr_1.0.0           tibble_2.1.3          ggplot2_3.2.1        
+[31] tidyverse_1.3.0       RPostgreSQL_0.6-2     DBI_1.1.0            
+[34] raster_3.0-1          sp_1.3-2              nvimcom_0.9-82       
 
 loaded via a namespace (and not attached):
- [1] nlme_3.1-142         bitops_1.0-6         fs_1.3.1            
- [4] RColorBrewer_1.1-2   filelock_1.0.2       webshot_0.5.2       
- [7] httr_1.4.1           rprojroot_1.3-2      tools_3.6.1         
-[10] backports_1.1.5      utf8_1.1.4           R6_2.4.1            
-[13] lazyeval_0.2.2       colorspace_1.4-1     withr_2.1.2         
-[16] tidyselect_0.2.5     curl_4.3             compiler_3.6.1      
-[19] git2r_0.26.1         cli_2.0.0            rvest_0.3.5         
-[22] formatR_1.7          xml2_1.2.2           labeling_0.3        
-[25] scales_1.1.0         digest_0.6.23        txtq_0.2.0          
-[28] rmarkdown_2.0        pkgconfig_2.0.3      htmltools_0.4.0     
-[31] dbplyr_1.4.2         highr_0.8            rlang_0.4.2         
-[34] readxl_1.3.1         rstudioapi_0.10      farver_2.0.1        
-[37] generics_0.0.2       jsonlite_1.6         RCurl_1.95-4.12     
-[40] kableExtra_1.1.0     Rcpp_1.0.3           munsell_0.5.0       
-[43] fansi_0.4.0          lifecycle_0.1.0      stringi_1.4.3       
-[46] whisker_0.4          yaml_2.2.0           snakecase_0.11.0    
-[49] storr_1.2.1          RJSONIO_1.3-1.3      grid_3.6.1          
-[52] crayon_1.3.4         lattice_0.20-38      haven_2.2.0         
-[55] hms_0.5.2            zeallot_0.1.0        anytime_0.3.6       
-[58] pillar_1.4.3         igraph_1.2.4.2       base64url_1.4       
-[61] codetools_0.2-16     futile.options_1.0.1 reprex_0.3.0        
-[64] evaluate_0.14        lambda.r_1.2.4       modelr_0.1.5        
-[67] vctrs_0.2.1          cellranger_1.1.0     gtable_0.3.0        
-[70] assertthat_0.2.1     xfun_0.11            broom_0.5.3         
-[73] viridisLite_0.3.0    workflowr_1.4.0.9001 ellipsis_0.3.0      </code></pre>
+ [1] colorspace_1.4-1     ellipsis_0.3.0       rprojroot_1.3-2     
+ [4] snakecase_0.11.0     fs_1.3.1             rstudioapi_0.10     
+ [7] farver_2.0.1         fansi_0.4.1          xml2_1.2.2          
+[10] codetools_0.2-16     zeallot_0.1.0        jsonlite_1.6        
+[13] workflowr_1.4.0.9001 broom_0.5.3          anytime_0.3.6       
+[16] dbplyr_1.4.2         compiler_3.6.1       httr_1.4.1          
+[19] backports_1.1.5      assertthat_0.2.1     lazyeval_0.2.2      
+[22] cli_2.0.1            formatR_1.7          htmltools_0.4.0     
+[25] tools_3.6.1          igraph_1.2.4.2       gtable_0.3.0        
+[28] Rcpp_1.0.3           cellranger_1.1.0     vctrs_0.2.1         
+[31] RJSONIO_1.3-1.4      svglite_1.2.2        nlme_3.1-142        
+[34] xfun_0.11            rvest_0.3.5          lifecycle_0.1.0     
+[37] scales_1.1.0         hms_0.5.3            RColorBrewer_1.1-2  
+[40] lambda.r_1.2.4       yaml_2.2.0           curl_4.3            
+[43] stringi_1.4.5        highr_0.8            filelock_1.0.2      
+[46] storr_1.2.1          rlang_0.4.2          pkgconfig_2.0.3     
+[49] systemfonts_0.1.1    bitops_1.0-6         evaluate_0.14       
+[52] lattice_0.20-38      labeling_0.3         tidyselect_0.2.5    
+[55] R6_2.4.1             generics_0.0.2       base64url_1.4       
+[58] txtq_0.2.0           pillar_1.4.3         haven_2.2.0         
+[61] whisker_0.4          withr_2.1.2          RCurl_1.95-4.13     
+[64] modelr_0.1.5         crayon_1.3.4         futile.options_1.0.1
+[67] utf8_1.1.4           rmarkdown_2.0        grid_3.6.1          
+[70] readxl_1.3.1         git2r_0.26.1         reprex_0.3.0        
+[73] digest_0.6.23        webshot_0.5.2        munsell_0.5.0       
+[76] viridisLite_0.3.0    kableExtra_1.1.0    </code></pre>
 </div>
 </div>
 
