@@ -65,13 +65,13 @@ get_df_all_ts <- function( df_all ) {
   }
 
   bind_rows(
-            get_one_survey_type( df_all, 'dq'),
-            get_one_survey_type( df_all, 'env'),
-            get_one_survey_type( df_all, 'forg'),
-            get_one_survey_type( df_all, 'video'),
-            get_one_survey_type( df_all, 'load'),
-            get_one_survey_type( df_all, 'pre'),
-            get_one_survey_type( df_all, 'tom')
+            get_one_survey_type( df_all, 'dq')
+#            get_one_survey_type( df_all, 'env'),
+#            get_one_survey_type( df_all, 'forg'),
+#            get_one_survey_type( df_all, 'video'),
+#            get_one_survey_type( df_all, 'load'),
+#            get_one_survey_type( df_all, 'pre'),
+#            get_one_survey_type( df_all, 'tom')
             ) %>%
     group_by( timezone ) %>% # group together all the same timezones so  that calculation is faster
     mutate( ts = ymd_hms( timestamp, tz=min( timezone))) %>%

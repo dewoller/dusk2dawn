@@ -2,8 +2,8 @@
 
 
 #################################################################################
-# usage - add '-sadgg' to the end of ggplot string to store the plot in a directory
 # sadgg
+# usage - add '-sadgg' to the end of ggplot string to store the plot in a directory
 #################################################################################
 
 library(janitor)
@@ -51,7 +51,7 @@ mView = function( df ) {
   f = tempfile(fileext='.csv')
   write_excel_csv(df, f)
 
-  system(paste('gnumeric', f), 
+  system(paste('gnumeric', f),
          intern=TRUE,
          wait=FALSE,
          ignore.stderr=TRUE,
@@ -62,6 +62,35 @@ mView = function( df ) {
 
 
 
+################################################################################
+# mkpct
+################################################################################
 mkpct = function( x ) {
   round(x * 100, 2  )
 }
+
+
+
+################################################################################
+# do_something_with_file_name
+################################################################################
+do_something_with_dataset_name = function(df, do_what_fn, ...) {
+  # call do_what, including the actual file name as the second parameter
+
+  match.call(expand.dots=FALSE)$df %>%
+    as.character() %>%
+    { . } -> filename
+
+  do_what_fn( df, filename, ...)
+}
+
+################################################################################
+#extract_nth_chunk
+################################################################################
+extract_nth_chunk = function( s, n, sepchar='_') {
+
+  str_split(s, sepchar ) %>% map(n)
+
+}
+
+

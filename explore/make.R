@@ -4,7 +4,7 @@ if (startsWith(Sys.info()["nodename"], "lims")) {
 } else {
     currentMachine <- Sys.info()["nodename"]
 }
-#currentMachine <- "hermoine"
+currentMachine <- "hermoine"
 source('lib/base_initialise.R')
 
 
@@ -40,7 +40,7 @@ drakeplan <- drake::drake_plan(
         target(
             prune_gps_accuracy(df_location, accuracy),
             transform = map(accuracy = !!accuracy_range, .tag_out = filtered_data)
-        ),
+    ),
     #  filtered_geohash = target(
     #      prune_gps_geohash (df_location, precision, minpoints),
     #      transform = cross( precision  = !!gh_precision_range,
@@ -51,17 +51,17 @@ drakeplan <- drake::drake_plan(
         target(
             prune_gps_outliers(df_location, .sigma = sigma),
             transform = map(sigma = !!sigma_range, .tag_out = filtered_data)
-        ),
+    ),
     filtered_sigma.v2 =
         target(
             prune_gps_outliers.v2(df_location, .sigma = sigma),
             transform = map(sigma = !!sigma_range, .tag_out = filtered_data)
-        ),
+    ),
     interpolated_locations =
         target(
             interpolate_locations(filtered_accuracy, max_delay = max_delay, period = 30),
             transform = cross(filtered_accuracy, max_delay = !!interpolation_delay_range, .tag_out = filtered_data)
-        ),
+    ),
     staypoints_distance =
         target(
             find_staypoint_distance(filtered_data,
@@ -74,7 +74,7 @@ drakeplan <- drake::drake_plan(
                 max_staypoint_distance = !!sp_max_staypoint_distance_range,
                 .tag_out = staypoint_discovery
             )
-        ),
+    ),
     optics_distance =
       target(
             find_cluster_optics_all(filtered_data,
@@ -87,21 +87,27 @@ drakeplan <- drake::drake_plan(
                               max_staypoint_distance = !!sp_max_staypoint_distance_range,
                               .tag_out = staypoint_discovery
             )
-            ),
+      ),
+      # uses 4th and 5th sections from the filename, containing max_staypoint_distance, min_staypoint_time
+      df_merged_staypoints =
+        target( merge_staypoints_helper( staypoint_discovery),
+               transform = map(staypoint_discovery,
+                               .tag_out = merged_staypoints)
+      ),
     #
-    optics_distance_other =
-        target(
-            find_cluster_optics_all(filtered_accuracy,
-                                    max_jump_time = max_jump_time,
-                                    min_staypoint_time = min_staypoint_time,
-                                    max_staypoint_distance = max_staypoint_distance),
-            transform = cross(filtered_accuracy,
-                max_jump_time = !!sp_max_jump_time_range,
-                min_staypoint_time = !!sp_min_staypoint_time_range,
-                max_staypoint_distance = !!sp_max_staypoint_distance_range,
-                .tag_out = staypoint_discovery
-            )
-        ),
+    # optics_distance_other =
+    #     target(
+    #         find_cluster_optics_all(filtered_accuracy,
+    #                                 max_jump_time = max_jump_time,
+    #                                 min_staypoint_time = min_staypoint_time,
+    #                                 max_staypoint_distance = max_staypoint_distance),
+    #         transform = cross(filtered_accuracy,
+    #             max_jump_time = !!sp_max_jump_time_range,
+    #             min_staypoint_time = !!sp_min_staypoint_time_range,
+    #             max_staypoint_distance = !!sp_max_staypoint_distance_range,
+    #             .tag_out = staypoint_discovery
+    #         )
+    #     ),
     #
     #####################################
     # Evaluation data prep
@@ -135,11 +141,11 @@ drakeplan <- drake::drake_plan(
     # summarise staypoints for every userid, night.  One line per staypoint / algorithm
     # for each staypoint, what is the gist of it
     df_summarise_staypoints =
-        target(summarise_staypoints(staypoint_discovery),
-            transform = map(staypoint_discovery)
+        target(summarise_staypoints(merged_staypoints),
+            transform = map(merged_staypoints)
         ),
 
-    # combine summarised staypoints for every userid, night.  One line per staypoint / algorithm 
+    # combine summarised staypoints for every userid, night.  One line per staypoint / algorithm
     df_all_summarise_staypoints =
         target(my_combine(df_summarise_staypoints),
             transform = combine(df_summarise_staypoints)
@@ -153,8 +159,8 @@ drakeplan <- drake::drake_plan(
     # count staypoints for every userid, night.  One dataset per algorithm
     df_count_staypoints =
         target(
-            count_staypoints(staypoint_discovery),
-            transform = map(staypoint_discovery)
+            count_staypoints(merged_staypoints),
+            transform = map(merged_staypoints)
         ),
 
     # total staypoints for each algorithm, one line per algorithm
@@ -177,8 +183,8 @@ drakeplan <- drake::drake_plan(
 
     df_matching_survey =
       target(
-            get_matching_survey(staypoint_discovery, df_survey_nested),
-            transform = map(staypoint_discovery)
+            get_matching_survey(merged_staypoints, df_survey_nested),
+            transform = map(merged_staypoints)
             ),
     #
     # what category do matches fall into
@@ -267,8 +273,8 @@ drakeplan_geography <- drake::drake_plan(
     df_target_locations_combined = get_df_target_locations_combined(df_osm_amenity, df_4sq_locations_filtered),
     df_matching_geography =
         target(
-            calculate_sp_match_geography(staypoint_discovery, df_target_locations_combined),
-            transform = map(staypoint_discovery)
+            calculate_sp_match_geography(merged_staypoints, df_target_locations_combined),
+            transform = map(merged_staypoints)
         ),
     df_matching_geography_summarised =
         target(
@@ -301,9 +307,6 @@ my_combine <- function(...) {
 }
 
 
-drakeplan %>%
-  drake_config() %>%
-  outdated()
 
 #drakeplan %>%
 #  drake_config() %>%
@@ -328,6 +331,9 @@ if (currentMachine == "lims" ) {
     library(nngeo)
 
     options(clustermq.scheduler = "multicore")
-   make(drakeplan, parallelism = "clustermq", jobs = parallel::detectCores(), memory_strategy = "autoclean")
+   make(drakeplan, parallelism = "clustermq",
+        #jobs = 1,
+        jobs = parallel::detectCores(),
+        memory_strategy = "autoclean")
 }
 

@@ -5,6 +5,7 @@ load_function = function() {
   source('lib/get_data.R')
   source('lib/location_prep.R')
   source('lib/gps_functions.R')
+  source('lib/functions.R')
   source('lib/evaluate_staypoint_estimates_helper.R')
   source('lib/keys.R')
   source('lib/kernel_density_functions.R')
@@ -50,78 +51,25 @@ accuracy_range = c(100)
 interpolation_delay_range = c(120)
 
     max_expand_setting=9999999
-#    df_location_initial = get_df_single_location() 
+#    df_location_initial = get_df_single_location()
 #    max_expand_setting=2
 
-df_location_initial = get_df_location()  
+df_location_initial = get_df_location()
 
-drakeplan <- drake::drake_plan(
-  max_expand = max_expand_setting,
-  df_location = df_location_initial,
-##
+drakeplan <-
+  drake_plan (
+  df_loc_test = get_df_single_location() ,
+  ##
   #
-  filtered_accuracy = target(
-                            prune_gps_accuracy (df_location, accuracy),
-                            transform = map( accuracy = !!accuracy_range , .tag_out=filtered_data)
-  ) ,
-  interpolated_locations = target(
-                                   interpolate_locations (filtered_accuracy, max_delay=max_delay, period=30),
-                                  transform = map( filtered_accuracy, max_delay = !!interpolation_delay_range, .tag_out=filtered_data)
+  filtered_accuracy_test = target(
+                              prune_gps_accuracy (df_location, accuracy),
+                              transform = map( accuracy = !!accuracy_range , .tag_out=filtered_data)
+                                ),
 
-  ),
-  staypoints_distance= target(
-                            find_staypoint_distance( filtered_data,  max_jump_time, min_staypoint_time, max_staypoint_distance ),
-                            transform=cross( filtered_data, 
-                                            max_jump_time = !!sp_max_jump_time_range, 
-                                            min_staypoint_time = !!sp_min_staypoint_time_range,
-                                            max_staypoint_distance  = !!sp_max_staypoint_distance_range  )
-  )
-  ,
-  #
-  #####################################
-  # Evaluation data prep
-  #####################################
-  # get target locations, osm and 4sq
-  df_4sq_locations_filtered =  get_df_4sq_locations_filtered(), 
-  df_osm_amenity  = get_df_osm_locations_amenity() ,
-  df_osm_leisure  = get_df_osm_locations_leisure() ,
-  df_target_locations_combined =get_df_target_locations_combined  (df_osm_amenity, df_4sq_locations_filtered),
-  #
-  # get surveys
-  df_all = get_df_all(),
-  # get survey timestamps
-  df_all_ts = get_df_all_ts( df_all ),
-  #  # nest surveys
-  df_survey_nested  = get_df_survey_nested( df_all_ts),
-
-  #####################################
-  # Evaluate 
-  #####################################
-  # get target timestamps
-  # get survey data
-  df_matching_survey = target( 
-                              get_matching_survey ( staypoints_distance,  df_survey_nested ),
-                              transform = map( staypoints_distance )),
-                               #
-, trace=TRUE
+  staypoints_distance_test =
+    target(
+           do_something_with_file_name(filtered_data, print_2),
+           transform = map(filtered_data )
+           ),
+              trace = TRUE
 )
-
-
-
-
-if(startsWith(Sys.info()['nodename'], 'lims')) {
-  library(future.batchtools)
-  future::plan(batchtools_slurm, template = "/home/group/wollersheimlab/slurm_batchtools.tmpl")
-  make(drakeplan, parallelism="future", jobs= 100, caching='worker', elapsed = Inf, retries = 3)
-} else {
-
-  drakeplan %>%
-    drake_config( ) %>%
-    vis_drake_graph( )
-
-#  drake_plan_source(drakeplan)
-
-}
-
-
-

@@ -8,6 +8,7 @@ load_function <- function() {
     source("lib/keys.R")
     source("lib/kernel_density_functions.R")
     source("lib/optics_find_staypoint.R")
+    source("lib/merge_adjacent_staypoints.R")
 }
 
 load_library <- function() {

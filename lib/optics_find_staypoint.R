@@ -191,10 +191,15 @@ df_summarise_staypoints_optics_distance_900_100_interpolated_locations_
 
 
 readd('optics_distance_900_100_interpolated_locations_120_filtered_accuracy_10')
-readd('optics_distance_900_100_interpolated_locations_120_filtered_accuracy_100')
-optics_distance_900_100_interpolated_locations_120_filtered_accuracy_100
 
-find_cluster_optics_all(df, 3600, 900, 100) %>%
+readd("optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100") %>% 
+{ . } -> df
+
+readd("interpolated_locations_120_filtered_accuracy_100") %>% 
+  { . } -> df
+
+
+find_cluster_optics_all(df, 14400, 300, 100) %>%
 { . } -> clusters
 
 
