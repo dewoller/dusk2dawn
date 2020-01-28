@@ -1,6 +1,6 @@
 
 load_function <- function() {
-    # source('lib/functions.R')
+    source('lib/functions.R')
     source("lib/get_data.R")
     source("lib/location_prep.R")
     source("lib/gps_functions.R")
