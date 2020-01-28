@@ -266,10 +266,6 @@ drakeplan <- drake::drake_plan(
 
     #
     # wflow_publish(knitr_in("analysis/evaluate_staypoint_estimates.Rmd"), view = FALSE),
-    trace = TRUE
-)
-
-drakeplan_geography <- drake::drake_plan(
     df_target_locations_combined = get_df_target_locations_combined(df_osm_amenity, df_4sq_locations_filtered),
     df_matching_geography =
         target(
@@ -308,9 +304,14 @@ my_combine <- function(...) {
 
 
 
-#drakeplan %>%
-#  drake_config() %>%
-#  recoverable()
+debug=FALSE
+if(debug) {
+  options(error = traceback)
+
+} else {
+        options(error = stop)
+}
+
 
 if (currentMachine == "lims" ) {
 
@@ -329,11 +330,12 @@ if (currentMachine == "lims" ) {
 } else {
     library(sf)
     library(nngeo)
-
-    options(clustermq.scheduler = "multicore")
-   make(drakeplan, parallelism = "clustermq",
-        #jobs = 1,
-        jobs = parallel::detectCores(),
-        memory_strategy = "autoclean")
+    if(debug) {
+      make(drakeplan)
+    } else {
+      options(clustermq.scheduler = "multicore")
+      make(drakeplan, parallelism = "clustermq",
+        jobs = parallel::detectCores(), memory_strategy = "autoclean")
+      }
 }
 

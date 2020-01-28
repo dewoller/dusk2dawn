@@ -56,9 +56,17 @@ get_parameter_name = function( df ) {
 # filename example:
 # optics_distance_1800_300_100_interpolated_locations_120_filtered_accuracy_100
 ################################################################################
-merge_staypoints_helper = function( df, filename = get_parameter_name( df) ) {
+merge_staypoints_helper = function( df, filename = NA ) {
+
+
+  if (is.na(filename)) {
+    match.call(expand.dots=FALSE)$df %>%
+      as.character() %>%
+      { . } -> filename
+  }
 
   # extract max_staypoint_distance, min_staypoint_time
+  #browser()
   merge_staypoints( df,
       extract_nth_chunk( filename, 5),
       extract_nth_chunk( filename, 4)
@@ -92,8 +100,9 @@ merge_staypoints_test = function( ) {
 ################################################################################
 merge_staypoints = function( df, max_staypoint_distance, min_staypoint_time ) {
 
-#  browser()
+  #browser()
 
+  # calculate the total latitude and longitude (for later calcuation of centroid, and accrual of staypoints)
   df %>%
     group_by( userid, night, n_staypoint ) %>%
     summarise(
@@ -107,11 +116,11 @@ merge_staypoints = function( df, max_staypoint_distance, min_staypoint_time ) {
     group_by( userid, night) %>%
     arrange( min_ts, .by_group=TRUE ) %>%
     mutate(
-        l_sum_latitude = lag(sum_latitude) ,
-        l_sum_longitude = lag(sum_longitude) ,
-        l_max_ts = lag(max_ts) ,
-        l_n_staypoint = lag(n_staypoint) ,
-        l_n = lag(n),
+        l_sum_latitude = lag(sum_latitude, default=0) ,
+        l_sum_longitude = lag(sum_longitude, default=0) ,
+        l_max_ts = lag(max_ts, default=0) ,
+        l_n_staypoint = lag(n_staypoint, default=0) ,
+        l_n = lag(n, default=0),
         new_n_staypoint = n_staypoint
         ) %>%
     ungroup() %>%
@@ -124,18 +133,25 @@ merge_staypoints = function( df, max_staypoint_distance, min_staypoint_time ) {
   did_merge=FALSE
   i=1
   for( i in 1:nrow( df_summary )) {
+    #print(i)
+
     row =  df_summary[ i, ]
-      if( ! did_merge ) {
+    if( ! did_merge ) {
+      # we only want to merge if there was a lag staypoint for this usernight
         prev_n=0
-          prev_sum_lat = 0
-          prev_sum_long = 0
-          prev_n_staypoint = -1
+        prev_sum_lat = 0
+        prev_sum_long = 0
+        prev_n_staypoint = -1
     }
 #
     prev_sum_lat = (row$l_sum_latitude   + prev_sum_lat )
     prev_sum_long = (row$l_sum_longitude   + prev_sum_long )
     prev_n = prev_n + row$l_n
-    if( should_merge_with_previous_staypoint
+
+    #browser()
+
+    if( row$l_n > 0  &&
+       should_merge_with_previous_staypoint
         ( row$sum_latitude / row$n , row$sum_longitude / row$n ,
           prev_sum_lat / prev_n, prev_sum_long / prev_n,
           row$min_ts , row$l_max_ts ,
@@ -151,11 +167,11 @@ merge_staypoints = function( df, max_staypoint_distance, min_staypoint_time ) {
       did_merge=FALSE
     }
     if( did_merge) {
-#      browser()
+#      #browser()
       df_summary[ i,]$new_n_staypoint = prev_n_staypoint   # reset to the first of this series
     }
   }
-
+  #browser()
   df_summary %>%
     dplyr::select( userid, night, ends_with('n_staypoint')) %>%
     right_join( df, by=c( 'userid', 'night', 'n_staypoint' )) %>%
@@ -173,8 +189,9 @@ should_merge_with_previous_staypoint = function( centroid_latitude, centroid_lon
     min_ts, l_max_ts,
     max_staypoint_distance, min_staypoint_time
     ) {
+#browser()
 
-  if (is.na(l_centroid_latitude)) return(FALSE)
+  if (l_centroid_latitude == 0) return(FALSE)
 
   if( distm(c(l_centroid_longitude,l_centroid_latitude),
             c(centroid_longitude,centroid_latitude),
