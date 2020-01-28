@@ -1,0 +1,6 @@
+*html
+*png
+*rda
+.drake/
+.future/
+docs/

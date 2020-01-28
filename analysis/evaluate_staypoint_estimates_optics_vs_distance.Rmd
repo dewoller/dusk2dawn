@@ -1,0 +1,303 @@
+---
+title:           "Exploration of algorithms and parameters"
+author:          Dennis Wollersheim
+date:            2020-01-13
+linkcolor:       cyan
+citecolor:       grey
+output:
+  pdf_document:
+    highlight:   zenburn
+---
+
+\tableofcontents
+
+```{r initial}
+
+source('lib/base_initialise.R')
+source('lib/functions.R')
+source('lib/gps_functions.R')
+source('lib/location_prep.R')
+source('lib/load_results.R')
+source('lib/evaluate_staypoint_estimates_helper.R')
+source('lib/survey_functions.R')
+source("explore/failure_analysis_florian_surveys.R")
+min_accuracy = 10
+
+display_one_staypoint_set = function( df, .userid, .night ) {
+
+  readd(df, character_only=TRUE ) %>%
+    filter( userid==.userid & night==.night) %>%
+    mutate(
+            m_lat = ll2m( latitude, min(latitude), m_per_latitude),
+            m_lon = ll2m( longitude, min(longitude), m_per_longitude)) %>%
+    ggplot( aes( m_lat, m_lon, color=as.factor(n_staypoint))) +
+    ggtitle(paste(str_subset(.userid, '.*_'), .night, df)) +
+    geom_point()
+}
+
+```
+# demonstrate the difference between the different accuracy levels (100/10), and the impact on the different algorithms
+for a single user/night
+
+```{r compare_accuracies}
+
+display_one_staypoint_set (
+  'optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_10',
+  '60df2368-deb6-4f46-aebc-4ad7dd80f434',
+  '2014-10-31')
+
+display_one_staypoint_set(
+ 'staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_10',
+  '60df2368-deb6-4f46-aebc-4ad7dd80f434',
+  '2014-10-31')
+
+display_one_staypoint_set(
+ 'optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100',
+  '60df2368-deb6-4f46-aebc-4ad7dd80f434',
+  '2014-10-31')
+
+display_one_staypoint_set(
+ 'staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100',
+  '60df2368-deb6-4f46-aebc-4ad7dd80f434', '2014-10-31')
+
+
+```
+
+# match optics and staypoint, comparing found surveys behaviour
+Note, when using a loose accuracy level, sp algorithm is slightly better at finding surveys
+
+using dataset :
+  optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100
+
+```{r compare_surveys}
+
+
+readd( df_matching_survey_per_staypoint_df_matching_survey_optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
+  mutate(algo='optics') %>%
+  bind_rows( readd(df_matching_survey_per_staypoint_df_matching_survey_staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100) %>%
+            mutate(algo='sp')) %>%
+  count( userid, night, algo) %>%
+  spread(algo, n, fill=0) %>%
+  arrange( optics - sp) %>%
+  head(5 )
+
+display_one_staypoint_set(
+                          'optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100',
+                          '7907f345-ef4b-412a-9340-b56ebb589cca','2014-09-19')
+
+display_one_staypoint_set(
+                          'staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_100',
+                          '7907f345-ef4b-412a-9340-b56ebb589cca','2014-09-19')
+
+
+display_one_staypoint_set(
+ 'optics_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_10',
+  '7907f345-ef4b-412a-9340-b56ebb589cca','2014-09-19')
+
+display_one_staypoint_set(
+ 'staypoints_distance_14400_300_100_interpolated_locations_120_filtered_accuracy_10',
+  '7907f345-ef4b-412a-9340-b56ebb589cca','2014-09-19')
+
+
+```
+# background
+
+## what do the surveys look like
+Florian was able to identify survey points at the following frequencies.
+sp stands for if this survey was likely to be a staypoint (the 'gold' standard to match)
+The best staypoint discovery algorithm will maximise precision and recall of sp type locations
+
+```{r what_gets_most_surveys}
+
+n_ptype_short_total() %>%
+  inner_join( ptype_short()) %>%
+  group_by( ptype_short, category ) %>%
+  summarise( total_for_category=sum(n_ptype_loc)) %>%
+  kableExtra::kable()
+
+```
+
+In summary, there are this breakdown of target staypoints
+```{r breakdown}
+
+  n_ptype_short_total() %>%
+  inner_join( ptype_short()) %>%
+  group_by( category ) %>%
+  summarise( total_for_category=sum(n_ptype_loc)) %>%
+  kableExtra::kable()
+
+```
+
+### which algorithim and parameters maximise discovery of appropriate surveys
+Here are the top 20 algorithms, for raw survey discovery.  Optics is comparable, but both have very loose parameters
+
+```{r top_20 }
+
+df_results %>%
+  arrange( desc( sp )) %>%
+  mutate( pct_coverage = mkpct( sp / 1939 )) %>%
+  dplyr::select( base_file, sp,pct_coverage ) %>%
+  head(20) %>%
+  kableExtra::kable()
+
+df_results %>%
+  arrange( desc( sp )) %>%
+  mutate( pct_coverage = mkpct( sp / 1939 )) %>%
+  dplyr::select( base_file, sp,pct_coverage, algorithm ) %>%
+  head(20) %>%
+  ggplot( aes( base_file, sp, fill=algorithm ) ) +
+  geom_col() +
+  coord_flip()
+
+
+```
+# Is there a difference between optics and distance staypoint discovery sets?
+look at the characteristics of the best of each;  not much difference, at the wide parameter level
+
+```{r algo_diff}
+
+df_results %>%
+  arrange( desc( sp )) %>%
+  filter( str_detect( base_file, '^stay')) %>%
+  head(1) %>%
+  pluck('base_file') %>%
+  paste0('df_matching_survey_', .) %>%
+  readd( character_only=TRUE ) %>%
+  { . } -> df_sp
+
+df_results %>%
+  arrange( desc( sp )) %>%
+  filter( str_detect( base_file, '^optics')) %>%
+  head(1) %>%
+  pluck('base_file') %>%
+  paste0('df_matching_survey_', .) %>%
+  readd( character_only=TRUE ) %>%
+  { . } -> df_op
+
+#df_sp %>% count( userid, night )
+#df_op %>% count( userid, night )
+```
+
+
+Maybe 1% difference in night overlap
+
+```{r some_overlap }
+df_op %>%
+  anti_join( df_sp, by=c('userid','night'))
+
+df_sp %>%
+  anti_join( df_op, by=c('userid','night'))
+
+```
+# difference between optics and distance staypoint discovery sets at finer parameter levels  (staypoint radius=20m)
+At this level, optics gets 13% fewer sp, same staypoint duration, many fewer staypoints
+
+```{r finer_grain}
+
+df_results %>%
+  arrange( desc( sp )) %>%
+  filter( max_sp_radius==20) %>%
+  filter( str_detect( base_file, '^stay')) %>%
+  head(1)
+
+df_results %>%
+  arrange( desc( sp )) %>%
+  filter( max_sp_radius==20) %>%
+  filter( str_detect( base_file, '^optics')) %>%
+  head(1)
+
+```
+
+### 20M radius staypoint results
+which what do results look like when looking at algorithim and parameters maximise discovery of appropriate surveys
+
+Here are the top 20 algorithms, for raw survey discovery.  Optics is comparable, but both have very loose parameters
+
+```{r  200m}
+
+df_results %>%
+  filter( max_sp_radius==20) %>%
+  arrange( desc( sp )) %>%
+  mutate( pct_coverage = mkpct( sp / 1939 )) %>%
+  dplyr::select( base_file, sp,pct_coverage ) %>%
+  head(20) %>%
+  kableExtra::kable()
+
+df_results %>%
+  filter( max_sp_radius==20) %>%
+  arrange( desc( sp )) %>%
+  mutate( pct_coverage = mkpct( sp / 1939 )) %>%
+  dplyr::select( base_file, sp,pct_coverage, algorithm ) %>%
+  head(20) %>%
+  ggplot( aes( base_file, sp, fill=algorithm ) ) +
+  geom_col() +
+  coord_flip()
+
+
+```
+# model precision / recall
+we are trying to identify correct survey marked staypoints
+
+- True positive - surveys identified as staypoints
+- false positive - surveys missed by staypoint discovery
+- true negative  - points neither marked by surveys nor identified as staypoints
+- false negative  points identified as staypoints, but not marked by surveys (sp)
+
+our gold standard is actuallly bronze
+
+False negative criticism:  an algorithmm identified staypoint could still be a valid  staypoint
+
+it might be an unsurveyed staypoint, maybe they didn't have a drink, or record it (e.g. visiting on the streetcorner)
+
+we will get relativly good (but low) values for precision and recall if we assume that the surveypoints do identify staypoints
+
+
+recall is the number of true positives divided by the number of true positives plus the number of false negatives.
+
+Precision is defined as the number of true positives divided by the number of true positives plus the number of false positives.
+
+##  what does precision and recall look like
+duration in seconds, distance from centriod in meters
+
+Optics is better.  larger radius is better
+```{r overall_pr}
+
+df_results %>%
+  ggplot( aes( precision, recall, shape=algorithm, color= max_sp_radius  ) ) +
+  geom_point()
+
+
+df_results %>%
+  ggplot( aes( precision, recall, shape=algorithm, color= min_sp_duration  ) ) +
+  geom_point()
+
+```
+
+##  effect of different filtering algorithms
+
+Excluding optics algorithm, because it only uses accuracy filter
+
+Accuracy is the best, throw away the others
+```{r effect_of_filtering_algorithm}
+
+
+df_results %>%
+  filter( algorithm != 'optics.distance') %>%
+  ggplot( aes( precision, recall, shape=min_sp_duration, color= max_sp_radius  ) ) +
+  geom_point() + facet_wrap( ~filter_type )
+
+
+
+```
+
+## effect of interpolation
+Interpolation appears to have little effect
+
+```{r effect_of_interpolation}
+
+df_results %>%
+  filter(  filter_type == 'filtered.accuracy') %>%
+  ggplot( aes( precision, recall, shape=algorithm, color= max_sp_radius  ) ) +
+  geom_point() + facet_wrap( ~interpol_parm )
+
+```

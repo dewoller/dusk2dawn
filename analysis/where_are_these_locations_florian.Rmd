@@ -1,0 +1,68 @@
+---
+title:           "Exploration of algorithms and parameters"
+author:          Dennis Wollersheim
+date:            2020-01-13
+linkcolor:       cyan
+citecolor:       grey
+output:
+  pdf_document:
+    highlight:   zenburn
+---
+
+\tableofcontents
+
+```{r initial}
+
+source('lib/base_initialise.R')
+source('lib/functions.R')
+source('lib/gps_functions.R')
+source('lib/location_prep.R')
+source('lib/load_results.R')
+source('lib/evaluate_staypoint_estimates_helper.R')
+source('lib/survey_functions.R')
+source("explore/failure_analysis_florian_surveys.R")
+min_accuracy = 10
+
+
+
+# Focus on single algorithm
+## find analysis of locations that results with best recall with above parameters
+
+df_best contains all the gps locations (possibly extrapolated) of all the discovered staypoints, for
+optics_distance_14400_900_20_interpolated_locations_600_filtered_accuracy_10 dataset
+
+```{r read_in_best_file}
+
+df_results %>%
+  filter(  filter_type == 'filtered.accuracy') %>%
+  filter( max_sp_radius == '20'  ) %>%
+  arrange( desc( recall )) %>%
+  head(1) %>%
+  pluck( 'base_file' ) %>%
+  { . } -> df_best_base_filename
+
+df_best_base_filename %>%
+  readd(character_only=TRUE) %>%
+  { . } -> df_best
+
+```
+
+# how many people start at the same location
+
+```{r same_start}
+
+df_best %>%
+  distinct( userid) %>%
+  count()
+
+df_best %>%
+  distinct( userid, night) %>%
+  count( userid ) %>% 
+  filter(n>2) %>%
+  count()
+
+
+```
+
+
+
