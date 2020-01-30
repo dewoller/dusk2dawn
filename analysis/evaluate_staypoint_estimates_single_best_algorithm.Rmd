@@ -37,10 +37,11 @@ Optics distance algorithm, harshest accuracy filter on GPS points, 15 minute sta
 ```{r best_precision_and_recall}
 
 df_results %>%
-  filter(  algorithm == 'optics.distance') %>%
-  filter(  filter_type == 'filtered.accuracy') %>%
-  filter( recall > .18 ) %>%
+#  filter(  algorithm == 'optics.distance') %>%
+#  filter(  filter_type == 'filtered.accuracy') %>%
+#  filter( recall > .18 ) %>%
   #filter( max_sp_radius == '10'  ) %>%
+  arrange( desc( recall )) %>%
   ggplot( aes( precision, recall) ) +
   geom_jitter(position = position_jitter(seed = 1)) +
   geom_text(aes( label=source ), position = position_jitter(seed = 1), check_overlap=TRUE)
@@ -56,9 +57,9 @@ optics_distance_14400_900_20_interpolated_locations_600_filtered_accuracy_10 dat
 ```{r read_in_best_file}
 
 df_results %>%
-  filter(  filter_type == 'filtered.accuracy') %>%
-  filter(  algorithm == 'optics.distance') %>%
-  filter( max_sp_radius == '10'  ) %>%
+  #filter(  filter_type == 'filtered.accuracy') %>%
+  #filter(  algorithm == 'optics.distance') %>%
+  #filter( max_sp_radius == '10'  ) %>%
   arrange( desc( sp_total )) %>%
   head(1) %>%
   pluck( 'base_file' ) %>%
@@ -72,6 +73,7 @@ df_results %>%
 
 
 df_best_base_filename %>%
+  paste0( 'df_merged_staypoints_',.) %>%
   readd(character_only=TRUE) %>%
   { . } -> df_best
 
@@ -341,14 +343,14 @@ df_surveys_to_match_final %>%
   distinct( userid, night)
 
 df_best %>%
-  distinct( userid, night, n_staypoint)
+  distinct( userid, night, n_staypoint) %>% count()
 
 
 df_best %>%
-  distinct( userid, night)
+  distinct( userid, night) %>% count()
 
 df_location %>%
-  distinct( userid, night)
+  distinct( userid, night) %>% count()
 
 
 df_surveys_to_match_final %>%
@@ -407,7 +409,7 @@ map_one_user_test = function() {
     inner_join( df_user_night, by=c('userid', 'night')) %>%
     distinct(n_staypoint) %>%
     left_join( df_staypoints %>% dplyr::select(userid, night, timestamp, n_staypoint), by=c('userid', 'night', 'timestamp')) %>%
-    distinct(n_staypoint) %>%
+    distinct(n_staypoint)
 
 
 }
@@ -417,7 +419,6 @@ map_one_user_test = function() {
 
 map_one_user = function( df_user_night, df_location, df_survey, df_staypoints, min_accuracy ) {
 
-browser()
   title = paste( df_user_night$userid, df_user_night$night  )
 
   df_location %>%
@@ -429,11 +430,12 @@ browser()
     mutate(
           m_lat = ll2m( latitude, min(latitude), m_per_latitude),
           m_lon = ll2m( longitude, min(longitude), m_per_longitude),
-          alpha = ifelse( is.na( n_staypoint), .1, 1)
+          alpha = ifelse( is.na( n_staypoint), .1, 1),
+          n_staypoint = ifelse(is.na( n_staypoint), 0, n_staypoint) %>% as.factor()
           ) %>%
     arrange( timestamp) %>%
     mutate( ts_diff = (log(timestamp-lag(timestamp))/3 )) %>%
-    ggplot( aes(m_lat, m_lon, color=as.factor(n_staypoint), alpha = alpha) )  +
+    ggplot( aes(m_lat, m_lon, color=n_staypoint, alpha = alpha) )  +
     geom_point() +
     geom_path( )  +
     ggtitle( title ) %>%

@@ -36,7 +36,7 @@ library(data.tree)
 
 ```{r load_data, eval=TRUE}
 
-source('lib/load_data_post_drake.R')
+source('lib/load_results.R')
 # df_results
 
 ```
@@ -54,6 +54,7 @@ source('lib/load_data_post_drake.R')
  what is the distribution of survey types overall?
 
 ```{r }
+
 loadd(df_all_ts )
 df_all_ts %>%
   count( which )
