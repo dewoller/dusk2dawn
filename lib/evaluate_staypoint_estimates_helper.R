@@ -1369,7 +1369,7 @@ summarise_matching_survey_per_staypoint = function( df_matching_survey_per_stayp
 
 
 #********************************************************************************
-#  summarise_matching_geography
+#  summarise_matching_geography_test
 #********************************************************************************
 summarise_matching_geography_test= function( ) {
 
@@ -1377,6 +1377,8 @@ summarise_matching_geography_test= function( ) {
 
 }
 
+#********************************************************************************
+#  summarise_matching_geography
 #********************************************************************************
 summarise_matching_geography= function( df_matching_geography ) {
   # for each dataset, we want the total:
@@ -1401,3 +1403,22 @@ df_summarise_staypoint_algorithms = function( df_staypoints, df_matching_survey,
     left_join( dplyr::select( df_sp_joined_geography, userid, night, filename, n_staypoint, distance_to_bar) , by=qc( userid, night, filename, n_staypoint))
 
 }
+
+
+
+#********************************************************************************
+#  calculate_accuracy_predictable_surveys
+#********************************************************************************
+calculate_accuracy_predictable_surveys = function ( df_survey_matches, df_predictable_surveys) {
+
+  df_predictable_surveys %>%
+    select(id) %>%
+    inner_join( df_survey_matches, by='id') %>%
+    count() %>%
+    dplyr::rename( predictable_hits = n) %>%
+    mutate( predictable_misses = count(df_predictable_surveys) - predictable_hits )
+}
+
+
+
+

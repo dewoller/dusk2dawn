@@ -129,6 +129,8 @@ drakeplan <- drake::drake_plan(
     #  # nest surveys
     df_survey_nested = get_df_survey_nested(df_all_ts_valid) ,
 
+    df_predictable_surveys= get_predictable_surveys(),
+
     #####################################
     # Evaluate
     ####################################
@@ -206,6 +208,20 @@ drakeplan <- drake::drake_plan(
           my_combine(df_matching_survey_categories_summary ),
           transform = combine(df_matching_survey_categories_summary )
       ),
+
+    df_matching_predictable_surveys =
+      target(
+             calculate_accuracy_predictable_surveys(df_matching_survey, df_predictable_surveys),
+             transform = map(df_matching_survey)
+            ),
+
+    # combine predictable survey matches
+    df_matching_predictable_surveys_all=
+      target(
+            my_combine(df_matching_predictable_surveys ),
+            transform = combine(df_matching_predictable_surveys )
+            ),
+
     #
     # for each staypoint what survey matches it
     # consolidate surveys per staypoint
