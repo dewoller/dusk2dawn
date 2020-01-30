@@ -13,7 +13,7 @@ output:
 
 ```{r initial}
 
-source('lib/base_initialise.R')
+suppressWarnings( source('lib/base_initialise.R') )
 source('lib/functions.R')
 source('lib/gps_functions.R')
 source('lib/location_prep.R')
@@ -22,6 +22,21 @@ source('lib/evaluate_staypoint_estimates_helper.R')
 source('lib/survey_functions.R')
 source("explore/failure_analysis_florian_surveys.R")
 min_accuracy = 10
+```
+
+
+# all algorithms
+
+```{r all}
+
+df_results %>%
+  filter(interpol_parm > 0  & algorithm == 'optics.distance') %>%
+  ggplot( aes(total_sp_duration, predictable_hits, color=algorithm), alpha=.1 ) +
+  geom_jitter(position = position_jitter(seed = 1)) +
+  geom_text(aes( label=source), color='black' , position = position_jitter(seed = 1), check_overlap=TRUE) +
+  facet_grid( min_sp_duration ~ max_sp_radius )
+
+
 ```
 
 
@@ -35,38 +50,89 @@ so we use that algorithm.
 
 optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100
 
-```{r best_precision_and_recall}
+## what do recsults look like
 
-readd(df_matching_geography_df_summarise_staypoints_df_merged_staypoints_optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100) %>% 
+```{r results}
+
+df_results %>%
+  filter(base_file=='optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100') %>%
+  kableExtra::kable()
+
+```
+
+# geography_matches
+## How far is point from matched geography point
+
+ filter any matches greater than 100M accuracy
+
+```{r distance_to_matching_geography}
+
+readd(df_matching_geography_df_summarise_staypoints_df_merged_staypoints_optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100) %>%
   { . } -> df
+
+df %>%
+  ggplot( aes( dist)) + geom_histogram()
 
 df %>%
   filter( dist<100 ) %>%
   ggplot( aes( dist)) + geom_histogram()
 
+```
 
 
-df_results %>%
-#  filter(  algorithm == 'optics.distance') %>%
-#  filter(  filter_type == 'filtered.accuracy') %>%
-#  filter( recall > .18 ) %>%
-  #filter( max_sp_radius == '10'  ) %>%
-  arrange( desc( recall )) %>%
-  ggplot( aes( precision, recall) ) +
-  geom_jitter(position = position_jitter(seed = 1)) +
-  geom_text(aes( label=source ), position = position_jitter(seed = 1), check_overlap=TRUE)
+## what types of staypoint geographic matches are there?
 
-df_results %>%
-  arrange(desc(total_sp_duration)) %>%
-  dplyr::select( source, predictable_hits, predictable_misses, sp_total, total_sp_duration)
 
-df_results %>%
-  filter(interpol_parm > 0 ) %>%
-  ggplot( aes(sp_total, predictable_hits, color=interpol_parm, alpha=.1) ) +
-  geom_jitter(position = position_jitter(seed = 1)) +
-  geom_text(aes( label=source), color='black' , position = position_jitter(seed = 1), check_overlap=TRUE) +
-  facet_grid( algorithm ~ max_sp_radius )
+```{r geography_matches}
 
+df %>%
+  filter( dist<100 ) %>%
+  count( type) %>%
+  kableExtra::kable()
+
+```
+
+##  what is the sequence of geographic matches
+
+```{r }
+
+
+
+df %>%
+  filter( dist<100 ) %>%
+  group_by( userid, night) %>%
+  arrange( ts_min, .by_group=TRUE ) %>%
+  summarise( types = paste( type, collapse=','), number_of_identifiable_staypoints=n()) %>%
+  ungroup() %>%
+  count( types, number_of_identifiable_staypoints, sort=TRUE) %>%
+  kableExtra::kable()
 
 
 ```
+
+## what is the sequence, when we discard discareable matches
+
+```{r }
+
+df %>%
+  filter( dist<100 & type != 'discard') %>%
+  group_by( userid, night) %>%
+  arrange( ts_min, .by_group=TRUE ) %>%
+  summarise( types = paste( type, collapse=','), number_of_identifiable_staypoints=n()) %>%
+  ungroup() %>%
+  count( types, number_of_identifiable_staypoints, sort=TRUE) %>%
+  kableExtra::kable()
+
+```
+
+## write raw data
+
+```{r}
+
+df %>%
+  write_csv( 'data/florian_best_dataset.csv')
+
+```
+
+
+
