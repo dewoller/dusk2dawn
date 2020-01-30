@@ -392,59 +392,487 @@ get_df_florian_locations = function() {
   inner_join(ptype_long(), by='ptype_id_long' )
 
 }
+get_df_4sq_locations_prepare = function() {
+
+
+  df_4sq_locations  %>%
+    anti_join( read_csv( 'data/foursquare_categories.csv', col_types='cccc'), by='primaryCategory') %>%
+    write_csv('data/missing_categories.csv')
+
+
+
+  drop_na(primaryCategory) %>%
+
+
+    df_4sq_locations %>%
+    count( primaryCategory, sort=TRUE) %>%
+    { . } -> dsq
+
+
+  bad_categories %>%
+    enframe() %>%
+    dplyr::select(-name ) %>%
+    dplyr::rename(primaryCategory = value) %>%
+    mutate( type='discard')  %>%
+    { . } -> a
+
+  restaurant_categories %>%
+    enframe() %>%
+    dplyr::select(-name ) %>%
+    dplyr::rename(primaryCategory = value) %>%
+    mutate( type='restaurant')  %>%
+    { . } -> b
+
+  alcohol_venue_types %>%
+    enframe() %>%
+    dplyr::select(-name ) %>%
+    dplyr::rename(primaryCategory = value) %>%
+    mutate( type='alcohol')  %>%
+    { . } -> d
+
+
+  a %>%
+    bind_rows( b ) %>%
+    bind_rows( d ) %>%
+    bind_rows( df_type ) %>%
+    { . } -> e
+
+
+  e %>%
+    write_csv('data/foursquare_categories.csv')
+
+  dsq %>%
+    anti_join( e ) %>%
+
+    e %>%
+    anti_join( dsq ) %>%
+
+    bad_categories = c(
+                       'Academic Building',
+                       'Accessories',
+                       'Administrative Building',
+                       'Airport',
+                       'Animal Shelter',
+                       'Antiques',
+                       'Apartment Building',
+                       'Apparel',
+                       'Arepas',
+                       'Arcade',
+                       'Art Gallery',
+                       'Art Museum',
+                       'Arts',
+                       'Arts & Crafts',
+                       'Assisted Living',
+                       'Athletics & Sports',
+                       'Auditorium',
+                       'Auto Garage',
+                       'Automotive',
+                       'B & B',
+                       'Baseball',
+                       'Baseball Field',
+                       'Bakery',
+                       'Bank',
+                       'Bank / Financial',
+                       'Basketball',
+                       'Basketball Court',
+                       'Bathing Area',
+                       'Beach',
+                       'Beauty / Cosmetic',
+                       'Beer Garden',
+                       'Bike shop',
+                       'Billiards',
+                       'Board Shop',
+                       'Boarding',
+                       'Boat / Ferry',
+                       'Bookstore',
+                       'Boutique',
+                       'Bowling Alley',
+                       'Breakfast',
+                       'Bridge',
+                       'Building',
+                       'Bus',
+                       'Bus Station',
+                       'Bus Stop',
+                       'Butcher',
+                       'Cafeteria',
+                       'Car Dealer',
+                       'Casino',
+                       'Camera Store',
+                       'Campaign',
+                       'Campground',
+                       'Candy Store',
+                       'Capital Building',
+                       'Car Wash',
+                       'Cheese Shop',
+                       'Cemetery',
+                       'Church',
+                       'Circus',
+                       'City',
+                       'City Hall',
+                       'Classroom',
+                       'Climbing Gym',
+                       'Communications',
+                       'Cocktail',
+                       'College & Education',
+                       'Community College',
+                       'Conference',
+                       'Conference room',
+                       'Convenience Stores',
+                       'Convention',
+                       'Convention Center',
+                       'Corporate / Office',
+                       'Cosmetics',
+                       'Courthouse',
+                       'Coworking Space',
+                       'Credit Union',
+                       'Cupcakes',
+                       'Dance Studio',
+                       'Daycare',
+                       "Dentist's Office",
+                       'Department Store',
+                       'Design',
+                       'Desserts',
+                       'Distillery',
+                       "Doctor's Office",
+                       'Dog Run',
+                       'Education',
+                       'Electronics',
+                       'Elementary School',
+                       'Embassy',
+                       'Emergency Room',
+                       'Engineering',
+                       'Factory',
+                       'Fair',
+                       'Farm',
+                       "Farmer's Market",
+                       'Field',
+                       'Financial / Legal',
+                       'Fire Station',
+                       'Flea Market',
+                       'Flower Shop',
+                       'Food & Drink',
+                       'Food Truck',
+                       'Football',
+                       'Funeral Home',
+                       'Furniture / Home',
+                       'Gaming Cafe',
+                       'Garden',
+                       'Garden Center',
+                       'Gas Station / Garage',
+                       'Gift Shop',
+                       'Golf Course',
+                       'Government',
+                       'Grocery Store',
+                       'Gym',
+                       'Gym / Fitness',
+                       'Harbor / Marina',
+                       'Hardware',
+                       'Health Food Store',
+                       'High School',
+                       'Hiking Trail',
+                       'Historic Site',
+                       'History Museum',
+                       'Hobbies',
+                       'Hockey',
+                       'Hockey Field',
+                       'Home',
+                       'Hospital',
+                       'Hostel',
+                       'Hot Spring',
+                       'Hotel',
+                       'Hotel Bar',
+                       'Housing Development',
+                       'Ice Cream',
+                       'Internet Cafe',
+                       'Island',
+                       'Indie Theater',
+                       'IT Services',
+                       'Jewelry',
+                       'Kids Store',
+                       'Lab',
+                       'Lake',
+                       'Lake / Pond',
+                       'Landmark',
+                       'Laundry',
+                       'Library',
+                       'Lighthouse',
+                       'Lingerie',
+                       'Lodge',
+                       'Mall',
+                       'Market',
+                       'Martial Arts',
+                       'Massage Studio',
+                       'Math',
+                       'Medical',
+                       'Medical School',
+                       'Meeting Room',
+                       "Men's Store",
+                       'Military Base',
+                       'Mobile Phone',
+                       'Mosque',
+                       'Motel',
+                       'Motorcycle Shop',
+                       'Mountain',
+                       'Moving Target',
+                       'Music Festival',
+                       'Music Store',
+                       'Museum',
+                       'Nail Salon',
+                       'Neighborhood',
+                       'Non-Profit',
+                       'Nursery School',
+                       'Office',
+                       'Office Supplies',
+                       'Opera House',
+                       'Optical',
+                       'Optical Shops',
+                       'Other - Buildings',
+                       'Other - Education',
+                       'Other - Entertainment',
+                       'Other - Nightlife',
+                       'Other - Shop',
+                       'Other - Travel',
+                       'Other Event',
+                       'Other Outdoors',
+                       'Outdoors & Recreation',
+                       'Performing Arts',
+                       'Pet Store',
+                       'Pharmacy',
+                       'Photography Lab',
+                       'Pier',
+                       'Plane',
+                       'Playground',
+                       'Police Station',
+                       'Pool',
+                       'Post Office',
+                       'Professional',
+                       'Public Art',
+                       'Racetrack',
+                       'Radio Station',
+                       'Rec Center',
+                       'Record Shop',
+                       'Recruiting Agency',
+                       'Recycling',
+                       'Rental Car',
+                       'Residence Hall',
+                       'Residential',
+                       'Rest Areas',
+                       'River',
+                       'Road',
+                       'Rock Climbing',
+                       'Salad',
+                       'Salon / Barbershop',
+                       'Sandwiches',
+                       'Scenic Lookout',
+                       'Science',
+                       'Science Museum',
+                       'School',
+                       'Sculpture',
+                       'Shoes',
+                       'Shops',
+                       'Shop',
+                       'Shrine',
+                       'Skate Park',
+                       'Skating Rink',
+                       'Smoke Shop',
+                       'Snacks',
+                       'Soccer',
+                       'Soccer Field',
+                       'Sorority House',
+                       'Soup',
+                       'Spiritual',
+                       'Spa',
+                       'Spa / Massage',
+                       'Speakeasy',
+                       'Speakeasy / Secret Spot',
+                       'Sporting Goods',
+                       'Stables',
+                       'Stadium',
+                       'Street',
+                       'Storage',
+                       'Student Center',
+                       'Supermarket',
+                       'Surf Spot',
+                       'Synagogue',
+                       'Tanning Salon',
+                       'Tattoo',
+                       'Taxi',
+                       'Tea Room',
+                       'Tech Startup',
+                       'Technology',
+                       'Temple',
+                       'Tennis Court',
+                       'Terminal',
+                       'Theme Park',
+                       'Thrift / Vintage',
+                       'Tobacco & Cigars',
+                       'Tourist Information',
+                       'Toys & Games',
+                       'Track',
+                       'Trade School',
+                       'Travel',
+                       'Travel Agency',
+                       'Trail',
+                       'TV Station',
+                       'University',
+                       'Veterinarians',
+                       'Video Games',
+                       'Video Store',
+                       'Voting Booth',
+                       'Well',
+                       "Women's Store",
+                       'Yoga Studio',
+                       'Zoo')
+
+    restaurant_categories = c( 'African',
+                              'American',
+                              'Argentinian',
+                              'Asian',
+                              'Australian',
+                              'Bagels',
+                              'BBQ',
+                              'Brazilian',
+                              'Breakfast / Brunch',
+                              'Burgers',
+                              'Burritos',
+                              'Café',
+                              'Cafe',
+                              'Caribbean',
+                              'Chinese',
+                              'Coffee Shop',
+                              'Cuban',
+                              'Deli / Bodega',
+                              'Diner',
+                              'Dive Bar',
+                              'Eastern European',
+                              'Ethiopian',
+                              'Falafel',
+                              'Fast Food',
+                              'Food',
+                              'Food Court',
+                              'French',
+                              'Fried Chicken',
+                              'Gastropub',
+                              'German',
+                              'Gourmet',
+                              'Greek',
+                              'Hookah Bar',
+                              'Indian',
+                              'Indie',
+                              'Indonesian',
+                              'Italian',
+                              'Japanese',
+                              'Juice Bar',
+                              'Korean',
+                              'Latin American',
+                              'Malaysian',
+                              'Mediterranean',
+                              'Mexican',
+                              'Middle Eastern',
+                              'Modern European',
+                              'Molecular Gastronomy',
+                              'Moroccan',
+                              'New American',
+                              'Other - Food',
+                              'Paella',
+                              'Pizza',
+                              'Restaurant',
+                              'Sake Bar',
+                              'Seafood',
+                              'South American',
+                              'Spanish',
+                              'Steakhouse',
+                              'Street Food',
+                              'Sushi',
+                              'Swiss',
+                              'Tapas',
+                              'Tacos',
+                              'Thai',
+                              'Turkish',
+                              'Vegetarian / Vegan',
+                              'Vietnamese',
+                              'Wine Shop',
+                              'Winery')
+
+
+    df_type = tribble(
+                      ~primaryCategory, ~type,
+                      'Subway', 'transport',
+                      'Train', 'transport',
+                      'Train Station', 'transport',
+                      'Light Rail', 'transport',
+                      'Platform', 'transport',
+                      'Parking', 'transport',
+                      'Field', 'park',
+                      'Park', 'park',
+                      'Plaza', 'park',
+                      'Plaza / Square', 'park',
+                      'Comedy Club', 'theater',
+                      'Concert Hall', 'theater',
+                      'Music Venue', 'theater',
+                      'Movie Theater', 'theater',
+                      'Cineplex', 'theater',
+                      'Theater', 'theater')
+
+    alcohol_venue_types = c("Bar", "Nightclub", "Lounge", "Pub", "Wine Bar", "Gay Bar",
+                            "Nightlife", "Sports Bar", "Jazz Club", "Brewery", "Karaoke",
+                            "Liquor Store", "Rock Club", "Festival", 'Strip Club','Entertainment', 'Event Space','Frat House',"Whisky Bar")
+
+    df_4sq_locations %>%
+      filter( !primaryCategory %in% bad_categories ) %>%
+      mutate( primaryCategory = ifelse( primaryCategory %in% restaurant_categories, 'food', primaryCategory)) %>%
+      left_join( df_type, by='primaryCategory') %>%
+      mutate( type=ifelse( is.na(type), primaryCategory, type)) %>%
+      mutate( type=ifelse( type %in% alcohol_venue_types, 'alcohol', type)) %>%
+      group_by( shortUrl,  primaryCategory, type ) %>%
+      summarise( name=min(name),
+                checkinsCount = max( checkinsCount),
+                latitude=mean(latitude),
+                longitude=mean(longitude)
+                ) %>%
+      ungroup() %>%
+      {.} -> df_4sq_locations_filtered
+    df_4sq_locations_filtered
+
+}
 
 #********************************************************************************
 #  get_df_4sq_locations_filtered
 #********************************************************************************
 get_df_4sq_locations_filtered = function() {
 
-  read_csv( 'data/foursquare_locations_data_ls.csv') %>%
-    bind_rows( read_csv( 'data/foursquare_locations_data_zh.csv')) %>%
+
+  cols = cols(
+       name = col_character(),
+       shortUrl = col_character(),
+       longitude = col_double(),
+       latitude = col_double(),
+       rating = col_double(),
+       checkinsCount = col_double(),
+       tipsCount = col_double(),
+       photosCount = col_double(),
+       usersCount = col_double(),
+       primaryCategory = col_character(),
+       allCategories = col_character()
+  )
+
+  read_csv( 'data/foursquare_locations_data_ls.csv', col_types = cols) %>%
+    bind_rows( read_csv( 'data/foursquare_locations_data_zh.csv', col_types = cols )) %>%
+    inner_join( read_csv( 'data/foursquare_categories.csv', col_types='cccc'), by='primaryCategory') %>%
     { . } -> df_4sq_locations
 
-
-bad_categories = c( '2', 'Academic Building', 'Accessories', 'Administrative Building', 'Advertising Agency', 'Airport', 'Animal Shelter', 'Antiques', 'Apartment Building', 'Apparel', 'Aquarium', 'Arepas', 'Arcade', 'Art Gallery', 'Art Museum', 'Arts', 'Arts & Crafts', 'Assisted Living', 'Athletics & Sports', 'Auditorium', 'Auto Garage', 'Automotive', 'B & B', 'Baseball', 'Baseball Field', 'Bakery', 'Bank', 'Bank / Financial', 'Basketball', 'Basketball Court', 'Bathing Area', 'Beach', 'Beauty / Cosmetic', 'Beer Garden', 'Bike shop', 'Billiards', 'Board Shop', 'Boarding', 'Boat / Ferry', 'Bookstore', 'Boutique', 'Bowling Alley', 'Breakfast', 'Bridge', 'Building', 'Bus', 'Bus Station', 'Bus Stop', 'Butcher', 'Cafeteria', 'Car Dealer', 'Casino', 'Camera Store', 'Campaign', 'Campground', 'Candy Store', 'Capital Building', 'Car Wash', 'Cheese Shop', 'Cemetery', 'Church', 'Circus', 'City', 'City Hall', 'Classroom', 'Climbing Gym', 'Communications', 'Cocktail', 'College & Education', 'Community College', 'Conference', 'Conference room', 'Convenience Stores', 'Convention', 'Convention Center', 'Corporate / Office', 'Cosmetics', 'Courthouse', 'Coworking Space', 'Credit Union', 'Cupcakes', 'Dance Studio', 'Daycare', "Dentist's Office", 'Department Store', 'Design', 'Desserts', 'Distillery', "Doctor's Office", 'Dog Run', 'Education', 'Electronics', 'Elementary School', 'Embassy', 'Emergency Room', 'Engineering',  'Factory', 'Fair', 'Farm', "Farmer's Market", 'Field', 'Financial / Legal', 'Fire Station', 'Flea Market', 'Flower Shop', 'Food & Drink', 'Food Truck', 'Football',  'Funeral Home', 'Furniture / Home', 'Gaming Cafe', 'Garden', 'Garden Center', 'Gas Station / Garage', 'Gift Shop', 'Golf Course', 'Government', 'Grocery Store', 'Gym', 'Gym / Fitness', 'Harbor / Marina', 'Hardware', 'Health Food Store', 'High School', 'Hiking Trail', 'Historic Site', 'History Museum', 'Hobbies', 'Hockey', 'Hockey Field', 'Home', 'Hospital', 'Hostel', 'Hot Spring', 'Hotel', 'Hotel Bar', 'Housing Development', 'Ice Cream', 'Internet Cafe', 'Island', 'Indie Theater', 'IT Services', 'Jewelry', 'Kids Store', 'Lab', 'Lake', 'Lake / Pond', 'Landmark', 'Laundry', 'Library', 'Lighthouse', 'Lingerie', 'Lodge', 'Mall', 'Market', 'Martial Arts', 'Massage Studio', 'Math', 'Medical', 'Medical School', 'Meeting Room', "Men's Store", 'Military Base', 'Mobile Phone', 'Mosque', 'Motel', 'Motorcycle Shop', 'Mountain', 'Moving Target', 'Music Festival', 'Music Store', 'Museum', 'Nail Salon', 'Neighborhood', 'Non-Profit', 'Nursery School', 'Office', 'Office Supplies', 'Opera House', 'Optical', 'Optical Shops', 'Other - Buildings', 'Other - Education', 'Other - Entertainment', 'Other - Nightlife', 'Other - Shop', 'Other - Travel', 'Other Event', 'Other Outdoors', 'Outdoors & Recreation', 'Performing Arts', 'Pet Store', 'Pharmacy', 'Photography Lab', 'Pier', 'Plane', 'Playground', 'Police Station', 'Pool', 'Post Office', 'Professional', 'Public Art', 'Racetrack', 'Radio Station', 'Rec Center', 'Record Shop', 'Recruiting Agency', 'Recycling', 'Rental Car', 'Residence Hall', 'Residential', 'Rest Areas', 'River', 'Road', 'Rock Climbing', 'Salad', 'Salon / Barbershop', 'Sandwiches', 'Scenic Lookout', 'Science', 'Science Museum', 'School', 'Sculpture', 'Shoes', 'Shops', 'Shop', 'Shrine', 'Skate Park', 'Skating Rink', 'Smoke Shop', 'Snacks', 'Soccer', 'Soccer Field', 'Sorority House', 'Soup', 'Spiritual', 'Spa', 'Spa / Massage', 'Speakeasy', 'Speakeasy / Secret Spot', 'Sporting Goods', 'Stables', 'Stadium', 'Street', 'Storage',  'Student Center', 'Supermarket', 'Surf Spot', 'Synagogue', 'Tanning Salon', 'Tattoo', 'Taxi', 'Tea Room', 'Tech Startup', 'Technology', 'Temple', 'Tennis Court', 'Terminal', 'Theme Park', 'Thrift / Vintage', 'Tobacco & Cigars', 'Tourist Information', 'Toys & Games', 'Track', 'Trade School', 'Travel', 'Travel Agency', 'Trail', 'TV Station', 'University', 'Veterinarians', 'Video Games', 'Video Store', 'Voting Booth', 'Well', "Women's Store", 'Yoga Studio', 'Zoo')
-
-restaurant_categories = c( 'African', 'American', 'Argentinian', 'Asian', 'Australian', 'Bagels', 'BBQ', 'Brazilian', 'Breakfast / Brunch', 'Burgers', 'Burritos', 'Café', 'Cafe', 'Caribbean', 'Chinese', 'Coffee Shop', 'Cuban', 'Deli / Bodega', 'Diner', 'Dive Bar', 'Eastern European', 'Ethiopian', 'Falafel', 'Fast Food', 'Food', 'Food Court', 'French', 'Fried Chicken', 'Gastropub', 'German', 'Gourmet', 'Greek', 'Hookah Bar', 'Indian', 'Indie', 'Indonesian', 'Italian', 'Japanese', 'Juice Bar', 'Korean', 'Latin American', 'Malaysian', 'Mediterranean', 'Mexican', 'Middle Eastern', 'Modern European', 'Molecular Gastronomy', 'Moroccan', 'New American', 'Other - Food', 'Paella', 'Pizza', 'Restaurant', 'Sake Bar', 'Seafood', 'South American', 'Spanish', 'Steakhouse', 'Street Food', 'Sushi', 'Swiss', 'Tapas', 'Tacos', 'Thai', 'Turkish', 'Vegetarian / Vegan', 'Vietnamese', 'Wine Shop', 'Winery')
-
-
-  df_type = tribble(
-                    ~primaryCategory, ~type,
-                    'Subway', 'transport',
-                    'Train', 'transport',
-                    'Train Station', 'transport',
-                    'Light Rail', 'transport',
-                    'Platform', 'transport',
-                    'Parking', 'transport',
-                    'Field', 'park',
-                    'Park', 'park',
-                    'Plaza', 'park',
-                    'Plaza / Square', 'park',
-                    'Comedy Club', 'theater',
-                    'Concert Hall', 'theater',
-                    'Music Venue', 'theater',
-                    'Movie Theater', 'theater',
-                    'Cineplex', 'theater',
-                    'Theater', 'theater')
-
-  alcohol_venue_types = c("Bar", "Nightclub", "Lounge", "Pub", "Wine Bar", "Gay Bar",
-                          "Nightlife", "Sports Bar", "Jazz Club", "Brewery", "Karaoke",
-                          "Liquor Store", "Rock Club", "Festival", 'Strip Club','Entertainment', 'Event Space','Frat House',"Whisky Bar")
-
   df_4sq_locations %>%
-    filter( !primaryCategory %in% bad_categories ) %>%
-    mutate( primaryCategory = ifelse( primaryCategory %in% restaurant_categories, 'food', primaryCategory)) %>%
-    left_join( df_type, by='primaryCategory') %>%
-    mutate( type=ifelse( is.na(type), primaryCategory, type)) %>%
-    mutate( type=ifelse( type %in% alcohol_venue_types, 'alcohol', type)) %>%
-    group_by( shortUrl,  primaryCategory, type ) %>%
-    summarise( name=min(name),
-              checkinsCount = max( checkinsCount),
+    dplyr::select( shortUrl, primaryCategory, typeFinal, name, longitude, latitude, checkinsCount) %>%
+    dplyr::rename( type = typeFinal) %>%
+    group_by( name, shortUrl,  primaryCategory, type ) %>%
+    summarise(# name=min(name),
+              checkinsCount = sum( checkinsCount),
               latitude=mean(latitude),
               longitude=mean(longitude)
               ) %>%
     ungroup() %>%
     {.} -> df_4sq_locations_filtered
+
   df_4sq_locations_filtered
 
 }
@@ -522,6 +950,20 @@ sfc_as_cols <- function(x, geometry, names = c("x","y")) {
 
 
 
+#********************************************************************************
+#  get_df_target_locations_4sq
+#********************************************************************************
+get_df_target_locations_4sq= function(  df_4sq_locations_filtered) {
+
+  df_4sq_locations_filtered  %>%
+    select( name, latitude, longitude) %>%
+    mutate( location_type='4sq') %>%
+    mutate( tl_id = row_number()) %>%
+    select( latitude, longitude, tl_id) %>%
+    st_as_sf(coords = c("longitude", "latitude"), crs = 4326, agr = "constant") %>%
+    st_transform( 27700)
+
+}
 
 #********************************************************************************
 #  get_df_target_locations_combined
@@ -589,27 +1031,16 @@ calculate_sp_match_geography = function( df_staypoints,
                                              overlap_distance_needed = 20
                                              ) {
 
-#TODO - this could be better designed, using interval join?
 
 
   df_staypoints  %>%
-    group_by( userid, night, n_staypoint) %>%
-    summarise(latitude = mean(latitude), longitude = mean(longitude)) %>%
-    ungroup() %>%
+#    group_by( userid, night, n_staypoint) %>%
+#   summarise(latitude = mean(latitude), longitude = mean(longitude)) %>%
+#    ungroup() %>%
     st_as_sf(coords = c("longitude", "latitude"), crs = 4326, agr = "constant") %>%
     st_transform( 27700) %>%
     filter( !st_is_empty(geometry)) %>%
-    { . } -> df_sp_geo
-
-  st_nn(df_sp_geo, df_target_locations_combined,
-          maxdist = overlap_distance_needed,
-          k=1)
-
-    st_join( df_sp_geo, df_target_locations_combined,
-          st_nn,
-          maxdist = overlap_distance_needed,
-          k=1) %>%
-  filter( !is.na(tl_id ))
+    st_join(  df_target_locations_combined, st_nn, maxdist = overlap_distance_needed, k=1, left=FALSE)
 
 
 }
