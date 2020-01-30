@@ -502,10 +502,10 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree5e0af319126a4fecf9c47a9268d25c4f13bb8d28targetblank5e0af31a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/dewoller/dusk2dawn/tree/5e0af319126a4fecf9c47a9268d25c4f13bb8d28" target="_blank">5e0af31</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree18953983ab450b2eac5a4e8b56cc4240fb564e6ftargetblank1895398a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/dewoller/dusk2dawn/tree/18953983ab450b2eac5a4e8b56cc4240fb564e6f" target="_blank">1895398</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree5e0af319126a4fecf9c47a9268d25c4f13bb8d28targetblank5e0af31a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomdewollerdusk2dawntree18953983ab450b2eac5a4e8b56cc4240fb564e6ftargetblank1895398a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility. The version displayed above was the version of the Git repository at the time these results were generated. <br><br> Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -573,6 +573,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/dewoller/dusk2dawn/blob/18953983ab450b2eac5a4e8b56cc4240fb564e6f/analysis/evaluate_florian_best_dataset.Rmd" target="_blank">1895398</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2020-01-30
+</td>
+<td>
+wflow_publish(“analysis/evaluate_florian_best_dataset.Rmd”)
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/dewoller/dusk2dawn/b471269c5f4ffca3e0c81ea142df2018a0b2809f/docs/evaluate_florian_best_dataset.html" target="_blank">b471269</a>
+</td>
+<td>
+Dennis Wollersheim
+</td>
+<td>
+2020-01-30
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -683,25 +717,30 @@ wflow_publish(“analysis/evaluate_florian_best_dataset.Rmd”)
 </div>
 </div>
 
-<pre class="r"><code>suppressWarnings(suppressMessages(suppressPackageStartupMessages({ source(&#39;lib/base_initialise.R&#39;) })))
-source(&#39;lib/functions.R&#39;)
-source(&#39;lib/gps_functions.R&#39;)
-source(&#39;lib/location_prep.R&#39;)
-source(&#39;lib/load_results.R&#39;)</code></pre>
-<pre><code>Warning: Expected 8 pieces. Missing pieces filled with `NA` in 720 rows [1, 2,
-3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, ...].</code></pre>
-<pre class="r"><code>source(&#39;lib/evaluate_staypoint_estimates_helper.R&#39;)
-source(&#39;lib/survey_functions.R&#39;)
-source(&quot;explore/failure_analysis_florian_surveys.R&quot;)
+<pre class="r"><code>suppressWarnings(suppressMessages(suppressPackageStartupMessages({
+
+  source(&#39;lib/base_initialise.R&#39;)
+  source(&#39;lib/functions.R&#39;)
+  source(&#39;lib/gps_functions.R&#39;)
+  source(&#39;lib/location_prep.R&#39;)
+  source(&#39;lib/load_results.R&#39;)
+  source(&#39;lib/evaluate_staypoint_estimates_helper.R&#39;)
+  source(&#39;lib/survey_functions.R&#39;)
+  source(&quot;explore/failure_analysis_florian_surveys.R&quot;)
+
+  })))
 min_accuracy = 10</code></pre>
-<div id="all-algorithms" class="section level1">
-<h1>all algorithms</h1>
+<div id="comparision-the-top-10-algorithms" class="section level1">
+<h1>comparision the top 10 algorithms</h1>
 <pre class="r"><code>df_results %&gt;%
   filter(interpol_parm &gt; 0  &amp; algorithm == &#39;optics.distance&#39;) %&gt;%
-  ggplot( aes(total_sp_duration, predictable_hits, color=algorithm), alpha=.1 ) +
+  mutate( predictable_accuracy = predictable_hits / (predictable_hits + predictable_misses),
+  total_staypoint_duration_hours = total_sp_duration/3600)  %&gt;%
+  arrange(desc(predictable_accuracy)) %&gt;%
+  head(20) %&gt;%
+  ggplot( aes(total_staypoint_duration_hours, predictable_accuracy, color=algorithm), alpha=.1 ) +
   geom_jitter(position = position_jitter(seed = 1)) +
-  geom_text(aes( label=source), color=&#39;black&#39; , position = position_jitter(seed = 1), check_overlap=TRUE) +
-  facet_grid( min_sp_duration ~ max_sp_radius )</code></pre>
+  geom_text(aes( label= paste(&#39;t:&#39;, min_sp_duration, &#39;d:&#39;, max_sp_radius)), color=&#39;black&#39; , position = position_jitter(seed = 1), check_overlap=TRUE)</code></pre>
 <p><img src="figure/evaluate_florian_best_dataset.Rmd/all-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>
 <button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-all-1">
@@ -5376,15 +5415,15 @@ loaded via a namespace (and not attached):
 [40] munsell_0.5.0        fansi_0.4.1          lifecycle_0.1.0     
 [43] stringi_1.4.5        whisker_0.4          yaml_2.2.0          
 [46] snakecase_0.11.0     storr_1.2.1          RJSONIO_1.3-1.4     
-[49] plyr_1.8.5           grid_3.6.1           crayon_1.3.4        
-[52] lattice_0.20-38      haven_2.2.0          hms_0.5.3           
-[55] zeallot_0.1.0        anytime_0.3.6        pillar_1.4.3        
-[58] igraph_1.2.4.2       base64url_1.4        reshape2_1.4.3      
-[61] codetools_0.2-16     futile.options_1.0.1 reprex_0.3.0        
-[64] evaluate_0.14        lambda.r_1.2.4       modelr_0.1.5        
-[67] vctrs_0.2.1          cellranger_1.1.0     gtable_0.3.0        
-[70] assertthat_0.2.1     xfun_0.11            broom_0.5.3         
-[73] viridisLite_0.3.0    workflowr_1.4.0.9001 ellipsis_0.3.0      </code></pre>
+[49] grid_3.6.1           crayon_1.3.4         lattice_0.20-38     
+[52] haven_2.2.0          hms_0.5.3            zeallot_0.1.0       
+[55] anytime_0.3.6        pillar_1.4.3         igraph_1.2.4.2      
+[58] base64url_1.4        codetools_0.2-16     futile.options_1.0.1
+[61] reprex_0.3.0         evaluate_0.14        lambda.r_1.2.4      
+[64] modelr_0.1.5         vctrs_0.2.1          cellranger_1.1.0    
+[67] gtable_0.3.0         assertthat_0.2.1     xfun_0.11           
+[70] broom_0.5.3          viridisLite_0.3.0    workflowr_1.4.0.9001
+[73] ellipsis_0.3.0      </code></pre>
 </div>
 </div>
 </div>
