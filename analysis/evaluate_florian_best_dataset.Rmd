@@ -13,7 +13,7 @@ output:
 
 ```{r initial}
 
-suppressWarnings( source('lib/base_initialise.R') )
+suppressWarnings(suppressMessages(suppressPackageStartupMessages({ source('lib/base_initialise.R') })))
 source('lib/functions.R')
 source('lib/gps_functions.R')
 source('lib/location_prep.R')
