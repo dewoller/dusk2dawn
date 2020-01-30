@@ -245,12 +245,14 @@ drakeplan <- drake::drake_plan(
         ),
 
     # number of surveys for each staypoint, summarised at userid/night level
+    ################################################################################
     df_all_sp_match_survey =
         target(
             my_combine(df_matching_survey_per_sp_summarised),
             transform = combine(df_matching_survey_per_sp_summarised)
         ),
 
+    ################################################################################
     # combine the number of found surveys and the number of found staypoints
     df_all_sp_match_survey_combined =
         target(
@@ -266,12 +268,22 @@ drakeplan <- drake::drake_plan(
 
     #
     # wflow_publish(knitr_in("analysis/evaluate_staypoint_estimates.Rmd"), view = FALSE),
-    df_target_locations_combined = get_df_target_locations_combined(df_osm_amenity, df_4sq_locations_filtered),
+    #df_target_locations_combined = get_df_target_locations_combined(df_osm_amenity, df_4sq_locations_filtered),
+  ################################################################################
+    df_target_locations_4sq = get_df_target_locations_4sq( df_4sq_locations_filtered ),
+    ################################################################################
     df_matching_geography =
         target(
-            calculate_sp_match_geography(merged_staypoints, df_target_locations_combined),
-            transform = map(merged_staypoints)
+            calculate_sp_match_geography(df_summarise_staypoints, df_target_locations_4sq ),
+            transform = map(df_summarise_staypoints)
         ),
+  #############################################################################
+    df_matching_geography_summarised =
+      target(
+            summarise_matching_geography(df_matching_geography),
+            transform = map(df_matching_geography)
+            ),
+  ################################################################################
     df_matching_geography_summarised =
         target(
             summarise_matching_geography(df_matching_geography),
@@ -328,8 +340,6 @@ if (currentMachine == "lims" ) {
     make(drakeplan, parallelism = "future", jobs = max_jobs, elapsed = Inf, retries = 1)
 
 } else {
-    library(sf)
-    library(nngeo)
     if(debug) {
       make(drakeplan)
     } else {
