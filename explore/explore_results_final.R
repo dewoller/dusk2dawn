@@ -55,7 +55,7 @@ df_all_sp_match_survey_combined  %>%
 
 
 
-    df1 %>% 
+    df1 %>%
     filter( str_detect(  source, 'optics')) %>%
 
 
@@ -70,6 +70,9 @@ df_results %>%
 
 
 df_results %>%
-  filter( str_detect(  base_file, 'optics')) %>%
+  #filter( str_detect(  base_file, 'optics')) %>%
   arrange( desc( sp_total)) %>%
-  ggplot( aes( sp_total, surveys_total, color=filter_type)) +
+  ggplot( aes( sp_total, surveys_total, color=filter_type, shape=algorithm)) +
+  geom_point()
+
+

@@ -3,9 +3,9 @@ filename = "optics_distance_14400_300_10_interpolated_locations_120_filtered_acc
 
 df = readd(filename, character_only=TRUE) %>% merge_staypoints_helper( filename )
 
-readd(filename, character_only=TRUE) %>% 
+readd(filename, character_only=TRUE) %>%
   count(userid, night)
- 
+
 df_location  %>%
 count(userid, night)
 
@@ -17,8 +17,8 @@ df_results %>%
 
 
 
-cached() %>% 
-  enframe() %>% 
+cached() %>%
+  enframe() %>%
   { . } -> cache
 
 
@@ -30,10 +30,10 @@ cache %>%
 df_post = readd(df_merged_staypoints_optics_distance_14400_300_10_interpolated_locations_120_filtered_accuracy_100)
 
 
-df_pre %>% 
+df_pre %>%
   count( userid, night, n_staypoint)
 
-df_post %>% 
+df_post %>%
   count( userid, night, n_staypoint)
 
 df_pre = readd(staypoints_distance_14400_300_10_interpolated_locations_120_filtered_accuracy_100)
@@ -41,8 +41,26 @@ df_pre = readd(staypoints_distance_14400_300_10_interpolated_locations_120_filte
 df_post = readd(df_merged_staypoints_staypoints_distance_14400_300_10_interpolated_locations_120_filtered_accuracy_100)
 
 
-df_pre %>% 
+df_pre %>%
   count( userid, night, n_staypoint)
 
-df_post %>% 
+df_post %>%
   count( userid, night, n_staypoint)
+
+
+df_pre %>% 
+  ungroup() %>%
+  inner_join( df_post, by=qc(userid, night, timestamp)) %>%
+
+
+  df_location %>%
+  filter( accuracy<=100) %>%
+  group_by( provider ) %>%
+  summarise( mean( accuracy)) %>%
+
+  df_location %>%
+  filter( accuracy<=10) %>%
+  count( userid, night, timestamp, sort=TRUE) %>%
+filter( n>1) %>%
+head(1) %>%
+
