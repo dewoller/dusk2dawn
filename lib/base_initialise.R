@@ -36,6 +36,8 @@ load_library <- function() {
     library(tibbletime)
     library(futile.logger)
     library(dbscan)
+    library(sf)
+    library(nngeo)
 }
 
 load_library()

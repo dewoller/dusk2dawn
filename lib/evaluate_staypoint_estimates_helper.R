@@ -956,10 +956,8 @@ sfc_as_cols <- function(x, geometry, names = c("x","y")) {
 get_df_target_locations_4sq= function(  df_4sq_locations_filtered) {
 
   df_4sq_locations_filtered  %>%
-    select( name, latitude, longitude) %>%
-    mutate( location_type='4sq') %>%
-    mutate( tl_id = row_number()) %>%
-    select( latitude, longitude, tl_id) %>%
+    dplyr::select( name, latitude, longitude, type) %>%
+    mutate( foursquare_id = row_number() ) %>%
     st_as_sf(coords = c("longitude", "latitude"), crs = 4326, agr = "constant") %>%
     st_transform( 27700)
 
@@ -1010,37 +1008,55 @@ get_df_sp_round_location = function(df_staypoints, rounding_factor = 1000000.0  
 }
 
 #********************************************************************************
-#  get_df_sp_joined_geography
+#  calculate_sp_match_geography_test
 #********************************************************************************
-#debug(get_df_sp_joined_geography)
 calculate_sp_match_geography_test = function() {
   #get_df_sp_joined_geography( df_staypoints,  df_target_locations_combined)
-  df_staypoints = readd(staypoints_distance_14400_300_100_filtered_sigma_100)
-  df_target_locations_combined = readd(df_target_locations_combined)
-  overlap_distance_needed = 20
 
-  calculate_sp_match_geography( df_staypoints,
-                               df_target_locations_combined,
-                               overlap_distance_needed )
+  df_4sq_locations_filtered = get_df_4sq_locations_filtered()
+
+  df_staypoints = readd(staypoints_distance_14400_300_100_filtered_sigma_100) %>% head(100)
+
+  readd( df_summarise_staypoints_df_merged_staypoints_optics_distance_14400_300_10_interpolated_locations_120_filtered_accuracy_10) %>%
+
+  df_target_locations_4sq = get_df_target_locations_4sq( df_4sq_locations_filtered)
+
+  calculate_sp_match_geography( df_staypoints, df_target_locations_4sq)
+
+
+  readd( df_summarise_staypoints_df_merged_staypoints_optics_distance_14400_300_10_interpolated_locations_120_filtered_accuracy_10) %>%
+    calculate_sp_match_geography( df_target_locations_4sq) %>%
+    count( type, sort=TRUE)
+
+
 }
 
 #********************************************************************************
+# calculate_sp_match_geography
+#********************************************************************************
 
-calculate_sp_match_geography = function( df_staypoints,
-                                             df_target_locations_combined,
-                                             overlap_distance_needed = 20
-                                             ) {
+calculate_sp_match_geography = function( df_staypoints, df_target_locations_4sq) {
 
 
 
   df_staypoints  %>%
-#    group_by( userid, night, n_staypoint) %>%
-#   summarise(latitude = mean(latitude), longitude = mean(longitude)) %>%
-#    ungroup() %>%
     st_as_sf(coords = c("longitude", "latitude"), crs = 4326, agr = "constant") %>%
     st_transform( 27700) %>%
     filter( !st_is_empty(geometry)) %>%
-    st_join(  df_target_locations_combined, st_nn, maxdist = overlap_distance_needed, k=1, left=FALSE)
+    { . } -> df_staypoints_filtered
+
+  df_staypoints_filtered %>%
+    st_nn( df_target_locations_4sq, k=1, returnDist=TRUE) %>%
+    { . } -> df_locations_joined
+
+  df_staypoints_filtered %>%
+    mutate( dist= unlist(df_locations_joined[[2]]),
+            foursquare_row_id = unlist(df_locations_joined[[1]]),
+            foursquare_id = df_target_locations_4sq[ foursquare_row_id,]$foursquare_id )%>%
+    dplyr::select( -foursquare_row_id ) %>%
+    st_drop_geometry()  %>%
+    inner_join( df_target_locations_4sq, by='foursquare_id')
+
 
 
 }
