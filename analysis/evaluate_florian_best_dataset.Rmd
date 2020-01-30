@@ -1,0 +1,72 @@
+---
+title:           "Exploration of algorithms and parameters"
+author:          Dennis Wollersheim
+date:            2020-01-13
+linkcolor:       cyan
+citecolor:       grey
+output:
+  pdf_document:
+    highlight:   zenburn
+---
+
+\tableofcontents
+
+```{r initial}
+
+source('lib/base_initialise.R')
+source('lib/functions.R')
+source('lib/gps_functions.R')
+source('lib/location_prep.R')
+source('lib/load_results.R')
+source('lib/evaluate_staypoint_estimates_helper.R')
+source('lib/survey_functions.R')
+source("explore/failure_analysis_florian_surveys.R")
+min_accuracy = 10
+```
+
+
+# Focus on single algorithm
+
+it so happens that the largest duration staypoints in total gives the very high accuracy on predictable staypoints (99%)
+
+so we use that algorithm.
+
+## algorithm
+
+optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100
+
+```{r best_precision_and_recall}
+
+readd(df_matching_geography_df_summarise_staypoints_df_merged_staypoints_optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100) %>% 
+  { . } -> df
+
+df %>%
+  filter( dist<100 ) %>%
+  ggplot( aes( dist)) + geom_histogram()
+
+
+
+df_results %>%
+#  filter(  algorithm == 'optics.distance') %>%
+#  filter(  filter_type == 'filtered.accuracy') %>%
+#  filter( recall > .18 ) %>%
+  #filter( max_sp_radius == '10'  ) %>%
+  arrange( desc( recall )) %>%
+  ggplot( aes( precision, recall) ) +
+  geom_jitter(position = position_jitter(seed = 1)) +
+  geom_text(aes( label=source ), position = position_jitter(seed = 1), check_overlap=TRUE)
+
+df_results %>%
+  arrange(desc(total_sp_duration)) %>%
+  dplyr::select( source, predictable_hits, predictable_misses, sp_total, total_sp_duration)
+
+df_results %>%
+  filter(interpol_parm > 0 ) %>%
+  ggplot( aes(sp_total, predictable_hits, color=interpol_parm, alpha=.1) ) +
+  geom_jitter(position = position_jitter(seed = 1)) +
+  geom_text(aes( label=source), color='black' , position = position_jitter(seed = 1), check_overlap=TRUE) +
+  facet_grid( algorithm ~ max_sp_radius )
+
+
+
+```
