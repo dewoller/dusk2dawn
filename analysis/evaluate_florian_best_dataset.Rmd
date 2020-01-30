@@ -13,28 +13,35 @@ output:
 
 ```{r initial}
 
-suppressWarnings(suppressMessages(suppressPackageStartupMessages({ source('lib/base_initialise.R') })))
-source('lib/functions.R')
-source('lib/gps_functions.R')
-source('lib/location_prep.R')
-source('lib/load_results.R')
-source('lib/evaluate_staypoint_estimates_helper.R')
-source('lib/survey_functions.R')
-source("explore/failure_analysis_florian_surveys.R")
+suppressWarnings(suppressMessages(suppressPackageStartupMessages({
+
+  source('lib/base_initialise.R')
+  source('lib/functions.R')
+  source('lib/gps_functions.R')
+  source('lib/location_prep.R')
+  source('lib/load_results.R')
+  source('lib/evaluate_staypoint_estimates_helper.R')
+  source('lib/survey_functions.R')
+  source("explore/failure_analysis_florian_surveys.R")
+
+  })))
 min_accuracy = 10
 ```
 
 
-# all algorithms
+# comparision the top 10 algorithms
 
 ```{r all}
 
 df_results %>%
   filter(interpol_parm > 0  & algorithm == 'optics.distance') %>%
-  ggplot( aes(total_sp_duration, predictable_hits, color=algorithm), alpha=.1 ) +
+  mutate( predictable_accuracy = predictable_hits / (predictable_hits + predictable_misses),
+  total_staypoint_duration_hours = total_sp_duration/3600)  %>%
+  arrange(desc(predictable_accuracy)) %>%
+  head(20) %>%
+  ggplot( aes(total_staypoint_duration_hours, predictable_accuracy, color=algorithm), alpha=.1 ) +
   geom_jitter(position = position_jitter(seed = 1)) +
-  geom_text(aes( label=source), color='black' , position = position_jitter(seed = 1), check_overlap=TRUE) +
-  facet_grid( min_sp_duration ~ max_sp_radius )
+  geom_text(aes( label= paste('t:', min_sp_duration, 'd:', max_sp_radius)), color='black' , position = position_jitter(seed = 1), check_overlap=TRUE)
 
 
 ```
