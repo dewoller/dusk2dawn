@@ -9,6 +9,7 @@ load_function <- function() {
     source("lib/kernel_density_functions.R")
     source("lib/optics_find_staypoint.R")
     source("lib/merge_adjacent_staypoints.R")
+    source("explore/failure_analysis_florian_surveys.R")
 }
 
 load_library <- function() {

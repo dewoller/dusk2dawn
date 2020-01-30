@@ -1413,12 +1413,13 @@ df_summarise_staypoint_algorithms = function( df_staypoints, df_matching_survey,
 #********************************************************************************
 calculate_accuracy_predictable_surveys = function ( df_survey_matches, df_predictable_surveys) {
 
+  n_predictable_surveys = count(df_predictable_surveys)  %>% pluck('n')
   df_predictable_surveys %>%
     select(id) %>%
     inner_join( df_survey_matches, by='id') %>%
     count() %>%
     dplyr::rename( predictable_hits = n) %>%
-    mutate( predictable_misses = count(df_predictable_surveys) - predictable_hits )
+    mutate( predictable_misses = n_predictable_surveys - predictable_hits )
 }
 
 
