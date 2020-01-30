@@ -41,6 +41,7 @@ get_predictable_surveys = function( ) {
   # zoom into the surveys that we are supposed to have found
   df_surveys_to_match = get_surveys_to_match()
   df_nights_with_gps = get_nights_with_gps()
+  desert_endpoint_offset = 5
 
   # nights with surveys, but missing GPS entirely
 
@@ -119,7 +120,7 @@ get_location_deserts = function (  df_location, desert_length_seconds = 5*60, de
 
   desert_length_seconds=10
   desert_offset_seconds = 5*60
-
+  min_accuracy = 10
 
   readd(df_location) %>%
     { . } -> df_location

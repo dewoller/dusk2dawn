@@ -334,6 +334,7 @@ if(debug) {
         options(error = stop)
 }
 
+library(sf)
 
 if (currentMachine == "lims" ) {
 
