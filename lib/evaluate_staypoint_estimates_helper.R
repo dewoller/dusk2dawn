@@ -1037,6 +1037,8 @@ calculate_sp_match_geography_test = function() {
 
 calculate_sp_match_geography = function( df_staypoints, df_target_locations_4sq) {
 
+  library(sf)
+  library(nngeo)
 
 
   df_staypoints  %>%
