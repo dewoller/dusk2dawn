@@ -29,7 +29,7 @@ min_accuracy = 10
 ```
 
 
-# comparision the top 10 algorithms
+# Compare the top 20 algorithms
 
 ```{r all}
 
@@ -74,8 +74,40 @@ df_results %>%
 
 ```{r distance_to_matching_geography}
 
+readd(df_matching_survey_df_merged_staypoints_optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100) %>%
+  dplyr::select(-timestamp_end.x, -starts_with('timestamp_start')) %>%
+  { . } -> df_surveys
+
+readd(df_summarise_staypoints_df_merged_staypoints_optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100) %>%
+  dplyr::select( userid, night, n_staypoint, latitude, longitude ) %>%
+  { . } -> df_centroids
+
 readd(df_matching_geography_df_summarise_staypoints_df_merged_staypoints_optics_distance_14400_300_100_interpolated_locations_300_filtered_accuracy_100) %>%
+  dplyr::select(-geometry) %>%
+  inner_join(df_centroids, by = c("userid", "night", "n_staypoint")) %>%
+  left_join(df_surveys, by = c("userid", "night", "n_staypoint")) %>%
   { . } -> df
+
+df %>%
+  count( userid,night, n_staypoint, sort=TRUE) %>%
+  head(10) %>%
+  { . } -> df_check
+
+loadd(df_location) 
+loadd(df_survey)
+, df_best, min_accuracy)
+
+
+i=2
+for( i in rownames(df_missing_summary %>% head(10)) ) {
+  map_one_user(df_missing_summary [i,], df_location, df_survey, df_best, min_accuracy)
+  plot_one_person_survey(df_missing_summary[i,], df_location,df_best_sp, df_surveys_missed, min_accuracy )
+}
+
+
+
+
+
 
 df %>%
   ggplot( aes( dist)) + geom_histogram()

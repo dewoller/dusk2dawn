@@ -5,8 +5,13 @@ n=1
 readd_f = function( stub, n=1 ) {
 
   cached() %>% 
-    enframe() %>%
-    filter( startsWith( value, stub )) %>%
+    enframe() %>% 
+    { . } -> cache
+
+
+  cache %>%
+    filter( startsWith( value, 'staypoints_distance' )) %>%
+    filter( str_detect( value, 'inter')) %>%
     head(n) %>%
     tail(1) %>%
     purrr::pluck("value") %>% 

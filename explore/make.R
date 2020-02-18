@@ -300,6 +300,12 @@ drakeplan <- drake::drake_plan(
             transform = map(df_matching_geography)
             ),
     #
+    df_matching_geography_summarised_all =
+      target(
+            my_combine(df_matching_geography_summarised),
+            transform = combine(df_matching_geography_summarised)
+            ),
+    #
     # dq_geocoded_addresses = get_df_revgeo_addresses( df_sp_no_bar %>% head(250) ),
     #
 

@@ -46,6 +46,19 @@ df_results %>%
   geom_jitter(position = position_jitter(seed = 1)) +
   geom_text(aes( label=source ), position = position_jitter(seed = 1), check_overlap=TRUE)
 
+df_results %>%
+  arrange(desc(total_sp_duration)) %>%
+  dplyr::select( source, predictable_hits, predictable_misses, sp_total, total_sp_duration)
+
+df_results %>%
+  filter(interpol_parm > 0 ) %>%
+  ggplot( aes(sp_total, predictable_hits, color=interpol_parm, alpha=.1) ) +
+  geom_jitter(position = position_jitter(seed = 1)) +
+  geom_text(aes( label=source), color='black' , position = position_jitter(seed = 1), check_overlap=TRUE) +
+  facet_grid( algorithm ~ max_sp_radius )
+
+
+
 ```
 
 # Focus on single algorithm
@@ -60,7 +73,7 @@ df_results %>%
   #filter(  filter_type == 'filtered.accuracy') %>%
   #filter(  algorithm == 'optics.distance') %>%
   #filter( max_sp_radius == '10'  ) %>%
-  arrange( desc( sp_total )) %>%
+  arrange(desc(total_sp_duration)) %>%
   head(1) %>%
   pluck( 'base_file' ) %>%
   { . } -> df_best_base_filename
@@ -78,7 +91,7 @@ df_best_base_filename %>%
   { . } -> df_best
 
 df_best_base_filename %>%
-  paste0( 'df_matching_survey_categories_df_matching_survey_', .) %>%
+  paste0( 'df_matching_survey_categories_df_matching_survey_df_merged_staypoints_', .) %>%
   readd(character_only=TRUE) %>%
   { . } -> df_best_matches
 
@@ -398,55 +411,6 @@ df_missing_summary %>% head(10)
 
 df_missing_summary %>% count(userid) %>% count()
 
-################################################################################
-# map_one_user_test
-################################################################################
-
-map_one_user_test = function() {
-
-  df_location %>%
-    filter( accuracy <= min_accuracy) %>%
-    inner_join( df_user_night, by=c('userid', 'night')) %>%
-    distinct(n_staypoint) %>%
-    left_join( df_staypoints %>% dplyr::select(userid, night, timestamp, n_staypoint), by=c('userid', 'night', 'timestamp')) %>%
-    distinct(n_staypoint)
-
-
-}
-################################################################################
-# map_one_user
-################################################################################
-
-map_one_user = function( df_user_night, df_location, df_survey, df_staypoints, min_accuracy ) {
-
-  title = paste( df_user_night$userid, df_user_night$night  )
-
-  df_location %>%
-    filter( accuracy <= min_accuracy) %>%
-    inner_join( df_user_night, by=c('userid', 'night')) %>%
-    left_join( df_staypoints %>% dplyr::select(userid, night, timestamp, n_staypoint), by=c('userid', 'night', 'timestamp')) %>%
-    #filter( accuracy < min_accuracy   ) %>%
-    #distinct(n_staypoint) %>%
-    mutate(
-          m_lat = ll2m( latitude, min(latitude), m_per_latitude),
-          m_lon = ll2m( longitude, min(longitude), m_per_longitude),
-          alpha = ifelse( is.na( n_staypoint), .1, 1),
-          n_staypoint = ifelse(is.na( n_staypoint), 0, n_staypoint) %>% as.factor()
-          ) %>%
-    arrange( timestamp) %>%
-    mutate( ts_diff = (log(timestamp-lag(timestamp))/3 )) %>%
-    ggplot( aes(m_lat, m_lon, color=n_staypoint, alpha = alpha) )  +
-    geom_point() +
-    geom_path( )  +
-    ggtitle( title ) %>%
-    { . } -> p
-
-  p - sadgg
-  print(p)
-
-}
-################################################################################
-
 i=2
 for( i in rownames(df_missing_summary %>% head(10)) ) {
   map_one_user(df_missing_summary [i,], df_location, df_survey, df_best, min_accuracy)
@@ -455,7 +419,8 @@ for( i in rownames(df_missing_summary %>% head(10)) ) {
 
 
 
-df_missing_summary %>% head(1) %>%
+df_missing_summary %>%
+  head(1) %>%
   inner_join(df_best, by =c("userid", "night") ) %>%
   distinct( n_staypoint) %>%
   count()

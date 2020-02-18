@@ -502,3 +502,88 @@ ll2m = function( ll, base_ll , m_per_factor )  {
 
 
 
+
+################################################################################
+#test_interpolate_points
+################################################################################
+
+test_interpolate_points = function() {
+  interpolate_points(0, 10, 1, 1,1, 10,10 )
+}
+
+
+################################################################################
+#interpolate_points
+################################################################################
+
+interpolate_points = function( timestamp, interval, period, longitude, latitude, longitude_next, latitude_next ) {
+  #browser()
+  n = as.integer( interval / period )
+  points = 0:n
+  latitude_incr = (latitude_next - latitude) / n
+  longitude_incr = (longitude_next - longitude) / n
+
+  tibble(
+         timestamp = timestamp+(period * points),
+         latitude = latitude + ( latitude_incr * points),
+         longitude = longitude + ( longitude_incr * points)
+         ) %>% list()
+}
+
+
+
+################################################################################
+#test_interpolate_night
+################################################################################
+
+
+test_interpolate_night = function() {
+  #def interpolate(self, data_fc, dummy_fc, max_delay, freq, max_drop_time = 1, max_distance, verbose=True):
+  max_delay=120
+  period=1
+  max_drop_time = 1
+  max_distance = 100
+  interpolate_locations( b,  max_delay , period, max_drop_time, max_distance )  -> d
+
+  interpolate_locations( df_location,  max_delay , period, max_drop_time, max_distance )  -> a
+
+}
+
+################################################################################
+#test_interpolate_locationa
+################################################################################
+
+
+test_interpolate_locations = function() {
+
+  readd( filtered_accuracy_10 ) %>% interpolate_locations( 600, period=30)
+
+}
+################################################################################
+#interpolate_locations
+################################################################################
+
+interpolate_locations = function( df,  max_delay = 120, period = 1, max_drop_time = 1, max_distance = 100 ) {
+
+  df %>%
+    dplyr::select( userid, night, latitude, longitude, timestamp) %>%
+    group_by( userid, night ) %>%
+    arrange( timestamp, .by_group = TRUE) %>%
+    mutate( interval = lead(timestamp ) - timestamp,
+           latitude_next = lead( latitude),
+           longitude_next = lead(longitude)) %>%
+    filter( interval > max_delay & interval < max_drop_time * 3600) %>%
+    drop_na( latitude_next, longitude_next ) %>%
+    filter( raster::pointDistance( cbind(longitude, latitude),
+                                  cbind(longitude_next, latitude_next),
+                                  lonlat=TRUE ) < max_distance ) %>%
+    rowwise() %>%
+    mutate( new_points = interpolate_points( timestamp, interval, period, longitude, latitude, longitude_next, latitude_next ) ) %>%
+    dplyr::select( new_points, userid, night ) %>%
+    unnest( new_points) %>%
+    { . } -> df_new_points
+
+  bind_rows( dplyr::select( df, userid, night, latitude, longitude, timestamp), df_new_points )
+}
+
+

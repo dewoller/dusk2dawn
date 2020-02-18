@@ -92,5 +92,3 @@ extract_nth_chunk = function( s, n, sepchar='_') {
   str_split(s, sepchar ) %>% map(n)
 
 }
-
-

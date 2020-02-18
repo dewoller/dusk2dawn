@@ -12,228 +12,216 @@ source('lib/gps_functions.R')
 
 
 
-dfm_osm_amenities= readRDS('data/shiny/df_osm_amenities.rds')
-dfm_osm_leisure= readRDS('data/shiny/df_osm_leisure.rds')
-dfm_bars = readRDS('data/shiny/df_bars.rds')
+dfm_bars = readd(df_4sq_locations_filtered ) %>%
+  sf::st_as_sf( coords = c("longitude", "latitude"), crs = 4326, agr = "constant")
 
-df_location = readRDS('data/shiny/df_location.rds')
-df_all_ts = readRDS('data/shiny/df_all_ts.rds')
+df_location = readd(df_location)
+loadd(df_predictable_surveys)
 
 df_location  %>%
   count( userid, night) %>%
-  mutate( n = sprintf( '%05d', n)) %>%
-  mutate( id = paste(userid, night, '(n=', n,')')) %>%
-  arrange( userid, night) %>%
+  mutate( c_n = sprintf( '%4d', n)) %>%
+  mutate( id = paste(str_sub(userid,1,5), str_sub(night,6,10), '(n=', c_n,')')) %>%
+  arrange( desc(n)) %>%
   { . } -> df_people_nights
 
-icon_park = tmap_icons(system.file("img/park.png", package = "tmap"))
-icon_playground = tmap_icons(system.file("img/playground.png", package = "tmap"))
-icon_bar = tmap_icons(system.file("img/bar.png", package = "tmap"))
-icon_survey = tmap_icons(system.file("img/survey.png", package = "tmap"))
+icon_bar = tmap_icons('https://image.flaticon.com/icons/png/512/2474/2474421.png', as.local=TRUE)
+icon_survey = tmap_icons('https://image.flaticon.com/icons/png/512/2443/2443779.png', as.local=TRUE)
 
-runApp(list(
-      ui = fluidPage(
-               titlePanel("Dusk2dawn paths"),
-               sidebarLayout(
-                     sidebarPanel(
-                            actionButton("goButton", "Go!"),
-                            selectInput("person_night", label = "person", choices = df_people_nights$id),
-                            sliderInput('max_jump_time', 'max_jump_time (seconds)', 300 , 900, 300, step = 100) ,
-                            sliderInput('min_staypoint_time', 'min_staypoint_time (seconds)', 300 , 1800, 300, step = 300) ,
-                            sliderInput('max_staypoint_distance', 'max_staypoint_distance  (m)', 2 , 50, 50, step = 2) ,
-                            checkboxGroupInput("pruning_algo", label = h3("Pruning Algorith?"), 
-                                               choices = list(
-                                                              "outlier" =  "outlier" ,
-                                                              "geohash" ="geohash" 
-                                                              ),
-                                               selected='geohash'),
-                            sliderInput('sigma', 'outlier sigma (sd)', .5 , 3, 1, step = .5) ,
-                            sliderInput('outlier_width', 'outlier width', 3 , 15, 15, step = 1) ,
-                            sliderInput('geohash_precision', 'geohash precision', 5 , 10, 7, step = 1) ,
-                            sliderInput('geohash_n', 'geohash consec points', 2 , 20, 3, step = 1) ,
+ui = fluidPage(
+      titlePanel("Dusk2dawn paths"),
+      sidebarLayout(
+        sidebarPanel(
+          actionButton("goButton", "Go!"),
+          selectInput("person_night", label = "person", choices = df_people_nights$id),
+          checkboxGroupInput("staypoint_algorithm", label = "Staypoint algorithm?",
+                              choices = list(
+                                            "mechanical" =  "staypoints" ,
+                                            "heatmap" ="optics"
+                                            ),
+                              selected='optics'),
+            checkboxGroupInput("min_staypoint_time", label = "min_staypoint_time (minutes)",
+                choices = list(
+                                "5" =  "300" ,
+                                "10" ="600",
+                                "15" ="900"
+                                ),
+                selected='300'),
+          checkboxGroupInput("max_jump_time", label = "max_jump_time (hours)",
+                choices = list(
+                                ".5" =  "1800" ,
+                                "6" ="14400"
+                                ),
+                selected='1800'),
 
-                            checkboxGroupInput("show_what", label = h3("Display?"), 
-                                               choices = list(
-                                                              "OSM leisure (grey)" =  "OSM leisure" ,
-                                                              "OSM amenities (blue)" ="OSM amenities" ,
-                                                              "4square bars (orange)" = "4square bars" ,
-                                                              "survey points (green)" ="survey points" ,
-                                                              "staypoints (red)" =   "staypoints"    ),
-                                               selected=c('staypoints', 'survey points')
-                                               ),
-                            actionButton("browser", "browser")
-                            ),
-                     mainPanel( leafletOutput("map"), verbatimTextOutput("summary"))
-               )),
+          checkboxGroupInput("max_staypoint_distance", label = "max_staypoint_distance (m)",
+          choices = list(
+                          "10" =  "10" ,
+                          "20" =  "20" ,
+                          "30" =  "30" ,
+                          "50" =  "50" ,
+                          "100" ="100"
+                          ),
+          selected='100'),
 
-      server = function(input, output) {
-        # generate the route
-        scale_big = 0.5
-        scale_medium = 0.3
-        scale_small = 0.05
-        observeEvent(input$browser,{
-                       browser()
-               })
-
-        df_location_single = reactive({
-          df_location %>%
-            inner_join( df_people_nights %>% filter( id == input$person_night ), by=c('userid', 'night')) %>% 
-            arrange( timestamp ) 
-        })
-
-        df_location_filtered = reactive({
-          df_location_filtered <- df_location_single()
-          print( 'Filtering locations')
-          if ("outlier" %in% input$pruning_algo ) {
-            print( 'Pruning outliers')
-            df_location_filtered %>%
-              prune_gps_outliers( sigma=input$sigma, width=input$outlier_width) %>% 
-              { . } -> df_location_filtered
-          }
-          if ("geohash" %in% input$pruning_algo ) {
-            print( 'Pruning via geohash')
-            df_location_filtered %>%
-              prune_gps_geohash( gh_precision=input$geohash_precision, minpoints=input$geohash_n) %>% 
-              { . } -> df_location_filtered
-          }
-          shiny::validate(
-            shiny::need(nrow(df_location_filtered) != 0, "No data available for chosen filters!")
-            )  
-          df_location_filtered
-        })
-
-        dfm_pruned_points = reactive( {
-          df_location_filtered() %>%
-            sf::st_as_sf( coords = c("longitude", "latitude"), crs = 4326, agr = "constant")
-        })
-
-        dfm_single  = reactive({ dfm_pruned_points() %>% head(1) })
-
-        dfm_pruned_lines = reactive( {
-          dfm_pruned_points () %>%
-            arrange(timestamp) %>%
-            summarise(do_union = FALSE) %>%
-            sf::st_cast("LINESTRING")  
-        })
-
-        dfm_staypoints = reactive({
-          df_location_filtered()  %>% 
-          { . } -> df_sp_temp
-        print( paste( 'finding Staypoints, n=',  nrow( df_sp_temp)))
-
-        df_sp_temp %>%
-            findStayPoint(
-                          max_jump_time = input$max_jump_time,
-                          min_staypoint_time= input$min_staypoint_time,
-                          max_staypoint_distance= input$max_staypoint_distance
-                          ) %>%
-          filter( n_staypoint > 0 ) %>%
-          group_by( n_staypoint) %>%
-          summarise( latitude = mean( latitude),
-                    longitude = mean( longitude),
-                    time = round((max( timestamp ) - min(timestamp)) / 60, 1)) %>%
-          sf::st_as_sf( coords = c("longitude", "latitude"), crs = 4326) %>% 
-          { . } -> df_rv
-
-          shiny::validate( shiny::need(nrow(df_rv) != 0, "No staypoints available for chosen filters and points!"))  
-          df_rv
-        })
-
-        dfm_surveys = reactive({
-          print( 'Where are the surveys')
-
-          df_all_ts %>%
-            inner_join( df_people_nights %>% filter( id == input$person_night ), by=c('userid', 'night')) %>%
-            distinct( which, timestamp, userid, night) %>%
-            fuzzyjoin::difference_join( y=df_location_filtered() , by=c('timestamp'), max_dist=30000, distance_col='ts_dist')  %>%
-            filter( !is.na( ts_dist )) %>%
-            group_by(which, timestamp.x) %>%  # find the point that is the at the minimum distance for each timestamp
-            filter( ts_dist == min(ts_dist )) %>%
-            sf::st_as_sf( coords = c("longitude", "latitude"), crs = 4326)
-
-        })
+          checkboxGroupInput("interpolation_delay", label = "Interpolate points between points with at least this gap (min)",
+          choices = list(
+                        "2" = "120" ,
+                        "5" = "300" ,
+                        "10" = "600"
+                        ),
+          selected='120'),
+          checkboxGroupInput("accuracy", label = "Discard points with less than this GPS accuracy (m)",
+          choices = list(
+                          "10" =  "10" ,
+                          "100" ="100"
+                          ),
+          selected='100'),
 
 
-        output$map = renderLeaflet( {
+          checkboxGroupInput("show_what", label = h3("Display?"),
+                              choices = list(
+                                            "4square bars (orange)" = "4square bars" ,
+                                            "survey points (green)" ="survey points" ,
+                                            "staypoints (red)" =   "staypoints"    ),
+                              selected=c('staypoints', 'survey points')
+                              )
+          ),
+    mainPanel(
+              tmapOutput("map", width = "100%", height = 600) ,
+              verbatimTextOutput("summary")
+            )
+))
+################################################################################
+server = function(input, output, session) {
+  # generate the route
+  scale_big = 0.5
+  scale_medium = 0.3
+  scale_small = 0.05
+#browser()
 
-          crop_via_points <- function( dfm, type="point" ) {
-            rv = dfm %>% st_crop( dfm_pruned_points() %>% st_bbox() ) 
-            if (nrow(rv) == 0) {
-              showNotification(paste( "I have no points of type ", type), type='warning')
-              rv = dfm_single()
-            }
-            rv
-          }
+  df_person_night = reactive({
+      df_people_nights %>%
+        filter( id == input$person_night )
+  })
 
-          input$goButton
-          isolate( {
-          print( 'generating Map')
+  df_pruned_points = reactive({
+    df_location %>%
+      inner_join( df_person_night(), by=c('userid', 'night'))
+  })
 
-          tm <-  tm_scale_bar(position=c("left", "bottom")) +
-            tm_basemap(leaflet::providers$Stamen.TonerLite)
+  dfm_pruned_points = reactive({
+    df_pruned_points() %>%
+      sf::st_as_sf( coords = c("longitude", "latitude"), crs = 4326, agr = "constant")
+  })
 
-          if ("OSM leisure" %in% input$show_what ) {
+  dfm_location_person_night = reactive({
+    dfm_pruned_points() %>%
+      arrange( timestamp ) %>%
+      summarise(do_union = FALSE) %>%
+      sf::st_cast("LINESTRING")
+    })
 
-            tm <- tm +
-              tm_shape( dfm_osm_leisure$osm_points %>% filter( !is.na( leisure)) %>% crop_via_points() ) +
-              tm_symbols( col='grey', scale=scale_medium, id='name', shape=icon_park)+
-              tm_shape( dfm_osm_leisure$osm_polygon %>% filter( !is.na( leisure)) %>% crop_via_points() ) +
-              tm_polygons( col='grey', id='name')
+  dfm_staypoint_person_night = reactive({
+    #staypoints_distance_120_300_10_interpolated_locations_120_filtered_accuracy_10
+    str_c( input$staypoint_algorithm,
+          'distance',
+            input$max_jump_time,
+            input$min_staypoint_time,
+            input$max_staypoint_distance,
+            'interpolated_locations',
+            input$interpolation_delay,
+            'filtered_accuracy',
+            input$accuracy, sep='_') %>%
+    readd( character_only=TRUE) %>%
+    inner_join( df_person_night(), by=c('userid', 'night'))  %>%
+  sf::st_as_sf( coords = c("longitude", "latitude"), crs = 4326, agr = "constant")
+  })
 
-          }
-          if ("OSM amenities" %in% input$show_what ) {
-            tm <- tm +
-              tm_shape( dfm_osm_amenities$osm_points %>% filter( !is.na( amenity)) %>% crop_via_points() ) +
-              tm_symbols( col='blue', scale=scale_medium, id='name', shape=icon_bar)+
-              tm_shape( dfm_osm_amenities$osm_polygon %>% filter( !is.na( amenity)) %>% crop_via_points() ) +
-              tm_polygons(col='blue',  id='name')
-          }
-          if ("4square bars" %in% input$show_what ) {
+  dfm_surveys = reactive({
+    print( 'Where are the predictable surveys')
+    #browser()
 
-            tm <- tm +
-              tm_shape( dfm_bars %>% crop_via_points() ) +
-              tm_symbols( col='orange', scale=scale_medium, id='name', alpha=.3, shape=icon_bar)
+    df_predictable_surveys %>%
+      inner_join( df_person_night(), by=c('userid', 'night')) %>%
+      distinct( timestamp ) %>%
+      fuzzyjoin::difference_join( y=df_pruned_points() , by=c('timestamp'), max_dist=30000, distance_col='ts_dist')  %>%
+      filter( !is.na( ts_dist )) %>%
+      group_by(timestamp.x) %>%  # find the point that is the at the minimum distance for each timestamp
+      filter( ts_dist == min(ts_dist )) %>%
+      { . } -> df_temp
 
-          }
-          if ("survey points" %in% input$show_what ) {
+    if (nrow(df_temp ) == 0 )  {
+      dfm_pruned_points() %>% head(1)
+    } else {
+      df_temp %>% sf::st_as_sf( coords = c("longitude", "latitude"), crs = 4326)
+    }
+  })
 
-            tm <- tm +
-              tm_shape( dfm_surveys() ) +
-              tm_symbols( col='red', scale=scale_big,alpha=.5, shape=icon_survey )
+  output$map <- reactive({ renderTmap({
+    tm_scale_bar(position=c("left", "bottom")) +
+      tm_basemap(leaflet::providers$Stamen.TonerLite) +
+      tm_shape( dfm_location_person_night() )  +
+      tm_lines( alpha=.5) +
+      tm_shape( dfm_pruned_points() ) +
+      tm_symbols( col='black', scale=scale_small, alpha=.5, shape=24) +
+      tm_shape( dfm_staypoint_person_night() ) +
+      tm_symbols( col='green', scale=scale_big,alpha=.5 , shape=23, zindex=401)
+  }) })
 
-          }
-          if ("staypoints" %in% input$show_what ) {
+  observe({
+    show_what <- input$show_what
+    tmapProxy("map", session, {
 
-            tm <- tm +
-              tm_shape( dfm_staypoints() ) +
-              tm_symbols( col='green', scale=scale_big,alpha=.5 , shape=23)
+      crop_via_points <- function( dfm, type="point" ) {
+        rv = dfm %>% st_crop( dfm_pruned_points() %>% st_bbox())
+        if (nrow(rv) == 0) {
+          showNotification(paste( "I have no points of type ", type, 'in the area specified'), type='warning')
+          rv = dfm_pruned_points() %>% head(1)
+        }
+        rv
+      }
+
+      tm = tm_remove_layer(401)
+
+      if ("4square bars" %in% show_what ) {
+
+        tm <- tm +
+          tm_shape( dfm_bars %>% crop_via_points() ) +
+          tm_symbols( col='orange', scale=scale_medium, id='name', alpha=.3, shape=icon_bar, zindex = 401)
+
+      }
+      if ("survey points" %in% show_what ) {
+
+        tm <- tm +
+          tm_shape( dfm_surveys() ) +
+          tm_symbols( col='red', scale=scale_big,alpha=.5, shape=icon_survey , zindex = 401)
+
+      }
+      if ("staypoints" %in% show_what ) {
+
+        tm <- tm +
+          tm_shape( dfm_staypoint_person_night() ) +
+          tm_symbols( col='green', scale=scale_big,alpha=.5 , shape=23, zindex = 401)
+
+      }
+    })
+  })
+
+    #  browser()
+    print( 'finished')
 
 
-            }
-          })
+    output$summary = renderPrint({
+        rv = paste( '# points', nrow( df_pruned_points() ), "<p>")
+        if ("staypoints" %in% input$show_what ) {
+          rv = paste( rv, '# staypoints', nrow( dfm_staypoint_person_night() ), "<p>")
+        }
+        rv
+      })
 
-          tm <- tm +
-            tm_shape( dfm_pruned_lines() )  +
-            tm_lines( alpha=.5) +
-            tm_shape( dfm_pruned_points() ) +
-            tm_symbols( col='black', scale=scale_small, alpha=.5, shape=24)
+}
 
-            browser()
-          print( 'finished')
-          tmap_leaflet(tm)
 
-        })
-
-          output$summary = renderPrint({
-            input$goButton
-            isolate( {
-              rv = paste( '# points', nrow( df_location_filtered() ), "\n")
-              if ("staypoints" %in% input$show_what ) {
-                rv = paste( rv, '# staypoints', nrow( dfm_staypoints() ), "\n")
-              }
-              rv 
-            })
-          })
-
-      }))
-
+app <- shinyApp(ui, server)
+app

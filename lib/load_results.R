@@ -52,6 +52,11 @@ get_df_results = function() {
     janitor::clean_names() %>%
     { . } -> df1
 
+
+  readd(df_matching_predictable_surveys_all ) %>%
+    fix_source() %>% 
+    { . } -> df_predictions
+
   readd(df_all_sp_match_survey) %>%
     fix_source() %>%
     group_by( source ) %>%
@@ -66,6 +71,7 @@ get_df_results = function() {
   df1 %>%
     inner_join( df2, by='source') %>%
     inner_join( df3 , by='source') %>%
+    inner_join( df_predictions , by='source') %>%
   decipher_source() %>%
   mutate( precision =  (sp /(sp+non_sp)), recall = (sp/(sp+sp_total))) %>%
   { . } -> df
@@ -73,6 +79,8 @@ get_df_results = function() {
 }
 
 df_results = get_df_results()
+
+df_results %>% distinct( base_file )
 
 
 
