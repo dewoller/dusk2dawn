@@ -15,7 +15,7 @@ sp_max_staypoint_distance_range <- c(10,20, 30, 50, 100)
 sigma_range <- c(.5, 1, 2, 3, 100)
 # gh_precision_range=7:9
 # gh_minpoints_range=0:2*6+3
-accuracy_range <- c(100, 10)
+accuracy_range <- c(100, 20, 10)
 interpolation_delay_range <- c(120, 300, 600)
 # iterations_range=c(10,100,1000)
 # hm_range =  c( 1, 10, 100)
@@ -81,7 +81,7 @@ drakeplan <- drake::drake_plan(
                                     max_jump_time = max_jump_time,
                                     min_staypoint_time = min_staypoint_time,
                                     max_staypoint_distance = max_staypoint_distance),
-            transform = cross(interpolated_locations,
+            transform = cross(filtered_data,
                               max_jump_time = !!sp_max_jump_time_range,
                               min_staypoint_time = !!sp_min_staypoint_time_range,
                               max_staypoint_distance = !!sp_max_staypoint_distance_range,
