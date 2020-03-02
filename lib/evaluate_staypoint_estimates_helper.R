@@ -1216,6 +1216,7 @@ summarise_staypoints = function( df_staypoints ) {
               max_latitude=max(latitude),
               min_longitude=min(longitude),
               max_longitude=max(longitude),
+              size_msq =  ll2m( latitude_max - latitude_min, m_per_latitude) * ll2m( longitude_max - longitude_min, m_per_longitude) ,
               ts_min = min(timestamp),
               ts_max = max(timestamp),
               ts_duration = ts_max - ts_min,
